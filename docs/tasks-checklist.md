@@ -133,16 +133,16 @@
 - [x] Auto-assignment rule evaluation engine on task create and status change
 
 ### 3.6 Cloud Storage (AWS S3) & Media Service
-- [ ] Configure AWS SDK v3 S3 client
-- [ ] `POST /api/v1/attachments/presigned-upload-url`: Generate time-limited pre-signed PUT URL
-- [ ] `GET /api/v1/attachments/:id/presigned-download-url`: Generate secure pre-signed GET URL
-- [ ] Attachment metadata registration and association with Tasks / Comments / User Avatars
+- [x] Configure AWS SDK v3 S3 client
+- [x] `POST /api/v1/attachments/presigned-upload-url`: Generate time-limited pre-signed PUT URL
+- [x] `GET /api/v1/attachments/:id/presigned-download-url`: Generate secure pre-signed GET URL
+- [x] Attachment metadata registration and association with Tasks / Comments / User Avatars
 
 ### 3.7 Notifications & Audit Service
-- [ ] In-App notification list and mark-as-read endpoints (`/api/v1/notifications`)
-- [ ] Firebase Cloud Messaging (FCM) integration service for push notifications
-- [ ] AWS SES / SendGrid email notification dispatch service
-- [ ] Central Audit Log querying endpoint (`/api/v1/audit-logs`) with date/entity filters
+- [x] In-App notification list and mark-as-read endpoints (`/api/v1/notifications`)
+- [x] Firebase Cloud Messaging (FCM) integration service for push notifications
+- [x] AWS SES / SendGrid email notification dispatch service
+- [x] Central Audit Log querying endpoint (`/api/v1/audit-logs`) with date/entity filters
 
 ---
 

@@ -18,6 +18,9 @@ import { AssignmentModule } from './modules/assignment/assignment.module';
 import { TasksModule } from './modules/tasks/tasks.module';
 import { TimeLogsModule } from './modules/time-logs/time-logs.module';
 import { CommentsModule } from './modules/comments/comments.module';
+import { AttachmentsModule } from './modules/attachments/attachments.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
+import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { DynamicRbacGuard } from './modules/rbac/rbac.guard';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
@@ -47,6 +50,9 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
     TasksModule,
     TimeLogsModule,
     CommentsModule,
+    AttachmentsModule,
+    NotificationsModule,
+    AuditLogsModule,
   ],
   providers: [
     {

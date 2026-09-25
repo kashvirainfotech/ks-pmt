@@ -186,3 +186,25 @@ BEGIN
     );
 
 END $$;
+
+-- ========================================================
+-- Date & Time: 2026-09-25 15:10:00 (UTC)
+-- Description: Add AUDIT_LOGS and NOTIFICATIONS permissions
+-- ========================================================
+DO $$
+DECLARE
+    v_admin_id UUID := '00000000-0000-0000-0000-000000000001';
+    v_role_super_admin UUID := '00000000-0000-0000-0000-000000000101';
+BEGIN
+    INSERT INTO permissions (module, action, permission_code, description, is_active, created_by)
+    VALUES 
+        ('AUDIT_LOGS', 'VIEW', 'AUDIT_LOGS:VIEW', 'Permission to view system audit logs', TRUE, v_admin_id),
+        ('NOTIFICATIONS', 'MANAGE', 'NOTIFICATIONS:MANAGE', 'Permission to broadcast system notifications', TRUE, v_admin_id)
+    ON CONFLICT (permission_code) DO NOTHING;
+
+    INSERT INTO role_permissions (role_id, permission_id, created_by)
+    SELECT v_role_super_admin, p.id, v_admin_id
+    FROM permissions p
+    WHERE p.permission_code IN ('AUDIT_LOGS:VIEW', 'NOTIFICATIONS:MANAGE')
+    ON CONFLICT (role_id, permission_id) DO NOTHING;
+END $$;
