@@ -80,6 +80,38 @@ export class VersionsService {
     return result.rows;
   }
 
+  async findAll(productId?: string, projectId?: string) {
+    let whereClause = 'WHERE v.is_active = TRUE';
+    const params: any[] = [];
+    if (productId) {
+      params.push(productId);
+      whereClause += ` AND v.product_id = $${params.length}`;
+    }
+    if (projectId) {
+      params.push(projectId);
+      whereClause += ` AND v.project_id = $${params.length}`;
+    }
+
+    const query = `
+      SELECT 
+        v.*,
+        pr.product_name,
+        p.project_name,
+        COUNT(DISTINCT t.id) AS total_tasks_count,
+        COUNT(DISTINCT CASE WHEN ts.is_terminal THEN t.id END) AS completed_tasks_count
+      FROM versions v
+      LEFT JOIN products pr ON v.product_id = pr.id
+      LEFT JOIN projects p ON v.project_id = p.id
+      LEFT JOIN tasks t ON v.id = t.version_id
+      LEFT JOIN task_statuses ts ON t.status_id = ts.id
+      ${whereClause}
+      GROUP BY v.id, pr.product_name, p.project_name
+      ORDER BY v.created_at DESC;
+    `;
+    const result = await this.db.query(query, params);
+    return result.rows;
+  }
+
   async findOne(id: string) {
     const query = `
       SELECT 

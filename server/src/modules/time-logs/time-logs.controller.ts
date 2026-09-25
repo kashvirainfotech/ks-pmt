@@ -44,6 +44,16 @@ export class TimeLogsController {
     };
   }
 
+  @Get()
+  @ApiOperation({ summary: 'Get all timesheet worklogs with pagination and filtering' })
+  async findAll(@Query() query: QueryTimeLogDto) {
+    const data = await this.timeLogsService.findAll(query);
+    return {
+      message: 'Worklogs retrieved successfully',
+      data,
+    };
+  }
+
   @Get('task/:taskId')
   @ApiOperation({
     summary: 'Get all worklogs for a task with billable/non-billable totals',

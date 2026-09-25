@@ -108,7 +108,8 @@ export class AuditLogsService {
         al.user_id,
         CONCAT(u.first_name, ' ', u.last_name) AS user_name,
         u.email AS user_email,
-        u.employee_id,
+        u.employee_code AS employee_id,
+        u.employee_code,
         al.action_type,
         al.entity_name,
         al.record_id,
@@ -145,7 +146,8 @@ export class AuditLogsService {
         al.*,
         CONCAT(u.first_name, ' ', u.last_name) AS user_name,
         u.email AS user_email,
-        u.employee_id
+        u.employee_code AS employee_id,
+        u.employee_code
       FROM audit_logs al
       LEFT JOIN users u ON u.id = al.user_id
       WHERE al.id = $1;

@@ -67,6 +67,72 @@ export class TimeLogsService {
     };
   }
 
+  async findAll(query: QueryTimeLogDto) {
+    const params: any[] = [];
+    const whereClauses: string[] = ['1=1'];
+
+    if (query.userId) {
+      params.push(query.userId);
+      whereClauses.push(`tl.user_id = $${params.length}`);
+    }
+
+    if (query.taskId) {
+      params.push(query.taskId);
+      whereClauses.push(`tl.task_id = $${params.length}`);
+    }
+
+    if (query.startDate) {
+      params.push(query.startDate);
+      whereClauses.push(`tl.log_date >= $${params.length}`);
+    }
+
+    if (query.endDate) {
+      params.push(query.endDate);
+      whereClauses.push(`tl.log_date <= $${params.length}`);
+    }
+
+    const whereSql = `WHERE ${whereClauses.join(' AND ')}`;
+
+    const countQuery = `SELECT COUNT(*) AS total FROM task_time_logs tl ${whereSql};`;
+    const countResult = await this.db.query(countQuery, params);
+    const totalCount = parseInt(countResult.rows[0].total, 10);
+
+    const limit = query.limit ? Number(query.limit) : 50;
+    const page = query.page ? Number(query.page) : 1;
+    const offset = (page - 1) * limit;
+
+    const dataSql = `
+      SELECT 
+        tl.*,
+        ROUND(tl.hours_spent * 60) AS duration_minutes,
+        CONCAT(u.first_name, ' ', u.last_name) AS user_name,
+        u.employee_code,
+        u.avatar_s3_key,
+        t.task_code,
+        t.title AS task_title,
+        p.project_name,
+        pr.product_name
+      FROM task_time_logs tl
+      INNER JOIN users u ON tl.user_id = u.id
+      INNER JOIN tasks t ON tl.task_id = t.id
+      LEFT JOIN projects p ON t.project_id = p.id
+      LEFT JOIN products pr ON t.product_id = pr.id
+      ${whereSql}
+      ORDER BY tl.log_date DESC, tl.created_at DESC
+      LIMIT ${limit} OFFSET ${offset};
+    `;
+
+    const result = await this.db.query(dataSql, params);
+
+    return {
+      timeLogs: result.rows,
+      totalCount,
+      page,
+      limit,
+      totalPages: Math.ceil(totalCount / limit) || 1,
+    };
+  }
+
   async findMyLogs(userId: string, query: QueryTimeLogDto) {
     const params: any[] = [userId];
     const whereClauses: string[] = ['tl.user_id = $1'];

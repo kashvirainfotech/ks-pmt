@@ -7,6 +7,7 @@ import {
   Patch,
   Post,
   Put,
+  Query,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -37,6 +38,19 @@ export class VersionsController {
     const data = await this.versionsService.create(dto, userId);
     return {
       message: 'Version created successfully',
+      data,
+    };
+  }
+
+  @Get()
+  @ApiOperation({ summary: 'Get all versions and releases' })
+  async findAll(
+    @Query('productId') productId?: string,
+    @Query('projectId') projectId?: string,
+  ) {
+    const data = await this.versionsService.findAll(productId, projectId);
+    return {
+      message: 'Versions retrieved successfully',
       data,
     };
   }

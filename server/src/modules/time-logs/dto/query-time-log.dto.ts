@@ -21,4 +21,12 @@ export class QueryTimeLogDto {
   @IsUUID()
   @IsOptional()
   userId?: string;
+
+  @ApiPropertyOptional({ description: 'Page limit' })
+  @IsOptional()
+  limit?: number;
+
+  @ApiPropertyOptional({ description: 'Page number' })
+  @IsOptional()
+  page?: number;
 }
