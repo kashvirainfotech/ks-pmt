@@ -33,7 +33,7 @@ api.interceptors.request.use(
     }
 
     const branchId = localStorage.getItem('ks_selected_branch_id');
-    if (branchId && config.headers) {
+    if (branchId && branchId !== 'undefined' && branchId !== 'null' && config.headers) {
       config.headers['X-Branch-ID'] = branchId;
     }
 

@@ -32,22 +32,34 @@ export class CreateProjectDto {
   description?: string;
 
   @ApiPropertyOptional({ example: '77777777-7777-7777-7777-777777777771', description: 'Client UUID' })
-  @Transform(({ value }) => (value === '' || value === null ? undefined : value))
-  @ValidateIf((o, v) => v !== undefined && v !== null && v !== '')
+  @Transform(({ value }) =>
+    typeof value === 'string' &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value.trim())
+      ? value.trim()
+      : undefined,
+  )
   @IsUUID()
   @IsOptional()
   clientId?: string;
 
   @ApiPropertyOptional({ example: '11111111-1111-1111-1111-111111111111', description: 'Branch UUID executing the project' })
-  @Transform(({ value }) => (value === '' || value === null ? undefined : value))
-  @ValidateIf((o, v) => v !== undefined && v !== null && v !== '')
+  @Transform(({ value }) =>
+    typeof value === 'string' &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value.trim())
+      ? value.trim()
+      : undefined,
+  )
   @IsUUID()
   @IsOptional()
   branchId?: string;
 
   @ApiPropertyOptional({ example: '00000000-0000-0000-0000-000000000001', description: 'Project Manager User UUID' })
-  @Transform(({ value }) => (value === '' || value === null ? undefined : value))
-  @ValidateIf((o, v) => v !== undefined && v !== null && v !== '')
+  @Transform(({ value }) =>
+    typeof value === 'string' &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value.trim())
+      ? value.trim()
+      : undefined,
+  )
   @IsUUID()
   @IsOptional()
   projectManagerUserId?: string;

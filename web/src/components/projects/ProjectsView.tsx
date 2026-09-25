@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { projectsApi, mastersApi } from '../../api/endpoints';
-import { Project, Product, Client, Version } from '../../types';
+import { Project, Product, Client, Version, User } from '../../types';
 import { useAuth } from '../../context/AuthContext';
 import {
   FolderKanban,
@@ -15,12 +15,13 @@ import {
 } from 'lucide-react';
 
 export const ProjectsView: React.FC = () => {
-  const { user, selectedBranchId } = useAuth();
+  const { user, selectedBranchId, branches } = useAuth();
   const [activeTab, setActiveTab] = useState<'projects' | 'products' | 'versions'>('projects');
   const [projects, setProjects] = useState<Project[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [versions, setVersions] = useState<Version[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
 
   // New Project Modal
@@ -28,24 +29,39 @@ export const ProjectsView: React.FC = () => {
   const [projectName, setProjectName] = useState('');
   const [projectCode, setProjectCode] = useState('');
   const [clientId, setClientId] = useState('');
+  const [projectBranchId, setProjectBranchId] = useState('');
+  const [projectManagerId, setProjectManagerId] = useState('');
   const [billingType, setBillingType] = useState('FIXED_COST');
   const [contractAmount, setContractAmount] = useState('500000');
   const [budgetHours, setBudgetHours] = useState('200');
 
+  // Synchronize modal branch when selectedBranchId changes or modal opens
+  useEffect(() => {
+    if (selectedBranchId) {
+      setProjectBranchId(selectedBranchId);
+    } else if (user?.primary_branch_id) {
+      setProjectBranchId(user.primary_branch_id);
+    } else if (branches.length > 0) {
+      setProjectBranchId(branches[0].id);
+    }
+  }, [selectedBranchId, user, branches, createProjectOpen]);
+
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [projRes, prodRes, verRes, clientRes]: any = await Promise.all([
-        projectsApi.getProjects(),
+      const [projRes, prodRes, verRes, clientRes, usersRes]: any = await Promise.all([
+        projectsApi.getProjects(selectedBranchId ? { branchId: selectedBranchId } : undefined),
         projectsApi.getProducts(),
         projectsApi.getVersions(),
         projectsApi.getClients(),
+        mastersApi.getUsers({ limit: 100 }),
       ]);
 
       setProjects(projRes?.data || projRes || []);
       setProducts(prodRes?.data || prodRes || []);
       setVersions(verRes?.data || verRes || []);
       setClients(clientRes?.data || clientRes || []);
+      setUsers(usersRes?.data?.users || usersRes?.data || []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -55,13 +71,17 @@ export const ProjectsView: React.FC = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [selectedBranchId]);
+
+  const isUUID = (val?: string | null): val is string =>
+    typeof val === 'string' &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val.trim());
 
   const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const branchIdToSend = selectedBranchId || user?.primary_branch_id;
-      const pmIdToSend = user?.id;
+      const branchIdToSend = projectBranchId || selectedBranchId || user?.primary_branch_id;
+      const pmIdToSend = projectManagerId || user?.id;
 
       const payload: any = {
         projectName,
@@ -71,13 +91,13 @@ export const ProjectsView: React.FC = () => {
         budgetedHours: parseFloat(budgetHours) || 0,
       };
 
-      if (clientId && typeof clientId === 'string' && clientId.trim() !== '') {
+      if (isUUID(clientId)) {
         payload.clientId = clientId.trim();
       }
-      if (branchIdToSend && typeof branchIdToSend === 'string' && branchIdToSend.trim() !== '') {
+      if (isUUID(branchIdToSend)) {
         payload.branchId = branchIdToSend.trim();
       }
-      if (pmIdToSend && typeof pmIdToSend === 'string' && pmIdToSend.trim() !== '') {
+      if (isUUID(pmIdToSend)) {
         payload.projectManagerUserId = pmIdToSend.trim();
       }
 
@@ -178,6 +198,17 @@ export const ProjectsView: React.FC = () => {
                     <p className="text-[11px] text-slate-400">
                       Client: {p.client_name || 'Internal Product'}
                     </p>
+                    <div className="mt-1 flex items-center gap-1.5 text-[10px] text-slate-500 dark:text-slate-400">
+                      <span className="inline-flex items-center gap-1 rounded bg-slate-100 px-1.5 py-0.5 dark:bg-slate-800">
+                        <Building className="h-3 w-3 text-blue-500" />
+                        {p.branch_name || 'Head Office'}
+                      </span>
+                      {p.project_manager_name && (
+                        <span className="text-slate-400">
+                          PM: {p.project_manager_name}
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <span className="rounded-lg bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
                     {p.billing_type?.replace(/_/g, ' ')}
@@ -303,6 +334,39 @@ export const ProjectsView: React.FC = () => {
           <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-slate-900">
             <h3 className="text-base font-bold text-slate-900 dark:text-white">Add New Project</h3>
             <form onSubmit={handleCreateProject} className="mt-4 space-y-3 text-xs">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="font-semibold text-slate-700 dark:text-slate-300">Operating Branch *</label>
+                  <select
+                    value={projectBranchId}
+                    onChange={(e) => setProjectBranchId(e.target.value)}
+                    required
+                    className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 dark:border-slate-700 dark:bg-slate-800"
+                  >
+                    {branches.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.branch_name} {b.is_head_office ? '(HQ)' : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="font-semibold text-slate-700 dark:text-slate-300">Project Manager</label>
+                  <select
+                    value={projectManagerId}
+                    onChange={(e) => setProjectManagerId(e.target.value)}
+                    className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 dark:border-slate-700 dark:bg-slate-800"
+                  >
+                    <option value="">Current User ({user?.first_name || 'Admin'})</option>
+                    {users.map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {u.first_name} {u.last_name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
               <div>
                 <label className="font-semibold text-slate-700 dark:text-slate-300">Project Code *</label>
                 <input

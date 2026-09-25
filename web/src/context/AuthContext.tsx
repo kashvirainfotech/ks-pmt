@@ -22,15 +22,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [branches, setBranches] = useState<Branch[]>([]);
-  const [selectedBranchId, setSelectedBranchIdState] = useState<string | null>(
-    localStorage.getItem('ks_selected_branch_id') || null,
-  );
+  const [selectedBranchId, setSelectedBranchIdState] = useState<string | null>(() => {
+    const saved = localStorage.getItem('ks_selected_branch_id');
+    return saved && saved !== 'undefined' && saved !== 'null' ? saved : null;
+  });
 
   const setSelectedBranchId = (branchId: string | null) => {
-    setSelectedBranchIdState(branchId);
-    if (branchId) {
+    if (branchId && branchId !== 'undefined' && branchId !== 'null') {
+      setSelectedBranchIdState(branchId);
       localStorage.setItem('ks_selected_branch_id', branchId);
     } else {
+      setSelectedBranchIdState(null);
       localStorage.removeItem('ks_selected_branch_id');
     }
   };

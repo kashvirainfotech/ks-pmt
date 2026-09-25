@@ -24,8 +24,12 @@ export class ProjectsService {
       throw new BadRequestException(`Project code '${dto.projectCode}' already exists.`);
     }
 
+    const isValidUuid = (val?: string | null) =>
+      typeof val === 'string' &&
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val);
+
     // Resolve branch ID
-    let branchId = dto.branchId || activeBranchId;
+    let branchId = isValidUuid(dto.branchId) ? dto.branchId : (isValidUuid(activeBranchId) ? activeBranchId : undefined);
     if (!branchId) {
       const branchRes = await this.db.query(
         `SELECT primary_branch_id FROM users WHERE id = $1;`,
@@ -41,7 +45,7 @@ export class ProjectsService {
     }
 
     // Resolve Project Manager User ID
-    const projectManagerUserId = dto.projectManagerUserId || userId;
+    const projectManagerUserId = isValidUuid(dto.projectManagerUserId) ? dto.projectManagerUserId : userId;
 
     // Resolve billing type (map FIXED_PRICE to FIXED_COST)
     let billingType = dto.billingType || 'FIXED_COST';

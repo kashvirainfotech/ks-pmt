@@ -211,6 +211,7 @@ export interface Project {
   client_name?: string;
   branch_id: string;
   branch_name?: string;
+  project_manager_name?: string;
   billing_type: 'FIXED_PRICE' | 'TIME_AND_MATERIALS' | 'RETAINER' | 'NON_BILLABLE';
   contract_amount?: number;
   hourly_rate?: number;
