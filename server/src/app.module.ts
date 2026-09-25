@@ -10,6 +10,10 @@ import { DesignationsModule } from './modules/designations/designations.module';
 import { UsersModule } from './modules/users/users.module';
 import { TaskTypesModule } from './modules/task-types/task-types.module';
 import { TaskWorkflowsModule } from './modules/task-workflows/task-workflows.module';
+import { ClientsModule } from './modules/clients/clients.module';
+import { ProductsModule } from './modules/products/products.module';
+import { ProjectsModule } from './modules/projects/projects.module';
+import { VersionsModule } from './modules/versions/versions.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { DynamicRbacGuard } from './modules/rbac/rbac.guard';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
@@ -31,6 +35,10 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
     UsersModule,
     TaskTypesModule,
     TaskWorkflowsModule,
+    ClientsModule,
+    ProductsModule,
+    ProjectsModule,
+    VersionsModule,
   ],
   providers: [
     {

@@ -114,13 +114,13 @@
 - [x] Workflow Status Transitions CRUD (`/api/v1/task-workflows`)
 
 ### 3.4 Business & CRM Modules
-- [ ] Clients & Prospects CRUD (`/api/v1/clients`)
-- [ ] Client conversion endpoint (Prospect -> Active Client)
-- [ ] Products CRUD (`/api/v1/products`) with license pricing and AMC rates
-- [ ] Client-Product License Mapping (`/api/v1/products/:id/clients`)
-- [ ] Projects CRUD (`/api/v1/projects`) with budgets, billing rates, and dates
-- [ ] Project Team Allocation (`/api/v1/projects/:id/members`)
-- [ ] Versions & Milestones CRUD (`/api/v1/versions`) for both products and projects
+- [x] Clients & Prospects CRUD (`/api/v1/clients`)
+- [x] Client conversion endpoint (Prospect -> Active Client)
+- [x] Products CRUD (`/api/v1/products`) with license pricing and AMC rates
+- [x] Client-Product License Mapping (`/api/v1/products/:id/clients`)
+- [x] Projects CRUD (`/api/v1/projects`) with budgets, billing rates, and dates
+- [x] Project Team Allocation (`/api/v1/projects/:id/members`)
+- [x] Versions & Milestones CRUD (`/api/v1/versions`) for both products and projects
 
 ### 3.5 Dynamic Task Management Engine
 - [ ] Tasks CRUD (`/api/v1/tasks`) with multi-assignee payload
