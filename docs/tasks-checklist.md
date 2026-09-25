@@ -106,12 +106,12 @@
   - Individual user-level permission overrides
 
 ### 3.3 Masters & Organizational Modules
-- [ ] Branches CRUD (`/api/v1/branches`) with geofencing coordinates
-- [ ] Departments CRUD (`/api/v1/departments`)
-- [ ] Designations CRUD (`/api/v1/designations`) with hierarchy sorting
-- [ ] Users / Employees CRUD (`/api/v1/users`) - Admin-only user provisioning
-- [ ] Dynamic Task Types CRUD (`/api/v1/task-types`)
-- [ ] Workflow Status Transitions CRUD (`/api/v1/task-workflows`)
+- [x] Branches CRUD (`/api/v1/branches`) with geofencing coordinates
+- [x] Departments CRUD (`/api/v1/departments`)
+- [x] Designations CRUD (`/api/v1/designations`) with hierarchy sorting
+- [x] Users / Employees CRUD (`/api/v1/users`) - Admin-only user provisioning
+- [x] Dynamic Task Types CRUD (`/api/v1/task-types`)
+- [x] Workflow Status Transitions CRUD (`/api/v1/task-workflows`)
 
 ### 3.4 Business & CRM Modules
 - [ ] Clients & Prospects CRUD (`/api/v1/clients`)
