@@ -121,14 +121,14 @@ BEGIN
     ON CONFLICT (role_id, permission_id) DO NOTHING;
 
     -- 6. Initial Super Admin Account
-    -- Default password hash: '$2a$12$e6mZ8...placeholder' (can be reset via console or OTP)
+    -- Default password: Admin@123456
     INSERT INTO users (
         id, employee_code, first_name, last_name, email, mobile_number, 
         password_hash, primary_branch_id, department_id, designation_id, 
         role_id, is_email_login_allowed, is_otp_login_allowed, is_active, created_by
     ) VALUES (
         v_admin_id, 'EMP-0001', 'System', 'Administrator', 'admin@kashvirainfotech.com', '+919999900000',
-        '$2b$12$uE5tT1gXoYgKzJ7x8C0aNeP0K1l8Q4mZ5vW3yU2tS1rA0bC9dE8fG', -- Default hashed password
+        '$2a$10$vEVL52lkxWGMGBRk/VloLOGYV1xW7FNQ49ODuTSHO6lAZ5V9H7ZRO', -- Admin@123456
         v_ho_branch_id, v_eng_dept_id, v_desig_architect,
         v_role_super_admin, TRUE, TRUE, TRUE, v_admin_id
     )
@@ -217,4 +217,16 @@ BEGIN
     WHERE p.permission_code IN ('AUDIT_LOGS:VIEW', 'NOTIFICATIONS:MANAGE')
     ON CONFLICT (role_id, permission_id) DO NOTHING;
 END $$;
+
+-- ========================================================
+-- Date & Time: 2026-09-25 19:48:00 (IST)
+-- Description: Update Super Admin password hash to valid bcrypt for 'Admin@123456'
+-- ========================================================
+UPDATE users 
+SET password_hash = '$2a$10$vEVL52lkxWGMGBRk/VloLOGYV1xW7FNQ49ODuTSHO6lAZ5V9H7ZRO',
+    is_email_login_allowed = TRUE,
+    is_active = TRUE,
+    updated_at = CURRENT_TIMESTAMP
+WHERE email = 'admin@kashvirainfotech.com';
+
 
