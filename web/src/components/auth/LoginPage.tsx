@@ -113,7 +113,7 @@ export const LoginPage: React.FC = () => {
           </div>
           <div>
             <h1 className="font-extrabold text-xl tracking-tight">KS-PMT</h1>
-            <p className="text-xs text-blue-200">Kashvira Solutions Task & Product Management</p>
+            <p className="text-xs text-blue-200">Kashvira Infotech Task & Product Management</p>
           </div>
         </div>
 

@@ -1,7 +1,7 @@
 # Walkthrough: Project GitHub README Documentation
 
 ## 1. Overview
-In this task, we authored the comprehensive root [README.md](file:///c:/Projects/KashviraInfotech/ks-pmt/README.md) for the GitHub repository of **KS-PMT (Kashvira Solutions - Project & Product Management Tool)**.
+In this task, we authored the comprehensive root [README.md](file:///c:/Projects/KashviraInfotech/ks-pmt/README.md) for the GitHub repository of **KS-PMT (Kashvira Infotech - Project & Product Management Tool)**.
 
 The README provides prospective developers, devops teams, and enterprise evaluators with a complete, structured, and visually engaging guide to the platform.
 

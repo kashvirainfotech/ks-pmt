@@ -1,7 +1,7 @@
 # Walkthrough: Phase 8 - Cross-Platform Mobile Application (`mobile/`)
 
 ## 1. Overview
-In **Phase 8**, we built the cross-platform mobile application for **KS-PMT** (Kashvira Solutions - Project & Product Management Tool) supporting both **Android** and **iOS** using Flutter/Dart with a clean modular layered architecture.
+In **Phase 8**, we built the cross-platform mobile application for **KS-PMT** (Kashvira Infotech - Project & Product Management Tool) supporting both **Android** and **iOS** using Flutter/Dart with a clean modular layered architecture.
 
 The mobile app delivers enterprise field capabilities:
 1. **Dual Mobile Authentication**: Corporate email & password and SMS mobile OTP with countdown resend timer.

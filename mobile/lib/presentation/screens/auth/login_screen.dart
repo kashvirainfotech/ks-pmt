@@ -100,7 +100,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                         style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: -0.5),
                       ),
                       Text(
-                        'Kashvira Solutions',
+                        'Kashvira Infotech',
                         style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w500),
                       ),
                     ],

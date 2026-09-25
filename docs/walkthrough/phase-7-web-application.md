@@ -1,7 +1,7 @@
 # Walkthrough: Phase 7 - Modern Responsive Web Application (`web/`)
 
 ## 1. Overview
-In **Phase 7**, we engineered the enterprise, mobile-responsive single-page web application for KS-PMT (Kashvira Solutions - Project & Product Management Tool) using **React 18**, **Vite**, **TypeScript**, **Tailwind CSS**, and **Lucide Icons**.
+In **Phase 7**, we engineered the enterprise, mobile-responsive single-page web application for KS-PMT (Kashvira Infotech - Project & Product Management Tool) using **React 18**, **Vite**, **TypeScript**, **Tailwind CSS**, and **Lucide Icons**.
 
 The web application connects seamlessly with the NestJS backend REST APIs, providing corporate authentication, multi-branch switching, real-time notifications, interactive Kanban workflows, S3 file uploads, and organizational master controls.
 

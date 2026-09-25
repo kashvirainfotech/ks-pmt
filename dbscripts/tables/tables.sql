@@ -1,7 +1,7 @@
 -- ========================================================
 -- Date & Time: 2026-09-25 13:15:00 IST
 -- Author: Database Architect (KS-PMT)
--- Description: Core Schema Definition for Kashvira Solutions - Project & Product Management Tool
+-- Description: Core Schema Definition for Kashvira Infotech - Project & Product Management Tool
 -- PostgreSQL 14+ / 16+
 -- ========================================================
 

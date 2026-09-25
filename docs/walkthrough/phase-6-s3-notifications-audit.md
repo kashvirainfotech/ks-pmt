@@ -1,7 +1,7 @@
 # Walkthrough: Phase 6 - Cloud Storage (AWS S3), Real-Time Notifications & Audit Trail
 
 ## 1. Overview
-In **Phase 6**, we completed the cloud infrastructure, enterprise notifications, and central security auditing layers for KS-PMT (Kashvira Solutions - Project & Product Management Tool):
+In **Phase 6**, we completed the cloud infrastructure, enterprise notifications, and central security auditing layers for KS-PMT (Kashvira Infotech - Project & Product Management Tool):
 1. **Cloud File Storage (AWS S3)**: Direct-to-S3 secure pre-signed PUT/GET URL architecture eliminating server memory and bandwidth bottlenecks.
 2. **Push & In-App Notifications**: Support for user notification queries, unread badge counters, read receipts, and cross-platform push token registration for Android, iOS, and Web.
 3. **Central Audit Trail**: Tamper-evident activity logging for compliance, tracking user actions, entity modifications (old vs. new values), IP addresses, user agents, platforms, and GPS coordinates.

@@ -1,6 +1,6 @@
 # KS-PMT Enterprise Production Deployment Guide
 
-This guide provides end-to-end instructions for deploying the **KS-PMT** (Kashvira Solutions - Project & Product Management Tool) ecosystem across cloud infrastructure, databases, web applications, and mobile platforms.
+This guide provides end-to-end instructions for deploying the **KS-PMT** (Kashvira Infotech - Project & Product Management Tool) ecosystem across cloud infrastructure, databases, web applications, and mobile platforms.
 
 ---
 

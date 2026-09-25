@@ -2,7 +2,7 @@
   "name": "ks-pmt-server",
   "version": "1.0.0",
   "description": "KS-PMT Enterprise Project & Product Management REST API Backend",
-  "author": "Kashvira Solutions",
+  "author": "Kashvira Infotech",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {

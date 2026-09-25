@@ -1,6 +1,6 @@
 # Agent Rules & Guidelines (KS-PMT)
 
-This file defines the mandatory operational guidelines and constraints for AI agents and automated coding assistants working on the KS-PMT (Kashvira Solutions - Project & Product Management Tool) codebase.
+This file defines the mandatory operational guidelines and constraints for AI agents and automated coding assistants working on the KS-PMT (Kashvira Infotech - Project & Product Management Tool) codebase.
 
 ---
 

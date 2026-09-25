@@ -5,7 +5,7 @@
 
 ## 1. Executive Summary & Purpose
 
-**KS-PMT (Kashvira Solutions - Project & Product Management Tool)** is a centralized, enterprise-grade task and operations management platform designed specifically for an IT software company offering both **proprietary software products** (SaaS / on-premise solutions) and **custom project-based software development services**.
+**KS-PMT (Kashvira Infotech - Project & Product Management Tool)** is a centralized, enterprise-grade task and operations management platform designed specifically for an IT software company offering both **proprietary software products** (SaaS / on-premise solutions) and **custom project-based software development services**.
 
 The system connects multiple company branches and locations under a unified operational umbrella, providing granular control over employees, clients, products, projects, versions, task workflows, billable effort tracking, dynamic auto-assignments, and real-time notifications across modern Web and Mobile (Android & iOS) interfaces.
 

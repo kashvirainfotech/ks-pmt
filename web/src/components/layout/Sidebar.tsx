@@ -104,7 +104,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <span className="font-extrabold text-sm tracking-tight bg-gradient-to-r from-blue-600 to-indigo-500 bg-clip-text text-transparent">
                   KS-PMT
                 </span>
-                <span className="text-[10px] text-slate-400 font-medium">Kashvira Solutions</span>
+                <span className="text-[10px] text-slate-400 font-medium">Kashvira Infotech</span>
               </div>
             )}
           </div>

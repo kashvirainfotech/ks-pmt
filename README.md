@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🚀 KS-PMT (Kashvira Solutions - Project & Product Management Tool)
+# 🚀 KS-PMT (Kashvira Infotech - Project & Product Management Tool)
 
 ### *Enterprise-Grade Multi-Branch Task, Project & Product Management Ecosystem*
 
