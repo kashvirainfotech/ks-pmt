@@ -123,14 +123,14 @@
 - [x] Versions & Milestones CRUD (`/api/v1/versions`) for both products and projects
 
 ### 3.5 Dynamic Task Management Engine
-- [ ] Tasks CRUD (`/api/v1/tasks`) with multi-assignee payload
-- [ ] Sub-task creation and hierarchical tree retrieval
-- [ ] Task Status Transition endpoint (`PATCH /api/v1/tasks/:id/status`) with workflow validation
-- [ ] Multi-assignee assignment / reassignment endpoints
-- [ ] Chargeable toggle & charge amount update endpoints
-- [ ] Effort / Worklog endpoints (`POST /api/v1/tasks/:id/time-logs`)
-- [ ] Task Comments endpoints (`POST /api/v1/tasks/:id/comments`) with `@mention` parser
-- [ ] Auto-assignment rule evaluation engine on task create and status change
+- [x] Tasks CRUD (`/api/v1/tasks`) with multi-assignee payload
+- [x] Sub-task creation and hierarchical tree retrieval
+- [x] Task Status Transition endpoint (`PATCH /api/v1/tasks/:id/status`) with workflow validation
+- [x] Multi-assignee assignment / reassignment endpoints
+- [x] Chargeable toggle & charge amount update endpoints
+- [x] Effort / Worklog endpoints (`POST /api/v1/time-logs`)
+- [x] Task Comments endpoints (`POST /api/v1/comments`) with `@mention` parser
+- [x] Auto-assignment rule evaluation engine on task create and status change
 
 ### 3.6 Cloud Storage (AWS S3) & Media Service
 - [ ] Configure AWS SDK v3 S3 client

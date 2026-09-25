@@ -14,6 +14,10 @@ import { ClientsModule } from './modules/clients/clients.module';
 import { ProductsModule } from './modules/products/products.module';
 import { ProjectsModule } from './modules/projects/projects.module';
 import { VersionsModule } from './modules/versions/versions.module';
+import { AssignmentModule } from './modules/assignment/assignment.module';
+import { TasksModule } from './modules/tasks/tasks.module';
+import { TimeLogsModule } from './modules/time-logs/time-logs.module';
+import { CommentsModule } from './modules/comments/comments.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { DynamicRbacGuard } from './modules/rbac/rbac.guard';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
@@ -39,6 +43,10 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
     ProductsModule,
     ProjectsModule,
     VersionsModule,
+    AssignmentModule,
+    TasksModule,
+    TimeLogsModule,
+    CommentsModule,
   ],
   providers: [
     {
