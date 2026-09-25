@@ -86,21 +86,21 @@
 ## 3. Backend REST API Implementation (`server/`)
 
 ### 3.1 Core Architecture & Security
-- [ ] Initialize NestJS project with TypeScript, ESLint, and Prettier
-- [ ] Configure PostgreSQL database connection pool (`pg` / TypeORM / Kysely)
-- [ ] Setup Redis client for OTP caching, rate-limiting, and session management
-- [ ] Implement global Exception Filter, Logging Interceptor, and Response Envelope Interceptor
-- [ ] Implement validation pipes with `class-validator` and `class-transformer`
-- [ ] Setup Swagger / OpenAPI documentation UI at `/api/docs`
+- [x] Initialize NestJS project with TypeScript, ESLint, and Prettier
+- [x] Configure PostgreSQL database connection pool (`pg` / TypeORM / Kysely)
+- [x] Setup Redis client for OTP caching, rate-limiting, and session management
+- [x] Implement global Exception Filter, Logging Interceptor, and Response Envelope Interceptor
+- [x] Implement validation pipes with `class-validator` and `class-transformer`
+- [x] Setup Swagger / OpenAPI documentation UI at `/api/docs`
 
 ### 3.2 Authentication & Dynamic RBAC Module
-- [ ] `POST /api/v1/auth/login-password`: Authenticate with email and password
-- [ ] `POST /api/v1/auth/request-otp`: Request 6-digit OTP to registered mobile number
-- [ ] `POST /api/v1/auth/login-otp`: Verify mobile OTP and issue tokens
-- [ ] `POST /api/v1/auth/refresh-token`: Refresh short-lived access token
-- [ ] `POST /api/v1/auth/logout`: Invalidate session and revoke refresh token
-- [ ] Implement `@Roles()` and `@Permissions()` decorators
-- [ ] Dynamic RBAC Guard evaluating:
+- [x] `POST /api/v1/auth/login-password`: Authenticate with email and password
+- [x] `POST /api/v1/auth/request-otp`: Request 6-digit OTP to registered mobile number
+- [x] `POST /api/v1/auth/login-otp`: Verify mobile OTP and issue tokens
+- [x] `POST /api/v1/auth/refresh-token`: Refresh short-lived access token
+- [x] `POST /api/v1/auth/logout`: Invalidate session and revoke refresh token
+- [x] Implement `@Roles()` and `@Permissions()` decorators
+- [x] Dynamic RBAC Guard evaluating:
   - Base role permissions
   - Branch-specific permission overrides
   - Individual user-level permission overrides
