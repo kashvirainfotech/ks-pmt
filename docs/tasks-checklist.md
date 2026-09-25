@@ -149,31 +149,31 @@
 ## 4. Modern Web Application (`web/`)
 
 ### 4.1 UI Framework & Layout
-- [ ] Initialize React + Vite with TypeScript and Tailwind CSS
-- [ ] Configure Shadcn UI component library and Lucide Icons
-- [ ] Build responsive shell layout:
+- [x] Initialize React + Vite with TypeScript and Tailwind CSS
+- [x] Configure Shadcn UI component library and Lucide Icons
+- [x] Build responsive shell layout:
   - Collapsible desktop sidebar and mobile sliding drawer
   - Top navigation bar with branch switcher, notifications badge, search palette (`Ctrl+K`), and user profile
-- [ ] Setup Dark / Light mode theme provider
+- [x] Setup Dark / Light mode theme provider
 
 ### 4.2 Screens & User Flows
-- [ ] Authentication Screens: Email/Password login & Mobile/OTP login
-- [ ] Executive & Branch Bento-Grid Dashboard (KPI cards, active projects, sprint velocity, workload charts)
-- [ ] Task Management Workspace:
+- [x] Authentication Screens: Email/Password login & Mobile/OTP login
+- [x] Executive & Branch Bento-Grid Dashboard (KPI cards, active projects, sprint velocity, workload charts)
+- [x] Task Management Workspace:
   - Interactive Kanban Board with drag-and-drop status progression
   - Filterable Data Table (List View) with multi-column sorting and search
   - Calendar / Timeline view for Version milestones
-- [ ] Task Detail View (Side Drawer):
+- [x] Task Detail View (Side Drawer):
   - Inline editing of title, priority, planned/actual dates, estimated hours
   - Multi-assignee avatar chips and selector
   - Subtask checklist with quick-add
   - File attachments gallery with image preview and S3 upload progress bar
   - Interactive Time Tracker widget (Start/Pause timer + manual log entry)
   - Threaded comment section with markdown support and user mentions
-- [ ] Master Management Interfaces (Branches, Departments, Designations, Users, Dynamic Task Types)
-- [ ] Dynamic RBAC Permission Matrix UI with User and Branch override toggles
-- [ ] Clients & Projects Management with financial amount tracking (contract value, AMC, hourly billables)
-- [ ] Timesheet Review & Approval screen for Managers
+- [x] Master Management Interfaces (Branches, Departments, Designations, Users, Dynamic Task Types)
+- [x] Dynamic RBAC Permission Matrix UI with User and Branch override toggles
+- [x] Clients & Projects Management with financial amount tracking (contract value, AMC, hourly billables)
+- [x] Timesheet Review & Approval screen for Managers
 
 ---
 
