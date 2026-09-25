@@ -38,17 +38,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const refreshUser = async () => {
     try {
       const res = await authApi.getMe();
-      const userData = (res as any)?.data || res;
-      setUser(userData);
-      localStorage.setItem('ks_user', JSON.stringify(userData));
+      const raw = (res as any)?.data || res;
+      const userObj = raw?.user ? { ...raw.user, permissions: raw.permissions } : raw;
+      if (userObj) {
+        setUser(userObj);
+        localStorage.setItem('ks_user', JSON.stringify(userObj));
+      }
 
       // Fetch branches for branch switcher
       try {
         const branchesRes = await mastersApi.getBranches();
         const branchList = (branchesRes as any)?.data || branchesRes || [];
         setBranches(Array.isArray(branchList) ? branchList : []);
-        if (!selectedBranchId && userData?.primary_branch_id) {
-          setSelectedBranchId(userData.primary_branch_id);
+        if (!selectedBranchId && userObj?.primary_branch_id) {
+          setSelectedBranchId(userObj.primary_branch_id);
         }
       } catch (bErr) {
         console.warn('Could not load branches:', bErr);
@@ -80,11 +83,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     const data = res?.data || res;
-    localStorage.setItem('ks_access_token', data.accessToken);
-    localStorage.setItem('ks_refresh_token', data.refreshToken);
-    setUser(data.user);
-    if (data.user?.primary_branch_id) {
-      setSelectedBranchId(data.user.primary_branch_id);
+    const accessToken = data?.accessToken || data?.tokens?.accessToken;
+    const refreshToken = data?.refreshToken || data?.tokens?.refreshToken;
+    const userObj = data?.user ? { ...data.user, permissions: data.permissions } : data;
+
+    if (accessToken) {
+      localStorage.setItem('ks_access_token', accessToken);
+    }
+    if (refreshToken) {
+      localStorage.setItem('ks_refresh_token', refreshToken);
+    }
+    if (userObj) {
+      setUser(userObj);
+      localStorage.setItem('ks_user', JSON.stringify(userObj));
+      if (userObj.primary_branch_id) {
+        setSelectedBranchId(userObj.primary_branch_id);
+      }
     }
     await refreshUser();
   };
@@ -97,11 +111,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     const data = res?.data || res;
-    localStorage.setItem('ks_access_token', data.accessToken);
-    localStorage.setItem('ks_refresh_token', data.refreshToken);
-    setUser(data.user);
-    if (data.user?.primary_branch_id) {
-      setSelectedBranchId(data.user.primary_branch_id);
+    const accessToken = data?.accessToken || data?.tokens?.accessToken;
+    const refreshToken = data?.refreshToken || data?.tokens?.refreshToken;
+    const userObj = data?.user ? { ...data.user, permissions: data.permissions } : data;
+
+    if (accessToken) {
+      localStorage.setItem('ks_access_token', accessToken);
+    }
+    if (refreshToken) {
+      localStorage.setItem('ks_refresh_token', refreshToken);
+    }
+    if (userObj) {
+      setUser(userObj);
+      localStorage.setItem('ks_user', JSON.stringify(userObj));
+      if (userObj.primary_branch_id) {
+        setSelectedBranchId(userObj.primary_branch_id);
+      }
     }
     await refreshUser();
   };

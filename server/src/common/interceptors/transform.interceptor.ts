@@ -30,10 +30,10 @@ export class TransformInterceptor<T>
 
     return next.handle().pipe(
       map((res) => {
-        // If the handler returned an object with data and meta, extract them
-        const hasMeta = res && typeof res === 'object' && 'data' in res && 'meta' in res;
-        const data = hasMeta ? res.data : res;
-        const meta = hasMeta ? res.meta : undefined;
+        // If the handler returned an object with data, extract it and message/meta
+        const hasData = res && typeof res === 'object' && 'data' in res;
+        const data = hasData ? res.data : res;
+        const meta = res && typeof res === 'object' && 'meta' in res ? res.meta : undefined;
         const customMessage = res && typeof res === 'object' && res.message ? res.message : 'Operation successful';
 
         return {
