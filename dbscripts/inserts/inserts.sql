@@ -194,8 +194,17 @@ END $$;
 DO $$
 DECLARE
     v_admin_id UUID := '00000000-0000-0000-0000-000000000001';
-    v_role_super_admin UUID := '00000000-0000-0000-0000-000000000101';
+    v_role_super_admin UUID;
 BEGIN
+    -- Dynamically resolve Super Admin role ID (canonical ID: 44444444-4444-4444-4444-444444444441)
+    SELECT id INTO v_role_super_admin
+    FROM roles
+    WHERE role_code = 'ROLE_SUPER_ADMIN';
+
+    IF v_role_super_admin IS NULL THEN
+        v_role_super_admin := '44444444-4444-4444-4444-444444444441';
+    END IF;
+
     INSERT INTO permissions (module, action, permission_code, description, is_active, created_by)
     VALUES 
         ('AUDIT_LOGS', 'VIEW', 'AUDIT_LOGS:VIEW', 'Permission to view system audit logs', TRUE, v_admin_id),
@@ -208,3 +217,4 @@ BEGIN
     WHERE p.permission_code IN ('AUDIT_LOGS:VIEW', 'NOTIFICATIONS:MANAGE')
     ON CONFLICT (role_id, permission_id) DO NOTHING;
 END $$;
+
