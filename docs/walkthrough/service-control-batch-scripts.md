@@ -5,7 +5,7 @@ Created two automated Windows Batch (`.bat`) scripts in the root project directo
 
 ---
 
-## Files Created
+## Files
 
 1. [`start.bat`](file:///c:/Projects/KashviraInfotech/ks-pmt/start.bat)
    - Checks if `server/.env` exists and automatically provisions one from `server/.env.example` if absent.
@@ -14,9 +14,10 @@ Created two automated Windows Batch (`.bat`) scripts in the root project directo
    - Displays URLs for the Web application (`http://localhost:3000`), Backend REST API (`http://localhost:5000/api/v1`), and Swagger Documentation (`http://localhost:5000/api/docs`).
 
 2. [`stop.bat`](file:///c:/Projects/KashviraInfotech/ks-pmt/stop.bat)
-   - Targets and terminates the dedicated console windows and their child process trees using `taskkill /F /FI "WINDOWTITLE eq KS-PMT Backend Server*" /T` and `taskkill /F /FI "WINDOWTITLE eq KS-PMT Frontend Web*" /T`.
-   - Performs a secondary port scan (`netstat -aon`) on application ports (`3000`, `4000`, `5000`, `5173`) and forcefully terminates any orphaned Node.js or Vite processes still holding those ports.
-   - Provides clean status feedback upon completion.
+   - Uses PowerShell with WMI process inspection (`Get-CimInstance Win32_Process`) to locate all parent console windows and child processes running in `ks-pmt\server` and `ks-pmt\web`.
+   - Identifies any processes actively listening on application ports `3000`, `4000`, `5000`, `5173`.
+   - Invokes `taskkill /F /T /PID` against each process tree. Because the tree kill is executed on the parent console windows (`cmd.exe`) and watcher processes (`nest start --watch`, `vite`), child workers are not restarted and all terminal windows close automatically.
+   - Provides clean terminal output and auto-closes after 3 seconds.
 
 ---
 
