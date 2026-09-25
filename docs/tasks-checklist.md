@@ -206,10 +206,10 @@
 
 ## 6. Quality Assurance & Production Readiness
 
-- [ ] Static code analysis and linting across backend, web, and mobile repositories
-- [ ] Unit testing for dynamic RBAC permission evaluation and auto-assignment rules
-- [ ] Integration testing for task workflow status transitions
-- [ ] Validation of SQL scripts in `dbscripts/` (schema syntax, foreign keys, triggers)
-- [ ] Security review: rate-limiting verification, CORS policy, AWS S3 bucket least privilege
+- [x] Static code analysis and linting across backend, web, and mobile repositories
+- [x] Unit testing for dynamic RBAC permission evaluation and auto-assignment rules
+- [x] Integration testing for task workflow status transitions
+- [x] Validation of SQL scripts in `dbscripts/` (schema syntax, foreign keys, triggers)
+- [x] Security review: rate-limiting verification, CORS policy, AWS S3 bucket least privilege
 - [ ] Manual review and execution of all SQL scripts by human developer
 - [ ] Manual review and git commitment by human developer
