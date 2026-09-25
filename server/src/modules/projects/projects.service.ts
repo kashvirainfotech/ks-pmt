@@ -17,11 +17,50 @@ export class ProjectsService {
   // Projects Master
   // ----------------------------------------------------
 
-  async create(dto: CreateProjectDto, userId: string) {
+  async create(dto: CreateProjectDto, userId: string, activeBranchId?: string) {
     const checkQuery = `SELECT id FROM projects WHERE project_code = $1;`;
     const checkResult = await this.db.query(checkQuery, [dto.projectCode]);
     if (checkResult.rowCount > 0) {
       throw new BadRequestException(`Project code '${dto.projectCode}' already exists.`);
+    }
+
+    // Resolve branch ID
+    let branchId = dto.branchId || activeBranchId;
+    if (!branchId) {
+      const branchRes = await this.db.query(
+        `SELECT primary_branch_id FROM users WHERE id = $1;`,
+        [userId],
+      );
+      branchId = branchRes.rows[0]?.primary_branch_id;
+    }
+    if (!branchId) {
+      const defaultBranch = await this.db.query(
+        `SELECT id FROM branches ORDER BY is_head_office DESC, created_at ASC LIMIT 1;`,
+      );
+      branchId = defaultBranch.rows[0]?.id;
+    }
+
+    // Resolve Project Manager User ID
+    const projectManagerUserId = dto.projectManagerUserId || userId;
+
+    // Resolve billing type (map FIXED_PRICE to FIXED_COST)
+    let billingType = dto.billingType || 'FIXED_COST';
+    if (billingType === 'FIXED_PRICE') {
+      billingType = 'FIXED_COST';
+    }
+
+    // Resolve budgeted hours (support totalBudgetHours alias)
+    const budgetedHours = dto.budgetedHours ?? dto.totalBudgetHours ?? 0.00;
+
+    // Resolve client ID (if null/empty, check if fallback client exists)
+    let clientId = dto.clientId || null;
+    if (!clientId) {
+      const defaultClient = await this.db.query(
+        `SELECT id FROM clients ORDER BY created_at ASC LIMIT 1;`,
+      );
+      if (defaultClient.rowCount > 0) {
+        clientId = defaultClient.rows[0].id;
+      }
     }
 
     const insertQuery = `
@@ -41,13 +80,13 @@ export class ProjectsService {
       dto.projectCode,
       dto.projectName,
       dto.description || null,
-      dto.clientId,
-      dto.branchId,
-      dto.projectManagerUserId,
-      dto.billingType,
+      clientId,
+      branchId,
+      projectManagerUserId,
+      billingType,
       dto.contractAmount || 0.00,
       dto.hourlyRate || 0.00,
-      dto.budgetedHours || 0.00,
+      budgetedHours,
       dto.currency || 'INR',
       dto.plannedStartDate || null,
       dto.plannedEndDate || null,
@@ -116,7 +155,7 @@ export class ProjectsService {
         COUNT(DISTINCT pm.user_id) AS team_members_count,
         COUNT(DISTINCT t.id) AS total_tasks_count
       FROM projects p
-      INNER JOIN clients c ON p.client_id = c.id
+      LEFT JOIN clients c ON p.client_id = c.id
       INNER JOIN branches b ON p.branch_id = b.id
       INNER JOIN users u ON p.project_manager_user_id = u.id
       LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.is_active = TRUE
@@ -151,7 +190,7 @@ export class ProjectsService {
         CONCAT(u.first_name, ' ', u.last_name) AS project_manager_name,
         u.email AS project_manager_email
       FROM projects p
-      INNER JOIN clients c ON p.client_id = c.id
+      LEFT JOIN clients c ON p.client_id = c.id
       INNER JOIN branches b ON p.branch_id = b.id
       INNER JOIN users u ON p.project_manager_user_id = u.id
       WHERE p.id = $1;

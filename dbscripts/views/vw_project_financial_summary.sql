@@ -32,7 +32,7 @@ SELECT
         ELSE p.contract_amount
     END AS estimated_realized_revenue
 FROM projects p
-INNER JOIN clients c ON p.client_id = c.id
+LEFT JOIN clients c ON p.client_id = c.id
 INNER JOIN branches b ON p.branch_id = b.id
 INNER JOIN users u ON p.project_manager_user_id = u.id
 LEFT JOIN tasks t ON p.id = t.project_id

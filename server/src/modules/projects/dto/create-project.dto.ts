@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 import {
   IsDateString,
   IsIn,
@@ -9,6 +10,7 @@ import {
   IsUUID,
   MaxLength,
   Min,
+  ValidateIf,
 } from 'class-validator';
 
 export class CreateProjectDto {
@@ -29,30 +31,37 @@ export class CreateProjectDto {
   @IsOptional()
   description?: string;
 
-  @ApiProperty({ example: '77777777-7777-7777-7777-777777777771', description: 'Client UUID' })
+  @ApiPropertyOptional({ example: '77777777-7777-7777-7777-777777777771', description: 'Client UUID' })
+  @Transform(({ value }) => (value === '' || value === null ? undefined : value))
+  @ValidateIf((o, v) => v !== undefined && v !== null && v !== '')
   @IsUUID()
-  @IsNotEmpty()
-  clientId: string;
+  @IsOptional()
+  clientId?: string;
 
-  @ApiProperty({ example: '11111111-1111-1111-1111-111111111111', description: 'Branch UUID executing the project' })
+  @ApiPropertyOptional({ example: '11111111-1111-1111-1111-111111111111', description: 'Branch UUID executing the project' })
+  @Transform(({ value }) => (value === '' || value === null ? undefined : value))
+  @ValidateIf((o, v) => v !== undefined && v !== null && v !== '')
   @IsUUID()
-  @IsNotEmpty()
-  branchId: string;
+  @IsOptional()
+  branchId?: string;
 
-  @ApiProperty({ example: '00000000-0000-0000-0000-000000000001', description: 'Project Manager User UUID' })
+  @ApiPropertyOptional({ example: '00000000-0000-0000-0000-000000000001', description: 'Project Manager User UUID' })
+  @Transform(({ value }) => (value === '' || value === null ? undefined : value))
+  @ValidateIf((o, v) => v !== undefined && v !== null && v !== '')
   @IsUUID()
-  @IsNotEmpty()
-  projectManagerUserId: string;
+  @IsOptional()
+  projectManagerUserId?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: 'FIXED_COST',
-    enum: ['FIXED_COST', 'TIME_AND_MATERIAL', 'RETAINER'],
+    enum: ['FIXED_COST', 'FIXED_PRICE', 'TIME_AND_MATERIAL', 'RETAINER'],
+    default: 'FIXED_COST',
     description: 'Billing model for custom development services',
   })
   @IsString()
-  @IsNotEmpty()
-  @IsIn(['FIXED_COST', 'TIME_AND_MATERIAL', 'RETAINER'])
-  billingType: string;
+  @IsOptional()
+  @IsIn(['FIXED_COST', 'FIXED_PRICE', 'TIME_AND_MATERIAL', 'RETAINER'])
+  billingType?: string;
 
   @ApiPropertyOptional({ example: 850000.00, default: 0.00, description: 'Captured project contract amount' })
   @IsNumber()
@@ -71,6 +80,12 @@ export class CreateProjectDto {
   @Min(0)
   @IsOptional()
   budgetedHours?: number;
+
+  @ApiPropertyOptional({ example: 650.00, default: 0.00, description: 'Alias for budgetedHours' })
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  totalBudgetHours?: number;
 
   @ApiPropertyOptional({ example: 'INR', default: 'INR' })
   @IsString()

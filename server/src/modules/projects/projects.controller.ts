@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Headers,
   Param,
   ParseUUIDPipe,
   Patch,
@@ -37,8 +38,9 @@ export class ProjectsController {
   async create(
     @Body() dto: CreateProjectDto,
     @CurrentUser('id') userId: string,
+    @Headers('x-branch-id') activeBranchId?: string,
   ) {
-    const data = await this.projectsService.create(dto, userId);
+    const data = await this.projectsService.create(dto, userId, activeBranchId);
     return {
       message: 'Project created successfully',
       data,

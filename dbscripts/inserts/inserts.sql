@@ -229,4 +229,24 @@ SET password_hash = '$2a$10$vEVL52lkxWGMGBRk/VloLOGYV1xW7FNQ49ODuTSHO6lAZ5V9H7ZR
     updated_at = CURRENT_TIMESTAMP
 WHERE email = 'admin@kashvirainfotech.com';
 
+-- ========================================================
+-- Date & Time: 2026-09-25 20:10:00 (IST)
+-- Description: Master Seed Data for Default Clients
+-- ========================================================
+DO $$
+DECLARE
+    v_admin_id UUID := '00000000-0000-0000-0000-000000000001';
+    v_ho_branch_id UUID := '11111111-1111-1111-1111-111111111111';
+BEGIN
+    INSERT INTO clients (
+        id, client_code, company_name, contact_person, designation, email, mobile_number,
+        city, state, country, client_type, branch_id, is_active, created_by
+    ) VALUES 
+        ('77777777-7777-7777-7777-777777777771', 'CLI-INTERNAL', 'Kashvira Infotech (Internal)', 'Admin Operations', 'Operations Lead', 'operations@kashvirainfotech.com', '+919999900001', 'Ahmedabad', 'Gujarat', 'India', 'ACTIVE_CLIENT', v_ho_branch_id, TRUE, v_admin_id),
+        ('77777777-7777-7777-7777-777777777772', 'CLI-ACME', 'Acme FinTech Solutions Ltd', 'Robert Miller', 'Chief Technology Officer', 'robert@acmefintech.com', '+919876543210', 'Mumbai', 'Maharashtra', 'India', 'ACTIVE_CLIENT', v_ho_branch_id, TRUE, v_admin_id),
+        ('77777777-7777-7777-7777-777777777773', 'CLI-NEXGEN', 'NexGen Digital Logistics', 'Sarah Chen', 'Product Director', 'sarah@nexgenlogistics.com', '+919822233445', 'Bangalore', 'Karnataka', 'India', 'ACTIVE_CLIENT', v_ho_branch_id, TRUE, v_admin_id)
+    ON CONFLICT (client_code) DO NOTHING;
+END $$;
+
+
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { projectsApi, mastersApi } from '../../api/endpoints';
 import { Project, Product, Client, Version } from '../../types';
+import { useAuth } from '../../context/AuthContext';
 import {
   FolderKanban,
   Package,
@@ -14,6 +15,7 @@ import {
 } from 'lucide-react';
 
 export const ProjectsView: React.FC = () => {
+  const { user, selectedBranchId } = useAuth();
   const [activeTab, setActiveTab] = useState<'projects' | 'products' | 'versions'>('projects');
   const [projects, setProjects] = useState<Project[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -26,7 +28,7 @@ export const ProjectsView: React.FC = () => {
   const [projectName, setProjectName] = useState('');
   const [projectCode, setProjectCode] = useState('');
   const [clientId, setClientId] = useState('');
-  const [billingType, setBillingType] = useState('FIXED_PRICE');
+  const [billingType, setBillingType] = useState('FIXED_COST');
   const [contractAmount, setContractAmount] = useState('500000');
   const [budgetHours, setBudgetHours] = useState('200');
 
@@ -58,20 +60,38 @@ export const ProjectsView: React.FC = () => {
   const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await projectsApi.createProject({
+      const branchIdToSend = selectedBranchId || user?.primary_branch_id;
+      const pmIdToSend = user?.id;
+
+      const payload: any = {
         projectName,
         projectCode,
-        clientId: clientId || undefined,
         billingType,
         contractAmount: parseFloat(contractAmount) || 0,
-        totalBudgetHours: parseFloat(budgetHours) || 0,
-      });
+        budgetedHours: parseFloat(budgetHours) || 0,
+      };
+
+      if (clientId && typeof clientId === 'string' && clientId.trim() !== '') {
+        payload.clientId = clientId.trim();
+      }
+      if (branchIdToSend && typeof branchIdToSend === 'string' && branchIdToSend.trim() !== '') {
+        payload.branchId = branchIdToSend.trim();
+      }
+      if (pmIdToSend && typeof pmIdToSend === 'string' && pmIdToSend.trim() !== '') {
+        payload.projectManagerUserId = pmIdToSend.trim();
+      }
+
+      await projectsApi.createProject(payload);
       setCreateProjectOpen(false);
       setProjectName('');
       setProjectCode('');
+      setClientId('');
       fetchData();
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to create project');
+      const msg = Array.isArray(err.response?.data?.message)
+        ? err.response.data.message.join(', ')
+        : err.response?.data?.message || 'Failed to create project';
+      alert(msg);
     }
   };
 
@@ -320,6 +340,19 @@ export const ProjectsView: React.FC = () => {
                       {c.company_name}
                     </option>
                   ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="font-semibold text-slate-700 dark:text-slate-300">Billing Model</label>
+                <select
+                  value={billingType}
+                  onChange={(e) => setBillingType(e.target.value)}
+                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 dark:border-slate-700 dark:bg-slate-800"
+                >
+                  <option value="FIXED_COST">Fixed Cost (Milestone Delivery)</option>
+                  <option value="TIME_AND_MATERIAL">Time & Material (Hourly Rate)</option>
+                  <option value="RETAINER">Monthly Retainer</option>
                 </select>
               </div>
 

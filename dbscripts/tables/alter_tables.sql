@@ -6,3 +6,10 @@
 -- ========================================================
 
 -- (Initial file creation. No pending table alterations at initial schema baseline.)
+
+-- ========================================================
+-- Date & Time: 2026-09-25 20:10:00 (IST)
+-- Description: Allow client_id in projects table to be NULL for internal in-house projects
+-- ========================================================
+ALTER TABLE projects ALTER COLUMN client_id DROP NOT NULL;
+
