@@ -1,0 +1,75 @@
+# Agent Rules & Guidelines (KS-PMT)
+
+This file defines the mandatory operational guidelines and constraints for AI agents and automated coding assistants working on the KS-PMT (Kashvira Solutions - Project & Product Management Tool) codebase.
+
+---
+
+## 1. Database Script Generation & Management Rules
+
+1. **Folder Organization for SQL Scripts**:
+   - All database scripts must strictly reside inside the `dbscripts/` directory under their dedicated object folders:
+     - `dbscripts/tables/`
+     - `dbscripts/views/`
+     - `dbscripts/sequences/`
+     - `dbscripts/functions/`
+     - `dbscripts/procedures/`
+     - `dbscripts/triggers/`
+     - `dbscripts/indexes/`
+     - `dbscripts/inserts/`
+
+2. **File Maintenance Policy for Triggers, Views, Functions, Procedures**:
+   - Each trigger, view, function, and procedure must be maintained in its own dedicated, individual `.sql` file named after the object (e.g., `dbscripts/functions/fn_calculate_task_effort.sql`).
+   - When updating or modifying an existing trigger, view, function, or procedure, the agent **must edit the existing `.sql` file** using standard replacement or `CREATE OR REPLACE` rather than appending duplicate blocks or creating separate update files.
+
+3. **Cumulative Single File Policy for Tables, Alters, Indexes, Inserts**:
+   - The following categories must be maintained as single cumulative files (or categorized master files):
+     - Tables: `dbscripts/tables/tables.sql` (or table definitions)
+     - Alter statements: `dbscripts/tables/alter_tables.sql`
+     - Indexes: `dbscripts/indexes/indexes.sql`
+     - Inserts / Seed Data: `dbscripts/inserts/inserts.sql`
+   - When adding new DDL/DML for these categories, **new SQL statements must be appended at the end of the file** preceded by a standardized datetime comment header:
+     ```sql
+     -- ========================================================
+     -- Date & Time: YYYY-MM-DD HH:MM:SS (UTC / IST)
+     -- Description: Brief summary of changes added
+     -- ========================================================
+     ```
+
+4. **Strict Prohibition on Direct Database Execution**:
+   - **The agent must NOT execute any database scripts or migrations directly against any database instance.**
+   - All generated and modified SQL scripts are static artifacts that will be reviewed, validated, and executed manually by the human developer / DBA.
+
+---
+
+## 2. Git & Version Control Constraints
+
+1. **Strict Prohibition on Git Commits & Pushes**:
+   - **The agent must NOT execute `git commit`, `git push`, or any automatic repository publishing commands.**
+   - All changes, documentation, code, and SQL files must remain unstaged or staged for manual code review and manual commitment by the developer.
+
+---
+
+## 3. General Architecture & Coding Standards
+
+1. **Audit Columns Requirement**:
+   - Every single database table must include standard audit tracking columns:
+     - `created_by` (UUID / BIGINT / VARCHAR reference to user)
+     - `created_at` (TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP)
+     - `updated_by` (UUID / BIGINT / VARCHAR reference to user)
+     - `updated_at` (TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP)
+   - Every master table must include the active/inactive flag:
+     - `is_active` (BOOLEAN DEFAULT TRUE NOT NULL)
+
+2. **File & Media Storage**:
+   - Binary attachments, documents, and images must never be stored directly in the database.
+   - All file uploads must be handled via AWS S3 (pre-signed URLs or dedicated upload service), with only S3 keys/URLs, mime types, file sizes, and original names saved in the database.
+
+3. **Authentication & Authorization**:
+   - No open public self-registration.
+   - Dual authentication mechanisms:
+     - Email & Password
+     - Mobile Number & OTP
+   - Dynamic, hierarchical Role-Based Access Control (RBAC) with support for location/branch-level permission overrides.
+
+4. **API Design Standards**:
+   - Standard RESTful conventions with semantic HTTP status codes, structured JSON error envelopes, and consistent pagination metadata (`page`, `limit`, `total_count`, `total_pages`).
