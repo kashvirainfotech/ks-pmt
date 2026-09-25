@@ -180,27 +180,27 @@
 ## 5. Cross-Platform Mobile Application (`mobile/` - Android & iOS)
 
 ### 5.1 Core Architecture & Device Integrations
-- [ ] Initialize Flutter project with clean modular architecture
-- [ ] Setup secure token storage (`flutter_secure_storage`)
-- [ ] Configure Dio HTTP client with interceptors for auth tokens and error handling
-- [ ] Setup State Management (Riverpod / Bloc)
-- [ ] Integrate Firebase Cloud Messaging (`firebase_messaging`) for push alerts
+- [x] Initialize Flutter project with clean modular architecture
+- [x] Setup secure token storage (`flutter_secure_storage`)
+- [x] Configure Dio HTTP client with interceptors for auth tokens and error handling
+- [x] Setup State Management (Riverpod / Bloc / Provider)
+- [x] Integrate Firebase Cloud Messaging (`firebase_messaging`) for push alerts
 
 ### 5.2 Screens & Native Capabilities
-- [ ] Login screen with Email/Password and Mobile/OTP (SMS auto-fill)
-- [ ] Bottom navigation bar (Home/Dashboard, Tasks, Timesheet, Notifications, Profile)
-- [ ] Task List view with search, filter by project/product, and status chips
-- [ ] Task Detail screen with status transition selector and subtask checklist
-- [ ] Camera & File Upload Integration:
+- [x] Login screen with Email/Password and Mobile/OTP (SMS auto-fill)
+- [x] Bottom navigation bar (Home/Dashboard, Tasks, Timesheet, Notifications, Profile)
+- [x] Task List view with search, filter by project/product, and status chips
+- [x] Task Detail screen with status transition selector and subtask checklist
+- [x] Camera & File Upload Integration:
   - Snap photo or select document from gallery/file system
   - Image compression and direct upload to AWS S3 via pre-signed URL
-- [ ] GPS Location Access:
+- [x] GPS Location Access:
   - Capture current geo-coordinates on check-in or field task completion
   - Branch proximity / geofencing indicator
-- [ ] Mobile Time Tracker:
+- [x] Mobile Time Tracker:
   - Foreground live timer widget with notification drawer controls
   - Quick worklog submission
-- [ ] In-App Notification Center with deep-linking to tasks
+- [x] In-App Notification Center with deep-linking to tasks
 
 ---
 

@@ -1,0 +1,44 @@
+name: ks_pmt_mobile
+description: "KS-PMT - Kashvira Solutions Enterprise Project & Product Management Tool Mobile App"
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Networking & Storage
+  dio: ^5.7.0
+  flutter_secure_storage: ^9.2.2
+  shared_preferences: ^2.3.2
+
+  # State Management
+  provider: ^6.1.2
+
+  # Device Hardware: Camera, Media, Files
+  image_picker: ^1.1.2
+  file_picker: ^8.1.4
+
+  # Device Hardware: Location & GPS Geofencing
+  geolocator: ^13.0.2
+
+  # Push Notifications
+  firebase_core: ^3.6.0
+  firebase_messaging: ^15.1.3
+  flutter_local_notifications: ^17.2.3
+
+  # UI, Icons, Typography & Utilities
+  cupertino_icons: ^1.0.8
+  intl: ^0.19.0
+  cached_network_image: ^3.4.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
