@@ -25,3 +25,6 @@
 - **Storage**: Store files in AWS S3; keep only file metadata and S3 keys in PostgreSQL.
 - **Auth**: No self-registration. Support Email + Password and Mobile + OTP login.
 - **Access Control**: Role and designation-based permissions with dynamic branch/user overrides.
+
+### 4. Task Completion Documentation
+- Every task completion walkthrough or report must simultaneously be persisted to a corresponding markdown file in `docs/walkthrough/`.

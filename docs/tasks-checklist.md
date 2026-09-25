@@ -18,65 +18,68 @@
 ## 2. Database Scripts (`dbscripts/`)
 
 ### 2.1 Table Definitions (`dbscripts/tables/tables.sql`)
-- [ ] Enforce standard audit columns (`created_by`, `created_at`, `updated_by`, `updated_at`) across all tables
-- [ ] Enforce `is_active` boolean column on all master tables
-- [ ] `branches`: Multi-branch office master with geofencing coordinates (lat, long, radius)
-- [ ] `departments`: Department master with HOD reference
-- [ ] `designations`: Designation master with hierarchy rank ordering
-- [ ] `users`: Employee/User credentials, contact info, branch mapping, department, designation
-- [ ] `roles`: Base system roles (Super Admin, Branch Manager, PM, Dev, QA, etc.)
-- [ ] `permissions`: Granular permission registry (module + action)
-- [ ] `role_permissions`: Mapping base permissions to roles
-- [ ] `user_permission_overrides`: Direct user-level permission grants and revocations
-- [ ] `branch_permission_overrides`: Branch-specific permission enforcement policies
-- [ ] `clients`: Prospects and active clients with CRM attributes
-- [ ] `products`: Proprietary software products with pricing and license models
-- [ ] `product_client_licenses`: Client-to-product mapping (licenses, subscriptions, AMC terms)
-- [ ] `projects`: Custom development projects with client mapping, budgets, and dates
-- [ ] `project_members`: Project team allocation with roles and date spans
-- [ ] `versions`: Release milestones and sprint versions for products and projects
-- [ ] `task_types`: Dynamic task types (New Development, Bug, Issue, Enhancement, Training, Support)
-- [ ] `task_statuses`: Dynamic workflow statuses with sequence and completion flags
-- [ ] `task_type_workflow`: Allowed status transitions per task type
-- [ ] `tasks`: Core task master (title, description, priority, planned/actual dates, estimated hours, `is_chargeable`, `charge_amount`, parent task ID)
-- [ ] `task_assignees`: Multi-user assignment mapping table
-- [ ] `task_time_logs`: Daily effort logs, hours spent, billable flag, summary
-- [ ] `task_comments`: Threaded comments with rich text and user mentions
-- [ ] `attachments`: File metadata, S3 bucket/key, MIME type, file size, entity association
-- [ ] `auto_assignment_rules`: Matrix routing rules based on task type, department, designation, branch
-- [ ] `notifications`: In-app notification queue and read receipts
-- [ ] `user_push_tokens`: FCM registration tokens for Android and iOS devices
-- [ ] `audit_logs`: Detailed activity tracking (entity, action, old/new values, IP, user-agent, location)
+- [x] Enforce standard audit columns (`created_by`, `created_at`, `updated_by`, `updated_at`) across all tables
+- [x] Enforce `is_active` boolean column on all master tables
+- [x] `branches`: Multi-branch office master with geofencing coordinates (lat, long, radius)
+- [x] `departments`: Department master with HOD reference
+- [x] `designations`: Designation master with hierarchy rank ordering
+- [x] `users`: Employee/User credentials, contact info, branch mapping, department, designation
+- [x] `roles`: Base system roles (Super Admin, Branch Manager, PM, Dev, QA, etc.)
+- [x] `permissions`: Granular permission registry (module + action)
+- [x] `role_permissions`: Mapping base permissions to roles
+- [x] `user_permission_overrides`: Direct user-level permission grants and revocations
+- [x] `branch_permission_overrides`: Branch-specific permission enforcement policies
+- [x] `clients`: Prospects and active clients with CRM attributes
+- [x] `products`: Proprietary software products with pricing and license models
+- [x] `product_client_licenses`: Client-to-product mapping (licenses, subscriptions, AMC terms)
+- [x] `projects`: Custom development projects with client mapping, budgets, and dates
+- [x] `project_members`: Project team allocation with roles and date spans
+- [x] `versions`: Release milestones and sprint versions for products and projects
+- [x] `task_types`: Dynamic task types (New Development, Bug, Issue, Enhancement, Training, Support)
+- [x] `task_statuses`: Dynamic workflow statuses with sequence and completion flags
+- [x] `task_type_workflow`: Allowed status transitions per task type
+- [x] `tasks`: Core task master (title, description, priority, planned/actual dates, estimated hours, `is_chargeable`, `charge_amount`, parent task ID)
+- [x] `task_assignees`: Multi-user assignment mapping table
+- [x] `task_time_logs`: Daily effort logs, hours spent, billable flag, summary
+- [x] `task_comments`: Threaded comments with rich text and user mentions
+- [x] `attachments`: File metadata, S3 bucket/key, MIME type, file size, entity association
+- [x] `auto_assignment_rules`: Matrix routing rules based on task type, department, designation, branch
+- [x] `notifications`: In-app notification queue and read receipts
+- [x] `user_push_tokens`: FCM registration tokens for Android and iOS devices
+- [x] `audit_logs`: Detailed activity tracking (entity, action, old/new values, IP, user-agent, location)
 
 ### 2.2 Alter Statements (`dbscripts/tables/alter_tables.sql`)
-- [ ] Add cumulative alter statements with datetime comment blocks when modifying tables
+- [x] Add cumulative alter statements with datetime comment blocks when modifying tables (Template initialized)
 
 ### 2.3 Indexes (`dbscripts/indexes/indexes.sql`)
-- [ ] Foreign key indexes on all relation columns
-- [ ] Composite indexes on `tasks(project_id, status_id, priority)`
-- [ ] Composite indexes on `tasks(product_id, version_id, status_id)`
-- [ ] Performance indexes on `task_time_logs(user_id, log_date)`
-- [ ] Search indexes (B-Tree & GIN) on client names, task titles, and task codes
-- [ ] Index on `audit_logs(entity_name, record_id, created_at)`
+- [x] Foreign key indexes on all relation columns
+- [x] Composite indexes on `tasks(project_id, status_id, priority)`
+- [x] Composite indexes on `tasks(product_id, version_id, status_id)`
+- [x] Performance indexes on `task_time_logs(user_id, log_date)`
+- [x] Search indexes (B-Tree & GIN) on client names, task titles, and task codes
+- [x] Index on `audit_logs(entity_name, record_id, created_at)`
 
 ### 2.4 Views (`dbscripts/views/`)
-- [ ] `vw_project_financial_summary.sql`: Project contract values, billed hours, and remaining budget
-- [ ] `vw_product_license_summary.sql`: Active licenses, expiring AMCs, and client counts per product
-- [ ] `vw_employee_workload.sql`: Open tasks count, estimated hours, and actual hours logged per user
-- [ ] `vw_task_hierarchy.sql`: Recursive view of parent tasks and nested sub-tasks with progress
+- [x] `vw_project_financial_summary.sql`: Project contract values, billed hours, and remaining budget
+- [x] `vw_product_license_summary.sql`: Active licenses, expiring AMCs, and client counts per product
+- [x] `vw_employee_workload.sql`: Open tasks count, estimated hours, and actual hours logged per user
+- [x] `vw_task_hierarchy.sql`: Recursive view of parent tasks and nested sub-tasks with progress
 
 ### 2.5 Functions & Triggers (`dbscripts/functions/` & `dbscripts/triggers/`)
-- [ ] `fn_set_updated_at.sql`: Reusable trigger function updating `updated_at = CURRENT_TIMESTAMP`
-- [ ] `trg_tasks_updated_at.sql`: Apply update timestamp trigger on `tasks` table
-- [ ] `fn_log_task_activity.sql`: Trigger function logging task changes automatically into `audit_logs`
-- [ ] `trg_tasks_audit.sql`: Apply audit log trigger on `tasks` table
+- [x] `fn_set_updated_at.sql`: Reusable trigger function updating `updated_at = CURRENT_TIMESTAMP`
+- [x] `trg_tasks_updated_at.sql`: Apply update timestamp trigger on `tasks` table
+- [x] `fn_calculate_task_effort.sql`: Computes aggregated effort (billable and non-billable hours)
+- [x] `fn_log_task_audit.sql`: Trigger function logging task changes automatically into `audit_logs`
+- [x] `trg_tasks_audit.sql`: Apply audit log trigger on `tasks` table
+- [x] `trg_projects_updated_at.sql`: Apply update timestamp trigger on `projects` table
+- [x] `trg_users_updated_at.sql`: Apply update timestamp trigger on `users` table
 
 ### 2.6 Seed Data (`dbscripts/inserts/inserts.sql`)
-- [ ] Seed base system permissions (CRUD across all modules)
-- [ ] Seed default roles (Super Admin, Branch Manager, Project Manager, Tech Lead, Developer, QA, Support)
-- [ ] Seed default departments and designations
-- [ ] Seed standard task types and status workflows
-- [ ] Seed initial head office branch and default administrator account
+- [x] Seed base system permissions (CRUD across all modules)
+- [x] Seed default roles (Super Admin, Branch Manager, Project Manager, Tech Lead, Developer, QA, Support)
+- [x] Seed default departments and designations
+- [x] Seed standard task types and status workflows
+- [x] Seed initial head office branch and default administrator account
 
 ---
 

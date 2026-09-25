@@ -23,3 +23,6 @@
 - AWS S3 for all binary assets and file attachments.
 - Dual login: Email + Password or Mobile + OTP (no open public registration).
 - Dynamic permission engine with user/branch level overrides.
+
+## 4. Documentation Policy
+- Every task completion summary/report presented to the user must also be saved into an individual markdown file inside the `docs/walkthrough/` directory.
