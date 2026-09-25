@@ -1,10 +1,10 @@
+import { ParseUUIDPipe } from '../../common/validators/record-id';
 import {
   Body,
   Controller,
   Delete,
   Get,
   Param,
-  ParseUUIDPipe,
   Patch,
   Post,
   Put,
@@ -46,7 +46,9 @@ export class ProductsController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'List products with commercial and license metrics' })
+  @ApiOperation({
+    summary: 'List products with commercial and license metrics',
+  })
   async findAll(@Query('includeInactive') includeInactive?: boolean) {
     const data = await this.productsService.findAll(includeInactive);
     return {
@@ -56,7 +58,10 @@ export class ProductsController {
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Get product details by ID with active client licenses and versions' })
+  @ApiOperation({
+    summary:
+      'Get product details by ID with active client licenses and versions',
+  })
   async findOne(@Param('id', ParseUUIDPipe) id: string) {
     const data = await this.productsService.findOne(id);
     return {
@@ -115,7 +120,9 @@ export class ProductsController {
   }
 
   @Get(':id/clients')
-  @ApiOperation({ summary: 'List all client licenses and subscriptions for this product' })
+  @ApiOperation({
+    summary: 'List all client licenses and subscriptions for this product',
+  })
   async findMappedClients(@Param('id', ParseUUIDPipe) productId: string) {
     const data = await this.productsService.findMappedClients(productId);
     return {
@@ -132,7 +139,11 @@ export class ProductsController {
     @Body() dto: UpdateProductClientDto,
     @CurrentUser('id') userId: string,
   ) {
-    const data = await this.productsService.updateClientMapping(mappingId, dto, userId);
+    const data = await this.productsService.updateClientMapping(
+      mappingId,
+      dto,
+      userId,
+    );
     return {
       message: 'License details updated successfully',
       data,
@@ -142,7 +153,9 @@ export class ProductsController {
   @Delete('clients/:mappingId')
   @RequirePermissions('PRODUCTS:MANAGE')
   @ApiOperation({ summary: 'Terminate a client license mapping' })
-  async removeClientMapping(@Param('mappingId', ParseUUIDPipe) mappingId: string) {
+  async removeClientMapping(
+    @Param('mappingId', ParseUUIDPipe) mappingId: string,
+  ) {
     const data = await this.productsService.removeClientMapping(mappingId);
     return {
       message: 'Client license terminated',

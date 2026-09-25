@@ -1,5 +1,8 @@
+import { validateDateRanges } from '../../common/validators/date-ranges';
+import { RbacService } from '../rbac/rbac.service';
 import {
   ForbiddenException,
+  BadRequestException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -9,9 +12,63 @@ import { QueryTimeLogDto } from './dto/query-time-log.dto';
 
 @Injectable()
 export class TimeLogsService {
-  constructor(private readonly db: DatabaseService) {}
+  constructor(
+    private readonly db: DatabaseService,
+    private readonly rbac: RbacService,
+  ) {}
+
+  async canReview(userId: string, branchId: string) {
+    const p = await this.rbac.getEffectivePermissions(userId, branchId);
+    return (
+      p.roleCode === 'ROLE_SUPER_ADMIN' || p.permissions.has('TIMELOGS:APPROVE')
+    );
+  }
+
+  async submit(id: string, userId: string) {
+    const result = await this.db.writeWithFields(
+      `UPDATE task_time_logs SET updated_by=$2, updated_at=CURRENT_TIMESTAMP WHERE id=$1 AND user_id=$2 AND COALESCE(to_jsonb(task_time_logs)->>'approval_status','DRAFT') IN ('DRAFT','REJECTED') RETURNING *`,
+      [id, userId],
+      'task_time_logs',
+      {
+        approval_status: 'SUBMITTED',
+        review_remarks: null,
+        reviewed_by: null,
+        reviewed_at: null,
+      },
+    );
+    if (!result.rowCount)
+      throw new BadRequestException(
+        'Only your draft or rejected worklog can be submitted',
+      );
+    return result.rows[0];
+  }
+
+  async review(
+    id: string,
+    status: string,
+    remarks: string | undefined,
+    userId: string,
+  ) {
+    const result = await this.db.writeWithFields(
+      `UPDATE task_time_logs SET updated_by=$2, updated_at=CURRENT_TIMESTAMP WHERE id=$1 AND user_id<>$2 AND to_jsonb(task_time_logs)->>'approval_status'='SUBMITTED' RETURNING *`,
+      [id, userId],
+      'task_time_logs',
+      {
+        approval_status: status,
+        reviewed_by: userId,
+        reviewed_at: new Date(),
+        review_remarks: remarks || null,
+      },
+    );
+    if (!result.rowCount)
+      throw new BadRequestException(
+        'Only submitted worklogs belonging to another employee can be reviewed',
+      );
+    return result.rows[0];
+  }
 
   async create(dto: CreateTimeLogDto, userId: string) {
+    validateDateRanges(dto);
     const taskQuery = `SELECT id, task_code, title FROM tasks WHERE id = $1;`;
     const taskResult = await this.db.query(taskQuery, [dto.taskId]);
     if (taskResult.rowCount === 0) {
@@ -29,16 +86,21 @@ export class TimeLogsService {
       RETURNING *;
     `;
 
-    const result = await this.db.query(insertQuery, [
-      dto.taskId,
-      userId,
-      dto.logDate,
-      dto.hoursSpent,
-      dto.isBillable ?? true,
-      dto.description,
-      dto.timerStartTime || null,
-      dto.timerEndTime || null,
-    ]);
+    const result = await this.db.writeWithFields(
+      insertQuery,
+      [
+        dto.taskId,
+        userId,
+        dto.logDate,
+        dto.hoursSpent,
+        dto.isBillable ?? true,
+        dto.description,
+        dto.timerStartTime || null,
+        dto.timerEndTime || null,
+      ],
+      'task_time_logs',
+      { is_overtime: dto.isOvertime, is_weekend: dto.isWeekend },
+    );
 
     return result.rows[0];
   }
@@ -63,13 +125,24 @@ export class TimeLogsService {
 
     return {
       logs: logsResult.rows,
-      effortTotals: effortResult.rows[0] || { total_hours: 0, billable_hours: 0, non_billable_hours: 0 },
+      effortTotals: effortResult.rows[0] || {
+        total_hours: 0,
+        billable_hours: 0,
+        non_billable_hours: 0,
+      },
     };
   }
 
   async findAll(query: QueryTimeLogDto) {
     const params: any[] = [];
     const whereClauses: string[] = ['1=1'];
+
+    if (query.branchId) {
+      params.push(query.branchId);
+      whereClauses.push(
+        `EXISTS (SELECT 1 FROM tasks scoped WHERE scoped.id=tl.task_id AND scoped.branch_id=$${params.length})`,
+      );
+    }
 
     if (query.userId) {
       params.push(query.userId);
@@ -171,7 +244,10 @@ export class TimeLogsService {
 
     const result = await this.db.query(dataSql, params);
 
-    const totalHours = result.rows.reduce((acc, row) => acc + parseFloat(row.hours_spent), 0);
+    const totalHours = result.rows.reduce(
+      (acc, row) => acc + parseFloat(row.hours_spent),
+      0,
+    );
     const billableHours = result.rows
       .filter((row) => row.is_billable)
       .reduce((acc, row) => acc + parseFloat(row.hours_spent), 0);
@@ -193,13 +269,17 @@ export class TimeLogsService {
   }
 
   async deleteLog(id: string, userId: string, roleCode: string) {
-    const checkQuery = `SELECT id, user_id FROM task_time_logs WHERE id = $1;`;
+    const checkQuery = `SELECT id, user_id, to_jsonb(task_time_logs)->>'approval_status' AS approval_status FROM task_time_logs WHERE id = $1;`;
     const checkResult = await this.db.query(checkQuery, [id]);
     if (checkResult.rowCount === 0) {
       throw new NotFoundException(`Time log with ID ${id} not found.`);
     }
 
     const log = checkResult.rows[0];
+    if (['SUBMITTED', 'APPROVED'].includes(log.approval_status))
+      throw new ForbiddenException(
+        'Submitted or approved worklogs cannot be deleted',
+      );
     if (log.user_id !== userId && roleCode !== 'ROLE_SUPER_ADMIN') {
       throw new ForbiddenException('You can only delete your own time logs.');
     }

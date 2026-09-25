@@ -1,10 +1,10 @@
+import { ParseUUIDPipe } from '../../common/validators/record-id';
 import {
   Body,
   Controller,
   Delete,
   Get,
   Param,
-  ParseUUIDPipe,
   Patch,
   Post,
   Put,
@@ -50,7 +50,9 @@ export class TaskWorkflowsController {
   }
 
   @Get('statuses')
-  @ApiOperation({ summary: 'List all dynamic task statuses ordered by sequence' })
+  @ApiOperation({
+    summary: 'List all dynamic task statuses ordered by sequence',
+  })
   @ApiQuery({ name: 'includeInactive', required: false, type: Boolean })
   async findAllStatuses(@Query('includeInactive') includeInactive?: boolean) {
     const data = await this.workflowsService.findAllStatuses(includeInactive);
@@ -93,7 +95,11 @@ export class TaskWorkflowsController {
     @Body('isActive') isActive: boolean,
     @CurrentUser('id') userId: string,
   ) {
-    const data = await this.workflowsService.toggleStatusActive(id, isActive, userId);
+    const data = await this.workflowsService.toggleStatusActive(
+      id,
+      isActive,
+      userId,
+    );
     return {
       message: `Status updated to ${isActive ? 'Active' : 'Inactive'}`,
       data,
@@ -119,11 +125,14 @@ export class TaskWorkflowsController {
   }
 
   @Get('transitions/:taskTypeId')
-  @ApiOperation({ summary: 'Get all allowed status transitions for a specific task type' })
+  @ApiOperation({
+    summary: 'Get all allowed status transitions for a specific task type',
+  })
   async findTransitions(
     @Param('taskTypeId', ParseUUIDPipe) taskTypeId: string,
   ) {
-    const data = await this.workflowsService.findTransitionsByTaskType(taskTypeId);
+    const data =
+      await this.workflowsService.findTransitionsByTaskType(taskTypeId);
     return {
       message: 'Workflow transitions retrieved successfully',
       data,
@@ -132,8 +141,10 @@ export class TaskWorkflowsController {
 
   @Get('allowed-next-statuses')
   @ApiOperation({
-    summary: 'Evaluate dynamic workflow and get permitted next statuses for an active task',
-    description: 'Enforces the dynamic state machine based on task type and current status.',
+    summary:
+      'Evaluate dynamic workflow and get permitted next statuses for an active task',
+    description:
+      'Enforces the dynamic state machine based on task type and current status.',
   })
   @ApiQuery({ name: 'taskTypeId', required: true, type: String })
   @ApiQuery({ name: 'fromStatusId', required: true, type: String })
@@ -141,7 +152,10 @@ export class TaskWorkflowsController {
     @Query('taskTypeId', ParseUUIDPipe) taskTypeId: string,
     @Query('fromStatusId', ParseUUIDPipe) fromStatusId: string,
   ) {
-    const data = await this.workflowsService.getAllowedNextStatuses(taskTypeId, fromStatusId);
+    const data = await this.workflowsService.getAllowedNextStatuses(
+      taskTypeId,
+      fromStatusId,
+    );
     return {
       message: 'Permitted next statuses retrieved successfully',
       data,

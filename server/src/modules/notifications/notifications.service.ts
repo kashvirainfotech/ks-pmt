@@ -1,6 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { DatabaseService } from '../../database/database.service';
-import { RegisterPushTokenDto, DeregisterPushTokenDto } from './dto/register-push-token.dto';
+import {
+  RegisterPushTokenDto,
+  DeregisterPushTokenDto,
+} from './dto/register-push-token.dto';
 import { QueryNotificationDto } from './dto/query-notification.dto';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 
@@ -47,21 +50,17 @@ export class NotificationsService {
     return { success: true, updated: res.rowCount };
   }
 
-  async createNotification(senderUserId: string | null, dto: CreateNotificationDto) {
+  async createNotification(
+    senderUserId: string | null,
+    dto: CreateNotificationDto,
+  ) {
     // 1. Check if recipient has registered active push tokens
     const tokensRes = await this.db.query(
       `SELECT fcm_token, device_type FROM user_push_tokens WHERE user_id = $1 AND is_active = TRUE`,
       [dto.recipientUserId],
     );
 
-    let pushSent = false;
-    if (tokensRes.rows.length > 0) {
-      // Dispatch push notification to tokens (simulated/FCM provider)
-      this.logger.log(
-        `[FCM Push] Sending push notification to user ${dto.recipientUserId} (${tokensRes.rows.length} devices): "${dto.title}"`,
-      );
-      pushSent = true;
-    }
+    const pushSent = false; // No provider dispatch has completed.
 
     const query = `
       INSERT INTO notifications (
@@ -81,8 +80,8 @@ export class NotificationsService {
       dto.body,
       dto.entityType || null,
       dto.entityId || null,
-      dto.isPushSent !== undefined ? dto.isPushSent : pushSent,
-      dto.isEmailSent || false,
+      pushSent,
+      false,
       senderUserId || dto.recipientUserId,
     ]);
 
@@ -106,7 +105,8 @@ export class NotificationsService {
       conditions.push(`n.notification_type = $${params.length}`);
     }
 
-    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    const whereClause =
+      conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
     const countQuery = `SELECT COUNT(*) FROM notifications n ${whereClause};`;
     const countRes = await this.db.query(countQuery, params);

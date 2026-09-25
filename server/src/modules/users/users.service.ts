@@ -1,3 +1,4 @@
+import { persistExtended } from '../../database/extended-fields';
 import {
   BadRequestException,
   Injectable,
@@ -18,6 +19,12 @@ export class UsersService {
    * Provision a new employee / system user (Admin/HR only)
    */
   async create(dto: CreateUserDto, creatorUserId: string) {
+    if ((dto.isEmailLoginAllowed ?? true) && !dto.password)
+      throw new BadRequestException(
+        'Password is required when email login is enabled',
+      );
+    if (dto.isEmailLoginAllowed === false && dto.isOtpLoginAllowed === false)
+      throw new BadRequestException('Enable at least one login method');
     // 1. Check uniqueness
     const uniquenessQuery = `
       SELECT employee_code, email, mobile_number
@@ -33,13 +40,19 @@ export class UsersService {
     if (uniquenessResult.rowCount > 0) {
       const existing = uniquenessResult.rows[0];
       if (existing.employee_code === dto.employeeCode) {
-        throw new BadRequestException(`Employee code '${dto.employeeCode}' already exists.`);
+        throw new BadRequestException(
+          `Employee code '${dto.employeeCode}' already exists.`,
+        );
       }
       if (existing.email.toLowerCase() === dto.email.toLowerCase()) {
-        throw new BadRequestException(`Email '${dto.email}' is already registered.`);
+        throw new BadRequestException(
+          `Email '${dto.email}' is already registered.`,
+        );
       }
       if (existing.mobile_number === dto.mobileNumber) {
-        throw new BadRequestException(`Mobile number '${dto.mobileNumber}' is already registered.`);
+        throw new BadRequestException(
+          `Mobile number '${dto.mobileNumber}' is already registered.`,
+        );
       }
     }
 
@@ -66,22 +79,34 @@ export class UsersService {
                   is_active, created_at;
       `;
 
-      const userResult = await client.query(insertUserQuery, [
-        dto.employeeCode,
-        dto.firstName,
-        dto.lastName,
-        dto.email.toLowerCase(),
-        dto.mobileNumber,
-        passwordHash,
-        dto.primaryBranchId,
-        dto.departmentId,
-        dto.designationId,
-        dto.roleId,
-        dto.reportingManagerId || null,
-        dto.isEmailLoginAllowed ?? true,
-        dto.isOtpLoginAllowed ?? true,
-        creatorUserId,
-      ]);
+      const userResult = await persistExtended(
+        client,
+        insertUserQuery,
+        [
+          dto.employeeCode,
+          dto.firstName,
+          dto.lastName,
+          dto.email.toLowerCase(),
+          dto.mobileNumber,
+          passwordHash,
+          dto.primaryBranchId,
+          dto.departmentId,
+          dto.designationId,
+          dto.roleId,
+          dto.reportingManagerId || null,
+          dto.isEmailLoginAllowed ?? true,
+          dto.isOtpLoginAllowed ?? true,
+          creatorUserId,
+        ],
+        'users',
+        {
+          emergency_contact: dto.emergencyContact,
+          employment_status: dto.employmentStatus,
+          ...(dto.employmentStatus
+            ? { is_active: dto.employmentStatus === 'ACTIVE' }
+            : {}),
+        },
+      );
 
       const newUser = userResult.rows[0];
 
@@ -120,7 +145,9 @@ export class UsersService {
 
     if (query.branchId) {
       params.push(query.branchId);
-      whereClauses.push(`(u.primary_branch_id = $${params.length} OR ub.branch_id = $${params.length})`);
+      whereClauses.push(
+        `(u.primary_branch_id = $${params.length} OR ub.branch_id = $${params.length})`,
+      );
     }
 
     if (query.departmentId) {
@@ -148,7 +175,8 @@ export class UsersService {
       )`);
     }
 
-    const whereSql = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
+    const whereSql =
+      whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
 
     // Total Count
     const countSql = `
@@ -170,7 +198,7 @@ export class UsersService {
     const dataSql = `
       SELECT 
         u.id, u.employee_code, u.first_name, u.last_name, u.email, 
-        u.mobile_number, u.avatar_s3_key, u.is_active,
+        to_jsonb(u)->>'emergency_contact' AS emergency_contact, to_jsonb(u)->>'employment_status' AS employment_status, u.mobile_number, u.avatar_s3_key, u.is_active,
         b.branch_name AS primary_branch_name,
         d.dept_name,
         des.desig_name, des.hierarchy_level,
@@ -210,7 +238,7 @@ export class UsersService {
     const userQuery = `
       SELECT 
         u.id, u.employee_code, u.first_name, u.last_name, u.email,
-        u.mobile_number, u.avatar_s3_key, u.is_email_login_allowed,
+        to_jsonb(u)->>'emergency_contact' AS emergency_contact, to_jsonb(u)->>'employment_status' AS employment_status, u.mobile_number, u.avatar_s3_key, u.is_email_login_allowed,
         u.is_otp_login_allowed, u.is_active, u.last_login_at, u.last_login_ip,
         u.created_at, u.updated_at,
         b.id AS primary_branch_id, b.branch_name AS primary_branch_name,
@@ -310,13 +338,30 @@ export class UsersService {
         RETURNING id, employee_code, first_name, last_name, email, mobile_number, is_active;
       `;
 
-      const result = await client.query(updateQuery, params);
+      const result = await persistExtended(
+        client,
+        updateQuery,
+        params,
+        'users',
+        {
+          emergency_contact: dto.emergencyContact,
+          employment_status: dto.employmentStatus,
+          ...(dto.employmentStatus
+            ? { is_active: dto.employmentStatus === 'ACTIVE' }
+            : {}),
+        },
+      );
 
       // Update secondary branches if provided
       if (dto.secondaryBranchIds) {
-        await client.query(`DELETE FROM user_branches WHERE user_id = $1;`, [id]);
+        await client.query(`DELETE FROM user_branches WHERE user_id = $1;`, [
+          id,
+        ]);
         for (const branchId of dto.secondaryBranchIds) {
-          if (branchId !== (dto.primaryBranchId || result.rows[0].primary_branch_id)) {
+          if (
+            branchId !==
+            (dto.primaryBranchId || result.rows[0].primary_branch_id)
+          ) {
             await client.query(
               `INSERT INTO user_branches (user_id, branch_id, created_by, updated_by)
                VALUES ($1, $2, $3, $3)
@@ -334,7 +379,11 @@ export class UsersService {
   /**
    * Set user-level permission override
    */
-  async setPermissionOverride(userId: string, dto: PermissionOverrideDto, updaterUserId: string) {
+  async setPermissionOverride(
+    userId: string,
+    dto: PermissionOverrideDto,
+    updaterUserId: string,
+  ) {
     await this.findOne(userId);
 
     const upsertQuery = `
@@ -371,7 +420,9 @@ export class UsersService {
     `;
     const result = await this.db.query(deleteQuery, [userId, permissionId]);
     if (result.rowCount === 0) {
-      throw new NotFoundException('Permission override not found for this user.');
+      throw new NotFoundException(
+        'Permission override not found for this user.',
+      );
     }
     return { success: true };
   }
@@ -389,7 +440,12 @@ export class UsersService {
       WHERE id = $3
       RETURNING id, employee_code, first_name, last_name, is_active;
     `;
-    const result = await this.db.query(query, [isActive, updaterUserId, id]);
+    const result = await this.db.writeWithFields(
+      query,
+      [isActive, updaterUserId, id],
+      'users',
+      { employment_status: isActive ? 'ACTIVE' : 'INACTIVE' },
+    );
     return result.rows[0];
   }
 }

@@ -15,7 +15,9 @@ export class BranchesService {
     const checkQuery = `SELECT id FROM branches WHERE branch_code = $1;`;
     const checkResult = await this.db.query(checkQuery, [dto.branchCode]);
     if (checkResult.rowCount > 0) {
-      throw new BadRequestException(`Branch code '${dto.branchCode}' already exists.`);
+      throw new BadRequestException(
+        `Branch code '${dto.branchCode}' already exists.`,
+      );
     }
 
     const insertQuery = `
@@ -38,8 +40,8 @@ export class BranchesService {
       dto.postalCode,
       dto.phone || null,
       dto.email || null,
-      dto.latitude || null,
-      dto.longitude || null,
+      dto.latitude ?? null,
+      dto.longitude ?? null,
       dto.geofenceRadiusMeters || 200,
       dto.isHeadOffice || false,
       userId,

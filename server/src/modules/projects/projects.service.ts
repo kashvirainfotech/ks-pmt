@@ -1,3 +1,4 @@
+import { validateDateRanges } from '../../common/validators/date-ranges';
 import {
   BadRequestException,
   Injectable,
@@ -18,18 +19,27 @@ export class ProjectsService {
   // ----------------------------------------------------
 
   async create(dto: CreateProjectDto, userId: string, activeBranchId?: string) {
+    validateDateRanges(dto);
     const checkQuery = `SELECT id FROM projects WHERE project_code = $1;`;
     const checkResult = await this.db.query(checkQuery, [dto.projectCode]);
     if (checkResult.rowCount > 0) {
-      throw new BadRequestException(`Project code '${dto.projectCode}' already exists.`);
+      throw new BadRequestException(
+        `Project code '${dto.projectCode}' already exists.`,
+      );
     }
 
     const isValidUuid = (val?: string | null) =>
       typeof val === 'string' &&
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val);
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        val,
+      );
 
     // Resolve branch ID
-    let branchId = isValidUuid(dto.branchId) ? dto.branchId : (isValidUuid(activeBranchId) ? activeBranchId : undefined);
+    let branchId = isValidUuid(dto.branchId)
+      ? dto.branchId
+      : isValidUuid(activeBranchId)
+        ? activeBranchId
+        : undefined;
     if (!branchId) {
       const branchRes = await this.db.query(
         `SELECT primary_branch_id FROM users WHERE id = $1;`,
@@ -45,7 +55,9 @@ export class ProjectsService {
     }
 
     // Resolve Project Manager User ID
-    const projectManagerUserId = isValidUuid(dto.projectManagerUserId) ? dto.projectManagerUserId : userId;
+    const projectManagerUserId = isValidUuid(dto.projectManagerUserId)
+      ? dto.projectManagerUserId
+      : userId;
 
     // Resolve billing type (map FIXED_PRICE to FIXED_COST)
     let billingType = dto.billingType || 'FIXED_COST';
@@ -54,18 +66,11 @@ export class ProjectsService {
     }
 
     // Resolve budgeted hours (support totalBudgetHours alias)
-    const budgetedHours = dto.budgetedHours ?? dto.totalBudgetHours ?? 0.00;
+    const budgetedHours = dto.budgetedHours ?? dto.totalBudgetHours ?? 0.0;
 
-    // Resolve client ID (if null/empty, check if fallback client exists)
-    let clientId = dto.clientId || null;
-    if (!clientId) {
-      const defaultClient = await this.db.query(
-        `SELECT id FROM clients ORDER BY created_at ASC LIMIT 1;`,
-      );
-      if (defaultClient.rowCount > 0) {
-        clientId = defaultClient.rows[0].id;
-      }
-    }
+    const clientId = dto.clientId;
+    if (!clientId)
+      throw new BadRequestException('Select a client for the project.');
 
     const insertQuery = `
       INSERT INTO projects (
@@ -80,23 +85,31 @@ export class ProjectsService {
       RETURNING *;
     `;
 
-    const result = await this.db.query(insertQuery, [
-      dto.projectCode,
-      dto.projectName,
-      dto.description || null,
-      clientId,
-      branchId,
-      projectManagerUserId,
-      billingType,
-      dto.contractAmount || 0.00,
-      dto.hourlyRate || 0.00,
-      budgetedHours,
-      dto.currency || 'INR',
-      dto.plannedStartDate || null,
-      dto.plannedEndDate || null,
-      dto.projectStatus || 'PLANNING',
-      userId,
-    ]);
+    const result = await this.db.writeWithFields(
+      insertQuery,
+      [
+        dto.projectCode,
+        dto.projectName,
+        dto.description || null,
+        clientId,
+        branchId,
+        projectManagerUserId,
+        billingType,
+        dto.contractAmount || 0.0,
+        dto.hourlyRate || 0.0,
+        budgetedHours,
+        dto.currency || 'INR',
+        dto.plannedStartDate || null,
+        dto.plannedEndDate || null,
+        dto.projectStatus || 'PLANNING',
+        userId,
+      ],
+      'projects',
+      {
+        tech_stack: dto.techStack,
+        invoicing_milestones: dto.invoicingMilestones,
+      },
+    );
 
     return result.rows[0];
   }
@@ -135,10 +148,13 @@ export class ProjectsService {
 
     if (query.search) {
       params.push(`%${query.search.trim()}%`);
-      whereClauses.push(`(p.project_code ILIKE $${params.length} OR p.project_name ILIKE $${params.length})`);
+      whereClauses.push(
+        `(p.project_code ILIKE $${params.length} OR p.project_name ILIKE $${params.length})`,
+      );
     }
 
-    const whereSql = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
+    const whereSql =
+      whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
 
     const countSql = `SELECT COUNT(p.id) AS total FROM projects p ${whereSql};`;
     const countResult = await this.db.query(countSql, params);
@@ -226,7 +242,8 @@ export class ProjectsService {
   }
 
   async update(id: string, dto: UpdateProjectDto, userId: string) {
-    await this.findOne(id);
+    const existing = await this.findOne(id);
+    validateDateRanges(dto, existing);
 
     const updateQuery = `
       UPDATE projects SET
@@ -252,26 +269,34 @@ export class ProjectsService {
       RETURNING *;
     `;
 
-    const result = await this.db.query(updateQuery, [
-      dto.projectName,
-      dto.description,
-      dto.clientId,
-      dto.branchId,
-      dto.projectManagerUserId,
-      dto.billingType,
-      dto.contractAmount,
-      dto.hourlyRate,
-      dto.budgetedHours,
-      dto.currency,
-      dto.plannedStartDate,
-      dto.plannedEndDate,
-      dto.actualStartDate,
-      dto.actualEndDate,
-      dto.projectStatus,
-      dto.isActive,
-      userId,
-      id,
-    ]);
+    const result = await this.db.writeWithFields(
+      updateQuery,
+      [
+        dto.projectName,
+        dto.description,
+        dto.clientId,
+        dto.branchId,
+        dto.projectManagerUserId,
+        dto.billingType,
+        dto.contractAmount,
+        dto.hourlyRate,
+        dto.budgetedHours,
+        dto.currency,
+        dto.plannedStartDate,
+        dto.plannedEndDate,
+        dto.actualStartDate,
+        dto.actualEndDate,
+        dto.projectStatus,
+        dto.isActive,
+        userId,
+        id,
+      ],
+      'projects',
+      {
+        tech_stack: dto.techStack,
+        invoicing_milestones: dto.invoicingMilestones,
+      },
+    );
 
     return result.rows[0];
   }
@@ -294,7 +319,12 @@ export class ProjectsService {
   // Team Allocation Management
   // ----------------------------------------------------
 
-  async allocateMember(projectId: string, dto: AllocateMemberDto, userId: string) {
+  async allocateMember(
+    projectId: string,
+    dto: AllocateMemberDto,
+    userId: string,
+  ) {
+    validateDateRanges(dto);
     await this.findOne(projectId);
 
     const upsertQuery = `
@@ -318,7 +348,7 @@ export class ProjectsService {
       projectId,
       dto.userId,
       dto.projectRole,
-      dto.allocationPercentage || 100.00,
+      dto.allocationPercentage || 100.0,
       dto.startDate || null,
       dto.endDate || null,
       userId,
@@ -362,7 +392,9 @@ export class ProjectsService {
     `;
     const result = await this.db.query(query, [projectId, userId]);
     if (result.rowCount === 0) {
-      throw new NotFoundException('Member allocation not found for this project.');
+      throw new NotFoundException(
+        'Member allocation not found for this project.',
+      );
     }
     return { success: true, message: 'Member deallocated from project' };
   }
@@ -378,7 +410,9 @@ export class ProjectsService {
     `;
     const result = await this.db.query(query, [projectId]);
     if (result.rowCount === 0) {
-      throw new NotFoundException(`Financial summary for project ${projectId} not found.`);
+      throw new NotFoundException(
+        `Financial summary for project ${projectId} not found.`,
+      );
     }
     return result.rows[0];
   }

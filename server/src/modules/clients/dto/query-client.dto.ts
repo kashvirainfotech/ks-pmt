@@ -1,6 +1,14 @@
+import { IsUUID } from '../../../common/validators/record-id';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
-import { IsBoolean, IsIn, IsInt, IsOptional, IsString, IsUUID, Min } from 'class-validator';
+import { Type, Transform } from 'class-transformer';
+import {
+  IsBoolean,
+  IsIn,
+  IsInt,
+  IsOptional,
+  IsString,
+  Min,
+} from 'class-validator';
 
 export class QueryClientDto {
   @ApiPropertyOptional({ example: 1, default: 1 })
@@ -17,7 +25,10 @@ export class QueryClientDto {
   @IsOptional()
   limit?: number = 20;
 
-  @ApiPropertyOptional({ example: 'ACTIVE_CLIENT', enum: ['PROSPECT', 'ACTIVE_CLIENT', 'FORMER_CLIENT'] })
+  @ApiPropertyOptional({
+    example: 'ACTIVE_CLIENT',
+    enum: ['PROSPECT', 'ACTIVE_CLIENT', 'FORMER_CLIENT'],
+  })
   @IsString()
   @IsIn(['PROSPECT', 'ACTIVE_CLIENT', 'FORMER_CLIENT'])
   @IsOptional()
@@ -33,13 +44,15 @@ export class QueryClientDto {
   @IsOptional()
   accountManagerUserId?: string;
 
-  @ApiPropertyOptional({ description: 'Search company name, contact person, or email' })
+  @ApiPropertyOptional({
+    description: 'Search company name, contact person, or email',
+  })
   @IsString()
   @IsOptional()
   search?: string;
 
   @ApiPropertyOptional({ example: false, default: false })
-  @Type(() => Boolean)
+  @Transform(({ value }) => value === true || value === 'true')
   @IsBoolean()
   @IsOptional()
   includeInactive?: boolean = false;

@@ -17,10 +17,18 @@ export class DynamicRbacGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const requiredRoles = this.reflector.getAllAndOverride<string[]>(ROLES_KEY, [
-      context.getHandler(),
-      context.getClass(),
-    ]);
+    const request = context.switchToHttp().getRequest();
+    await this.rbacService.enforceBranchScope(request);
+    if (request.user?.id)
+      request.userEffectivePermissions =
+        await this.rbacService.getEffectivePermissions(
+          request.user.id,
+          request.headers['x-branch-id'] || request.user.primaryBranchId,
+        );
+    const requiredRoles = this.reflector.getAllAndOverride<string[]>(
+      ROLES_KEY,
+      [context.getHandler(), context.getClass()],
+    );
 
     const requiredPermissions = this.reflector.getAllAndOverride<string[]>(
       PERMISSIONS_KEY,
@@ -32,18 +40,15 @@ export class DynamicRbacGuard implements CanActivate {
       return true;
     }
 
-    const request = context.switchToHttp().getRequest();
     const user = request.user;
 
     if (!user || !user.id) {
       throw new ForbiddenException('User authentication required');
     }
 
-    const activeBranchId = request.headers['x-branch-id'] || user.primaryBranchId;
-    const effectivePerms = await this.rbacService.getEffectivePermissions(
-      user.id,
-      activeBranchId,
-    );
+    const activeBranchId =
+      request.headers['x-branch-id'] || user.primaryBranchId;
+    const effectivePerms = request.userEffectivePermissions;
 
     // Super Admin has unrestricted access
     if (effectivePerms.roleCode === 'ROLE_SUPER_ADMIN') {

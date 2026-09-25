@@ -33,6 +33,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const isSuperAdmin = user?.role_code === 'ROLE_SUPER_ADMIN';
 
   const navItems = [
+    { label: 'My Profile', path: '/profile', icon: Users2, show: true },
+    {
+      label: 'Notifications',
+      path: '/notifications',
+      icon: Layers,
+      show: true,
+    },
+    { label: 'Release Timeline', path: '/releases', icon: Layers, show: true },
     {
       label: 'Dashboard',
       path: '/dashboard',
@@ -67,7 +75,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
       label: 'Masters & Setup',
       path: '/admin',
       icon: Settings,
-      show: isSuperAdmin || hasPermission('USERS:MANAGE') || hasPermission('BRANCHES:MANAGE'),
+      show:
+        isSuperAdmin ||
+        hasPermission('USERS:MANAGE') ||
+        hasPermission('BRANCHES:MANAGE'),
     },
     {
       label: 'Audit Trail',
@@ -104,7 +115,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <span className="font-extrabold text-sm tracking-tight bg-gradient-to-r from-blue-600 to-indigo-500 bg-clip-text text-transparent">
                   KS-PMT
                 </span>
-                <span className="text-[10px] text-slate-400 font-medium">Kashvira Infotech</span>
+                <span className="text-[10px] text-slate-400 font-medium">
+                  Kashvira Infotech
+                </span>
               </div>
             )}
           </div>
@@ -113,7 +126,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
             onClick={onToggleCollapse}
             className="hidden lg:flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-500 hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700"
           >
-            {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+            {collapsed ? (
+              <ChevronRight className="h-4 w-4" />
+            ) : (
+              <ChevronLeft className="h-4 w-4" />
+            )}
           </button>
         </div>
 
@@ -150,8 +167,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <div className="flex items-center gap-3 rounded-xl bg-slate-50 p-2.5 dark:bg-slate-800/60">
               <Briefcase className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0" />
               <div className="overflow-hidden text-[11px]">
-                <p className="truncate font-semibold text-slate-800 dark:text-slate-200">Kashvira Infotech</p>
-                <p className="text-[10px] text-slate-400">Enterprise Edition v1.0</p>
+                <p className="truncate font-semibold text-slate-800 dark:text-slate-200">
+                  Kashvira Infotech
+                </p>
+                <p className="text-[10px] text-slate-400">
+                  Enterprise Edition v1.0
+                </p>
               </div>
             </div>
           </div>

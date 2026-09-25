@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart';
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -5,9 +6,9 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/network/api_client.dart';
-import '../../data/models/task_model.dart';
-import '../../data/repositories/task_repository.dart';
-import '../../data/repositories/media_repository.dart';
+import '../../../data/models/task_model.dart';
+import '../../../data/repositories/task_repository.dart';
+import '../../../data/repositories/media_repository.dart';
 import '../../task_provider.dart';
 
 class TaskDetailScreen extends StatefulWidget {
@@ -85,7 +86,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
 
   Future<void> _handleStatusTransition(String newStatusId) async {
     final taskRepo = context.read<TaskRepository>();
-    final success = await taskRepo.updateStatus(widget.taskId, newStatusId);
+    await taskRepo.updateStatus(widget.taskId, newStatusId);
     if (mounted) {
       context.read<TaskProvider>().fetchTasks();
       _loadTaskDetails();
@@ -135,6 +136,48 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
     }
   }
 
+  Future<void> _logWork() async {
+    final hours = TextEditingController(text: _elapsedSeconds > 0 ? (_elapsedSeconds / 3600).toStringAsFixed(2) : '1');
+    final summary = TextEditingController();
+    final date = TextEditingController(text: DateTime.now().toIso8601String().split('T').first);
+    bool billable = _task?.isChargeable ?? false;
+    String? error;
+    bool saving = false;
+    await showDialog<void>(context: context, builder: (dialogContext) => StatefulBuilder(builder: (context, update) => AlertDialog(
+      title: const Text('Log work'),
+      content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
+        TextField(controller: date, decoration: const InputDecoration(labelText: 'Work date (YYYY-MM-DD)')),
+        TextField(controller: hours, keyboardType: const TextInputType.numberWithOptions(decimal: true), decoration: const InputDecoration(labelText: 'Hours worked')),
+        TextField(controller: summary, decoration: const InputDecoration(labelText: 'Work summary'), maxLines: 3),
+        CheckboxListTile(title: const Text('Billable'), value: billable, onChanged: (v) => update(() => billable = v ?? false)),
+        if (error != null) Text(error!, style: const TextStyle(color: Colors.red)),
+      ])),
+      actions: [TextButton(onPressed: saving ? null : () => Navigator.pop(dialogContext), child: const Text('Cancel')), FilledButton(onPressed: saving ? null : () async {
+        final value = double.tryParse(hours.text);
+        if (value == null || value <= 0 || value > 24 || summary.text.trim().isEmpty || DateTime.tryParse(date.text) == null) { update(() => error = 'Enter a valid date, 0?24 hours and a summary'); return; }
+        update(() { saving = true; error = null; });
+        try {
+          await this.context.read<ApiClient>().dio.post('/time-logs', data: {'taskId': widget.taskId, 'logDate': date.text, 'hoursSpent': value, 'description': summary.text.trim(), 'isBillable': billable});
+          _timer?.cancel();
+          if (mounted) setState(() { _elapsedSeconds = 0; _timerRunning = false; });
+          if (dialogContext.mounted) Navigator.pop(dialogContext);
+        } catch (_) { update(() { error = 'Could not save worklog. Check your connection and permissions.'; saving = false; }); }
+      }, child: Text(saving ? 'Saving...' : 'Save'))],
+    )));
+    hours.dispose(); summary.dispose(); date.dispose();
+  }
+
+  Future<void> _pickDocument() async {
+    final picked = await FilePicker.platform.pickFiles();
+    final filePath = picked?.files.single.path;
+    if (filePath == null || !mounted) return;
+    setState(() => _isUploading = true);
+    try {
+      await MediaRepository(context.read<ApiClient>()).uploadFileToS3(file: File(filePath), entityType: 'TASK', entityId: widget.taskId, onProgress: (sent, total) { if (mounted && total > 0) setState(() => _uploadProgress = sent / total); });
+    } catch (_) { if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Document upload failed'))); }
+    finally { if (mounted) setState(() => _isUploading = false); }
+  }
+
   void _showMediaBottomSheet() {
     showModalBottomSheet(
       context: context,
@@ -147,6 +190,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              ListTile(leading: const Icon(Icons.description), title: const Text('Choose document'), onTap: () { Navigator.pop(context); _pickDocument(); }),
               ListTile(
                 leading: const Icon(Icons.camera_alt_outlined, color: AppTheme.primaryBlue),
                 title: const Text('Take Photo with Camera'),
@@ -172,6 +216,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (!_loading && _task == null) return Scaffold(appBar: AppBar(title: const Text('Task Detail')), body: Center(child: TextButton(onPressed: _loadTaskDetails, child: const Text('Unable to load task. Retry'))));
     if (_loading || _task == null) {
       return Scaffold(
         appBar: AppBar(title: const Text('Task Detail')),
@@ -343,6 +388,8 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
             ),
             const SizedBox(height: 24),
 
+            FilledButton.icon(onPressed: _logWork, icon: const Icon(Icons.save), label: const Text('Log work / save timer')),
+            const SizedBox(height: 16),
             // Subtasks Checklist
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,

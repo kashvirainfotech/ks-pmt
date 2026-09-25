@@ -1,9 +1,9 @@
+import { ParseUUIDPipe } from '../../common/validators/record-id';
 import {
   Body,
   Controller,
   Get,
   Param,
-  ParseUUIDPipe,
   Patch,
   Post,
   Put,

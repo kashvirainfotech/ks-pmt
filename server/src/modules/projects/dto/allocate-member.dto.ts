@@ -1,3 +1,4 @@
+import { IsUUID } from '../../../common/validators/record-id';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsDateString,
@@ -5,25 +6,34 @@ import {
   IsNumber,
   IsOptional,
   IsString,
-  IsUUID,
   Max,
   MaxLength,
   Min,
 } from 'class-validator';
 
 export class AllocateMemberDto {
-  @ApiProperty({ example: 'c1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c', description: 'Employee User UUID' })
+  @ApiProperty({
+    example: 'c1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c',
+    description: 'Employee User UUID',
+  })
   @IsUUID()
   @IsNotEmpty()
   userId: string;
 
-  @ApiProperty({ example: 'Tech Lead / Principal Backend Dev', description: 'Role on this specific project' })
+  @ApiProperty({
+    example: 'Tech Lead / Principal Backend Dev',
+    description: 'Role on this specific project',
+  })
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)
   projectRole: string;
 
-  @ApiPropertyOptional({ example: 100.00, default: 100.00, description: 'Capacity allocation percentage' })
+  @ApiPropertyOptional({
+    example: 100.0,
+    default: 100.0,
+    description: 'Capacity allocation percentage',
+  })
   @IsNumber()
   @Min(1)
   @Max(100)

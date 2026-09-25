@@ -23,7 +23,7 @@ class TimeLogModel {
       taskId: json['task_id'] ?? '',
       taskTitle: json['task_title'],
       logDate: json['log_date'] ?? '',
-      durationMinutes: json['duration_minutes'] ?? 0,
+      durationMinutes: double.tryParse(json['duration_minutes']?.toString() ?? '')?.round() ?? ((double.tryParse(json['hours_spent']?.toString() ?? '') ?? 0) * 60).round(),
       description: json['description'],
       isBillable: json['is_billable'] ?? false,
     );

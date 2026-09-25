@@ -16,9 +16,9 @@ import {
 
 export const LoginPage: React.FC = () => {
   const [tab, setTab] = useState<'password' | 'otp'>('password');
-  const [email, setEmail] = useState('admin@kashvirainfotech.com');
-  const [password, setPassword] = useState('Admin@123456');
-  const [mobileNumber, setMobileNumber] = useState('+919999900000');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [mobileNumber, setMobileNumber] = useState('');
   const [otpCode, setOtpCode] = useState('');
   const [otpSent, setOtpSent] = useState(false);
   const [countdown, setCountdown] = useState(0);

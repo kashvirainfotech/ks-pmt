@@ -1,3 +1,4 @@
+import { validateDateRanges } from '../../common/validators/date-ranges';
 import {
   BadRequestException,
   Injectable,
@@ -12,11 +13,16 @@ export class VersionsService {
   constructor(private readonly db: DatabaseService) {}
 
   async create(dto: CreateVersionDto, userId: string) {
+    validateDateRanges(dto);
     if (dto.entityType === 'PRODUCT' && !dto.productId) {
-      throw new BadRequestException('productId is mandatory when entityType is PRODUCT.');
+      throw new BadRequestException(
+        'productId is mandatory when entityType is PRODUCT.',
+      );
     }
     if (dto.entityType === 'PROJECT' && !dto.projectId) {
-      throw new BadRequestException('projectId is mandatory when entityType is PROJECT.');
+      throw new BadRequestException(
+        'projectId is mandatory when entityType is PROJECT.',
+      );
     }
 
     const insertQuery = `
@@ -155,7 +161,8 @@ export class VersionsService {
   }
 
   async update(id: string, dto: UpdateVersionDto, userId: string) {
-    await this.findOne(id);
+    const existing = await this.findOne(id);
+    validateDateRanges(dto, existing);
 
     const updateQuery = `
       UPDATE versions SET

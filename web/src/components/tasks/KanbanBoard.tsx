@@ -1,12 +1,14 @@
 import React from 'react';
 import { Task, TaskWorkflowStatus } from '../../types';
 import { TaskCard } from './TaskCard';
+import { tasksApi } from '../../api/endpoints';
 import { Plus } from 'lucide-react';
 
 interface KanbanBoardProps {
   tasks: Task[];
   statuses: TaskWorkflowStatus[];
   onOpenDetail: (task: Task) => void;
+  onMoved?: () => void;
   onQuickCreate?: (statusId: string) => void;
 }
 
@@ -15,6 +17,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   statuses,
   onOpenDetail,
   onQuickCreate,
+  onMoved,
 }) => {
   return (
     <div className="flex h-full w-full gap-4 overflow-x-auto pb-4 pt-1">
@@ -24,6 +27,18 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
         return (
           <div
             key={status.id}
+            onDragOver={(event) => event.preventDefault()}
+            onDrop={async (event) => {
+              event.preventDefault();
+              const id = event.dataTransfer.getData('text/task-id');
+              if (!id) return;
+              try {
+                await tasksApi.updateStatus(id, status.id);
+                onMoved?.();
+              } catch (e: any) {
+                alert(e.response?.data?.message || 'Transition not permitted');
+              }
+            }}
             className="flex w-72 sm:w-80 shrink-0 flex-col rounded-2xl border border-slate-200/80 bg-slate-100/60 p-3 dark:border-slate-800 dark:bg-slate-900/50"
           >
             {/* Column Header */}
@@ -41,7 +56,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                 </span>
               </div>
 
-              {onQuickCreate && (
+              {onQuickCreate && status.is_initial && (
                 <button
                   onClick={() => onQuickCreate(status.id)}
                   className="rounded-lg p-1 text-slate-400 hover:bg-white hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"

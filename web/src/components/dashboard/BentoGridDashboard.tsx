@@ -24,7 +24,7 @@ export const BentoGridDashboard: React.FC = () => {
     totalTasks: 0,
     urgentTasks: 0,
     completedTasks: 0,
-    billableAmount: 0,
+    billableAmount: '',
     totalBudgetHours: 0,
     loggedMinutes: 0,
   });
@@ -38,14 +38,20 @@ export const BentoGridDashboard: React.FC = () => {
       setLoading(true);
       try {
         const [tasksRes, projectsRes, timeRes]: any = await Promise.allSettled([
-          tasksApi.getTasks({ branchId: selectedBranchId || undefined, limit: 50 }),
+          tasksApi.getTasks({
+            branchId: selectedBranchId || undefined,
+            limit: 50,
+          }),
           projectsApi.getProjects({ branchId: selectedBranchId || undefined }),
           timeLogsApi.getTimeLogs({ limit: 20 }),
         ]);
 
         const tasksList =
           tasksRes.status === 'fulfilled'
-            ? tasksRes.value?.data?.tasks || tasksRes.value?.tasks || []
+            ? tasksRes.value?.data?.tasks ||
+              tasksRes.value?.tasks ||
+              tasksRes.value?.data ||
+              []
             : [];
         const projectsList =
           projectsRes.status === 'fulfilled'
@@ -57,22 +63,38 @@ export const BentoGridDashboard: React.FC = () => {
             : [];
 
         // Calculate KPI values
-        const urgent = tasksList.filter((t: any) => t.priority === 'URGENT' || t.priority === 'HIGH').length;
-        const completed = tasksList.filter((t: any) => t.status_code === 'STATUS_CLOSED' || t.status_code === 'STATUS_COMPLETED').length;
-        const billableTotal = tasksList
-          .filter((t: any) => t.is_chargeable)
-          .reduce((sum: number, t: any) => sum + (parseFloat(t.charge_amount) || 0), 0);
+        const urgent = tasksList.filter((t: any) =>
+          ['URGENT', 'HIGH', 'CRITICAL'].includes(t.priority),
+        ).length;
+        const completed = tasksList.filter(
+          (t: any) => t.status_category === 'DONE',
+        ).length;
+        const amounts: Record<string, number> = {};
+        tasksList
+          .filter((t: any) => t.is_chargeable && t.charge_amount !== undefined)
+          .forEach((t: any) => {
+            const currency = t.currency || 'INR';
+            amounts[currency] =
+              (amounts[currency] || 0) + Number(t.charge_amount || 0);
+          });
+        const billableTotal =
+          Object.entries(amounts)
+            .map(
+              ([currency, amount]) => `${currency} ${amount.toLocaleString()}`,
+            )
+            .join(' / ') || 'No visible charges';
         const budgetHours = projectsList.reduce(
-          (sum: number, p: any) => sum + (parseFloat(p.total_budget_hours) || 0),
+          (sum: number, p: any) => sum + (parseFloat(p.budgeted_hours) || 0),
           0,
         );
         const loggedMins = timeLogsList.reduce(
-          (sum: number, tl: any) => sum + (parseInt(tl.duration_minutes, 10) || 0),
+          (sum: number, tl: any) =>
+            sum + (parseInt(tl.duration_minutes, 10) || 0),
           0,
         );
 
         setStats({
-          totalTasks: tasksList.length,
+          totalTasks: tasksRes.value?.meta?.total_count ?? tasksList.length,
           urgentTasks: urgent,
           completedTasks: completed,
           billableAmount: billableTotal,
@@ -84,7 +106,10 @@ export const BentoGridDashboard: React.FC = () => {
         setRecentProjects(projectsList.slice(0, 4));
 
         // Group status counts
-        const statusMap = new Map<string, { name: string; count: number; color: string }>();
+        const statusMap = new Map<
+          string,
+          { name: string; count: number; color: string }
+        >();
         tasksList.forEach((t: any) => {
           const sName = t.status_name || 'Open';
           const sColor = t.status_color || '#3b82f6';
@@ -105,7 +130,8 @@ export const BentoGridDashboard: React.FC = () => {
   }, [selectedBranchId]);
 
   const currentBranchName =
-    branches.find((b) => b.id === selectedBranchId)?.branch_name || 'All Company Branches';
+    branches.find((b) => b.id === selectedBranchId)?.branch_name ||
+    'All Company Branches';
 
   return (
     <div className="space-y-6">
@@ -116,7 +142,7 @@ export const BentoGridDashboard: React.FC = () => {
             Executive Dashboard
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            Real-time project velocity, task workflows and resource capacity for{' '}
+            Task totals and recent activity for{' '}
             <span className="font-semibold text-blue-600 dark:text-blue-400">
               {currentBranchName}
             </span>
@@ -138,7 +164,9 @@ export const BentoGridDashboard: React.FC = () => {
         {/* KPI 1: Active Tasks */}
         <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Active Tasks</span>
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+              Total Tasks
+            </span>
             <div className="rounded-xl bg-blue-50 p-2 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400">
               <FolderKanban className="h-5 w-5" />
             </div>
@@ -148,7 +176,8 @@ export const BentoGridDashboard: React.FC = () => {
               {stats.totalTasks}
             </span>
             <span className="text-xs text-emerald-600 dark:text-emerald-400 flex items-center font-medium">
-              <TrendingUp className="h-3 w-3 mr-0.5" /> {stats.completedTasks} closed
+              <TrendingUp className="h-3 w-3 mr-0.5" /> {stats.completedTasks}{' '}
+              closed
             </span>
           </div>
         </div>
@@ -156,7 +185,9 @@ export const BentoGridDashboard: React.FC = () => {
         {/* KPI 2: Urgent / High Priority */}
         <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">High / Urgent Tasks</span>
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+              High / Urgent (latest 50)
+            </span>
             <div className="rounded-xl bg-rose-50 p-2 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400">
               <AlertTriangle className="h-5 w-5" />
             </div>
@@ -172,7 +203,9 @@ export const BentoGridDashboard: React.FC = () => {
         {/* KPI 3: Logged Hours */}
         <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Total Effort Logged</span>
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+              Recent Effort Logged
+            </span>
             <div className="rounded-xl bg-amber-50 p-2 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400">
               <Clock className="h-5 w-5" />
             </div>
@@ -181,23 +214,27 @@ export const BentoGridDashboard: React.FC = () => {
             <span className="text-2xl font-extrabold text-slate-900 dark:text-white">
               {(stats.loggedMinutes / 60).toFixed(1)}h
             </span>
-            <span className="text-xs text-slate-400">across timesheets</span>
+            <span className="text-xs text-slate-400">latest 20 worklogs</span>
           </div>
         </div>
 
         {/* KPI 4: Billable Value */}
         <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Chargeable Value</span>
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+              Recent Chargeable Value
+            </span>
             <div className="rounded-xl bg-emerald-50 p-2 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400">
               <DollarSign className="h-5 w-5" />
             </div>
           </div>
           <div className="mt-3 flex items-baseline gap-2">
             <span className="text-2xl font-extrabold text-slate-900 dark:text-white">
-              ₹{stats.billableAmount.toLocaleString('en-IN')}
+              {stats.billableAmount}
             </span>
-            <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">Billable</span>
+            <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+              Latest 50 tasks
+            </span>
           </div>
         </div>
       </div>
@@ -208,8 +245,12 @@ export const BentoGridDashboard: React.FC = () => {
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-slate-900 lg:col-span-2">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
             <div>
-              <h2 className="text-sm font-bold text-slate-900 dark:text-white">Workflow Status Breakdown</h2>
-              <p className="text-xs text-slate-400">Distribution of tasks across active life-cycle stages</p>
+              <h2 className="text-sm font-bold text-slate-900 dark:text-white">
+                Workflow Status Breakdown
+              </h2>
+              <p className="text-xs text-slate-400">
+                Distribution of the latest 50 tasks
+              </p>
             </div>
             <button
               onClick={() => navigate('/tasks')}
@@ -221,10 +262,15 @@ export const BentoGridDashboard: React.FC = () => {
 
           <div className="mt-6 space-y-4">
             {statusDistribution.length === 0 ? (
-              <p className="py-8 text-center text-xs text-slate-400">No active tasks in this branch yet</p>
+              <p className="py-8 text-center text-xs text-slate-400">
+                No active tasks in this branch yet
+              </p>
             ) : (
               statusDistribution.map((item, idx) => {
-                const pct = stats.totalTasks > 0 ? Math.round((item.count / stats.totalTasks) * 100) : 0;
+                const pct =
+                  stats.totalTasks > 0
+                    ? Math.round((item.count / stats.totalTasks) * 100)
+                    : 0;
                 return (
                   <div key={idx} className="space-y-1.5">
                     <div className="flex justify-between text-xs font-medium">
@@ -259,8 +305,12 @@ export const BentoGridDashboard: React.FC = () => {
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-slate-900">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
             <div>
-              <h2 className="text-sm font-bold text-slate-900 dark:text-white">Branches & Locations</h2>
-              <p className="text-xs text-slate-400">Multi-location operational hubs</p>
+              <h2 className="text-sm font-bold text-slate-900 dark:text-white">
+                Branches & Locations
+              </h2>
+              <p className="text-xs text-slate-400">
+                Multi-location operational hubs
+              </p>
             </div>
             <Building className="h-4 w-4 text-slate-400" />
           </div>
@@ -283,7 +333,9 @@ export const BentoGridDashboard: React.FC = () => {
                     )}
                   </div>
                   <p className="text-[11px] text-slate-400">
-                    {b.city ? `${b.city}, ${b.state || ''}` : 'Operational Branch'}
+                    {b.city
+                      ? `${b.city}, ${b.state || ''}`
+                      : 'Operational Branch'}
                   </p>
                 </div>
 
@@ -303,7 +355,9 @@ export const BentoGridDashboard: React.FC = () => {
         {/* Active Projects Widget */}
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-slate-900">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
-            <h2 className="text-sm font-bold text-slate-900 dark:text-white">Active Projects & Products</h2>
+            <h2 className="text-sm font-bold text-slate-900 dark:text-white">
+              Active Projects & Products
+            </h2>
             <button
               onClick={() => navigate('/projects')}
               className="text-xs font-semibold text-blue-600 hover:underline dark:text-blue-400"
@@ -314,21 +368,29 @@ export const BentoGridDashboard: React.FC = () => {
 
           <div className="mt-4 divide-y divide-slate-100 dark:divide-slate-800">
             {recentProjects.length === 0 ? (
-              <p className="py-6 text-center text-xs text-slate-400">No projects added yet</p>
+              <p className="py-6 text-center text-xs text-slate-400">
+                No projects added yet
+              </p>
             ) : (
               recentProjects.map((p) => (
-                <div key={p.id} className="py-3 flex items-center justify-between gap-4">
+                <div
+                  key={p.id}
+                  className="py-3 flex items-center justify-between gap-4"
+                >
                   <div className="truncate">
                     <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate">
                       {p.project_name}
                     </p>
                     <p className="text-[11px] text-slate-400">
-                      Client: {p.client_name || 'Internal Product'} • {p.billing_type?.replace('_', ' ')}
+                      Client: {p.client_name || 'Internal Product'} •{' '}
+                      {p.billing_type?.replace('_', ' ')}
                     </p>
                   </div>
                   <div className="text-right shrink-0">
                     <span className="text-xs font-mono font-semibold text-slate-700 dark:text-slate-300">
-                      {p.total_budget_hours ? `${p.total_budget_hours} hrs` : 'Open Budget'}
+                      {p.budgeted_hours
+                        ? `${p.budgeted_hours} hrs`
+                        : 'Open Budget'}
                     </span>
                   </div>
                 </div>
@@ -340,7 +402,9 @@ export const BentoGridDashboard: React.FC = () => {
         {/* Priority Tasks List Widget */}
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-slate-900">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
-            <h2 className="text-sm font-bold text-slate-900 dark:text-white">Recent Task Activity</h2>
+            <h2 className="text-sm font-bold text-slate-900 dark:text-white">
+              Recent Task Activity
+            </h2>
             <button
               onClick={() => navigate('/tasks')}
               className="text-xs font-semibold text-blue-600 hover:underline dark:text-blue-400"
@@ -351,7 +415,9 @@ export const BentoGridDashboard: React.FC = () => {
 
           <div className="mt-4 divide-y divide-slate-100 dark:divide-slate-800">
             {recentTasks.length === 0 ? (
-              <p className="py-6 text-center text-xs text-slate-400">No tasks created yet</p>
+              <p className="py-6 text-center text-xs text-slate-400">
+                No tasks created yet
+              </p>
             ) : (
               recentTasks.map((t) => (
                 <div
@@ -369,7 +435,8 @@ export const BentoGridDashboard: React.FC = () => {
                       </p>
                     </div>
                     <p className="text-[11px] text-slate-400 mt-0.5">
-                      Type: {t.task_type_name || 'Task'} • Priority: {t.priority}
+                      Type: {t.task_type_name || 'Task'} • Priority:{' '}
+                      {t.priority}
                     </p>
                   </div>
                   <span

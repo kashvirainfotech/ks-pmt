@@ -80,3 +80,10 @@ CREATE INDEX IF NOT EXISTS idx_audit_logs_user_action ON audit_logs(user_id, act
 CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_old_val_gin ON audit_logs USING GIN (old_values);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_new_val_gin ON audit_logs USING GIN (new_values);
+
+-- ========================================================
+-- Date & Time: 2026-09-25 16:32:38 (UTC)
+-- Description: Requirements audit - device session revocation and preferences
+-- ========================================================
+CREATE INDEX IF NOT EXISTS idx_user_sessions_active ON user_sessions(user_id, expires_at) WHERE revoked_at IS NULL;
+CREATE INDEX IF NOT EXISTS idx_time_logs_approval ON task_time_logs(approval_status, log_date, user_id);

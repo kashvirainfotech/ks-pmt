@@ -22,15 +22,22 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   allowedStatuses = [],
   onQuickStatusChange,
 }) => {
-  const priorityColor = {
-    URGENT: 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400 border-rose-200',
-    HIGH: 'bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-400 border-amber-200',
-    MEDIUM: 'bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:text-blue-400 border-blue-200',
-    LOW: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400 border-slate-200',
-  }[task.priority] || 'bg-slate-100 text-slate-700';
+  const priorityColor =
+    {
+      URGENT:
+        'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400 border-rose-200',
+      HIGH: 'bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-400 border-amber-200',
+      MEDIUM:
+        'bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:text-blue-400 border-blue-200',
+      LOW: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400 border-slate-200',
+    }[task.priority] || 'bg-slate-100 text-slate-700';
 
   return (
     <div
+      draggable
+      onDragStart={(event) =>
+        event.dataTransfer.setData('text/task-id', task.id)
+      }
       onClick={() => onOpenDetail(task)}
       className="group relative flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-3.5 shadow-xs transition hover:border-blue-400 hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:hover:border-blue-500 cursor-pointer"
     >
@@ -69,7 +76,9 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         {/* Project or Product Name */}
         {(task.project_name || task.product_name) && (
           <p className="mt-1 text-[11px] text-slate-400 truncate">
-            {task.project_name ? `📁 ${task.project_name}` : `📦 ${task.product_name}`}
+            {task.project_name
+              ? `📁 ${task.project_name}`
+              : `📦 ${task.product_name}`}
           </p>
         )}
       </div>
@@ -93,8 +102,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
           {task.is_chargeable && task.charge_amount && (
             <span className="flex items-center text-emerald-600 font-semibold dark:text-emerald-400">
-              <DollarSign className="h-3 w-3" />
-              ₹{parseFloat(task.charge_amount as any).toLocaleString('en-IN')}
+              <DollarSign className="h-3 w-3" />₹
+              {parseFloat(task.charge_amount as any).toLocaleString('en-IN')}
             </span>
           )}
         </div>
@@ -112,7 +121,9 @@ export const TaskCard: React.FC<TaskCardProps> = ({
               </div>
             ))
           ) : (
-            <span className="text-[10px] text-slate-400 italic">Unassigned</span>
+            <span className="text-[10px] text-slate-400 italic">
+              Unassigned
+            </span>
           )}
         </div>
       </div>

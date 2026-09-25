@@ -1,9 +1,9 @@
+import { ParseUUIDPipe } from '../../common/validators/record-id';
 import {
   Body,
   Controller,
   Get,
   Param,
-  ParseUUIDPipe,
   Patch,
   Post,
   Put,
@@ -56,7 +56,9 @@ export class VersionsController {
   }
 
   @Get('product/:productId')
-  @ApiOperation({ summary: 'Get all versions and releases for a software product' })
+  @ApiOperation({
+    summary: 'Get all versions and releases for a software product',
+  })
   async findByProduct(@Param('productId', ParseUUIDPipe) productId: string) {
     const data = await this.versionsService.findByProduct(productId);
     return {
@@ -66,7 +68,10 @@ export class VersionsController {
   }
 
   @Get('project/:projectId')
-  @ApiOperation({ summary: 'Get all versions, milestones, and sprints for a custom development project' })
+  @ApiOperation({
+    summary:
+      'Get all versions, milestones, and sprints for a custom development project',
+  })
   async findByProject(@Param('projectId', ParseUUIDPipe) projectId: string) {
     const data = await this.versionsService.findByProject(projectId);
     return {

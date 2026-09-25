@@ -3,10 +3,12 @@ import 'dart:io';
 class ApiConstants {
   // Use 10.0.2.2 for Android Emulator, localhost for iOS Simulator
   static String get baseUrl {
+    const configured = String.fromEnvironment('API_BASE_URL');
+    if (configured.isNotEmpty) return configured;
     if (Platform.isAndroid) {
-      return 'http://10.0.2.2:4000/api/v1';
+      return 'http://10.0.2.2:5000/api/v1';
     }
-    return 'http://localhost:4000/api/v1';
+    return 'http://localhost:5000/api/v1';
   }
 
   // Auth Endpoints

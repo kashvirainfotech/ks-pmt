@@ -1,0 +1,118 @@
+[
+  {
+    "check": "Browser administrator login",
+    "status": "passed"
+  },
+  {
+    "check": "Branches: create through rendered form",
+    "status": "passed",
+    "id": "ffbe6219-d005-40bc-9185-dd4d7bd4346b"
+  },
+  {
+    "check": "Departments: create through rendered form",
+    "status": "passed",
+    "id": "8e0b3a9e-5393-4fd2-9a2f-e954f132a606"
+  },
+  {
+    "check": "Designations: create through rendered form",
+    "status": "passed",
+    "id": "a03fab55-6ad5-4ff0-b612-6be4e3c70084"
+  },
+  {
+    "check": "Roles: create through rendered form",
+    "status": "passed",
+    "id": "a50bd3ee-091c-4b14-8e4f-1c0dd566db49"
+  },
+  {
+    "check": "Employees: create through rendered form",
+    "status": "passed",
+    "id": "cbdadc0d-9ded-49eb-b909-4090b06ee4b6"
+  },
+  {
+    "check": "/clients: create through rendered form",
+    "status": "passed",
+    "id": "ac7cb10f-39e4-4866-a987-db1bdee7ea54"
+  },
+  {
+    "check": "Products: create through rendered form",
+    "status": "passed",
+    "id": "fbb92acc-a10a-4c9c-91e2-adb85387dde3"
+  },
+  {
+    "check": "Projects: create through rendered form",
+    "status": "passed",
+    "id": "741508f2-47f4-43ed-8018-2ed734f1bad2"
+  },
+  {
+    "check": "Versions: create through rendered form",
+    "status": "passed",
+    "id": "f28c6da3-3d6c-41d3-9ea1-8e2122bb1e67"
+  },
+  {
+    "check": "Task types: create through rendered form",
+    "status": "passed",
+    "id": "657ca1f9-8140-4164-bc48-fd7cc3459e8d"
+  },
+  {
+    "check": "Statuses: create through rendered form",
+    "status": "passed",
+    "id": "1eaa7cc9-8f5b-4438-a490-bba7b5823d21"
+  },
+  {
+    "check": "/tasks: create through rendered form",
+    "status": "passed",
+    "id": "398b8cb5-02eb-4b79-91f6-7227a74b1a1d"
+  },
+  {
+    "check": "/dashboard: rendered screen",
+    "status": "passed"
+  },
+  {
+    "check": "/tasks: rendered screen",
+    "status": "passed"
+  },
+  {
+    "check": "/projects: rendered screen",
+    "status": "passed"
+  },
+  {
+    "check": "/clients: rendered screen",
+    "status": "passed"
+  },
+  {
+    "check": "/timesheets: rendered screen",
+    "status": "passed"
+  },
+  {
+    "check": "/admin: rendered screen",
+    "status": "passed"
+  },
+  {
+    "check": "/audit: rendered screen",
+    "status": "passed"
+  },
+  {
+    "check": "/releases: rendered screen",
+    "status": "passed"
+  },
+  {
+    "check": "No uncaught browser exceptions",
+    "status": "passed"
+  },
+  {
+    "check": "Created test dataset",
+    "stamp": "QA-54822383",
+    "branch": "ffbe6219-d005-40bc-9185-dd4d7bd4346b",
+    "department": "8e0b3a9e-5393-4fd2-9a2f-e954f132a606",
+    "designation": "a03fab55-6ad5-4ff0-b612-6be4e3c70084",
+    "role": "a50bd3ee-091c-4b14-8e4f-1c0dd566db49",
+    "employee": "cbdadc0d-9ded-49eb-b909-4090b06ee4b6",
+    "client": "ac7cb10f-39e4-4866-a987-db1bdee7ea54",
+    "product": "fbb92acc-a10a-4c9c-91e2-adb85387dde3",
+    "project": "741508f2-47f4-43ed-8018-2ed734f1bad2",
+    "version": "f28c6da3-3d6c-41d3-9ea1-8e2122bb1e67",
+    "type": "657ca1f9-8140-4164-bc48-fd7cc3459e8d",
+    "done": "1eaa7cc9-8f5b-4438-a490-bba7b5823d21",
+    "task": "398b8cb5-02eb-4b79-91f6-7227a74b1a1d"
+  }
+]

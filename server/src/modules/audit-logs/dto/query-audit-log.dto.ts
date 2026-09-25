@@ -1,4 +1,11 @@
-import { IsOptional, IsString, IsUUID, IsInt, Min, IsDateString } from 'class-validator';
+import { IsUUID } from '../../../common/validators/record-id';
+import {
+  IsOptional,
+  IsString,
+  IsInt,
+  Min,
+  IsDateString,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class QueryAuditLogDto {

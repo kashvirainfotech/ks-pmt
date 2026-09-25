@@ -1,3 +1,4 @@
+import { ParseUUIDPipe } from '../../common/validators/record-id';
 import {
   Body,
   Controller,
@@ -5,7 +6,6 @@ import {
   Get,
   Headers,
   Param,
-  ParseUUIDPipe,
   Patch,
   Post,
   Put,
@@ -49,7 +49,9 @@ export class ProjectsController {
 
   @Get()
   @RequirePermissions('PROJECTS:READ')
-  @ApiOperation({ summary: 'List custom development projects with search and filters' })
+  @ApiOperation({
+    summary: 'List custom development projects with search and filters',
+  })
   async findAll(@Query() query: QueryProjectDto) {
     const result = await this.projectsService.findAll(query);
     return {
@@ -61,7 +63,10 @@ export class ProjectsController {
 
   @Get(':id')
   @RequirePermissions('PROJECTS:READ')
-  @ApiOperation({ summary: 'Get project details by ID with allocated team and planned versions' })
+  @ApiOperation({
+    summary:
+      'Get project details by ID with allocated team and planned versions',
+  })
   async findOne(@Param('id', ParseUUIDPipe) id: string) {
     const data = await this.projectsService.findOne(id);
     return {
@@ -72,7 +77,9 @@ export class ProjectsController {
 
   @Put(':id')
   @RequirePermissions('PROJECTS:UPDATE')
-  @ApiOperation({ summary: 'Update project properties, dates, and commercial amounts' })
+  @ApiOperation({
+    summary: 'Update project properties, dates, and commercial amounts',
+  })
   async update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateProjectDto,
@@ -112,7 +119,11 @@ export class ProjectsController {
     @Body() dto: AllocateMemberDto,
     @CurrentUser('id') userId: string,
   ) {
-    const data = await this.projectsService.allocateMember(projectId, dto, userId);
+    const data = await this.projectsService.allocateMember(
+      projectId,
+      dto,
+      userId,
+    );
     return {
       message: 'Team member allocated successfully',
       data,
@@ -152,7 +163,8 @@ export class ProjectsController {
   @RequirePermissions('PROJECTS:VIEW_FINANCIALS')
   @ApiOperation({
     summary: 'Get project financial breakdown and budget vs. actual hours',
-    description: 'Requires PROJECTS:VIEW_FINANCIALS permission (enforced with dynamic branch/user overrides).',
+    description:
+      'Requires PROJECTS:VIEW_FINANCIALS permission (enforced with dynamic branch/user overrides).',
   })
   async getFinancialSummary(@Param('id', ParseUUIDPipe) id: string) {
     const data = await this.projectsService.getFinancialSummary(id);

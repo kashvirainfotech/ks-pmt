@@ -18,7 +18,8 @@ class TaskRepository {
       queryParameters: params,
     );
 
-    final list = response.data['data']?['tasks'] ?? response.data['tasks'] ?? response.data['data'] ?? [];
+    final payload = response.data['data'] ?? response.data;
+    final list = payload is List ? payload : (payload['tasks'] ?? []);
     return (list as List).map((e) => TaskModel.fromJson(e)).toList();
   }
 
@@ -53,7 +54,8 @@ class TaskRepository {
 
   Future<List<TaskWorkflowStatusModel>> getAllowedNextStatuses(String taskTypeId, String currentStatusId) async {
     final response = await apiClient.dio.get(
-      '/task-workflows/next-statuses/$taskTypeId/$currentStatusId',
+      '/task-workflows/allowed-next-statuses',
+      queryParameters: {'taskTypeId': taskTypeId, 'fromStatusId': currentStatusId},
     );
     final list = response.data['data'] ?? response.data ?? [];
     return (list as List).map((e) => TaskWorkflowStatusModel.fromJson(e)).toList();

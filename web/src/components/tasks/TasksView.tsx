@@ -1,3 +1,4 @@
+import { allRows, Row } from '../management/EntityManager';
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -27,6 +28,20 @@ export const TasksView: React.FC = () => {
   const [taskTypes, setTaskTypes] = useState<TaskType[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [page, setPage] = useState(1);
+  const [pages, setPages] = useState(1);
+  const [facets, setFacets] = useState<Record<string, string>>({});
+  const [choices, setChoices] = useState<Record<string, Row[]>>({});
+  useEffect(() => {
+    Promise.all(
+      ['projects', 'products', 'users'].map(
+        async (name) => [name, await allRows('/' + name)] as const,
+      ),
+    )
+      .then((items) => setChoices(Object.fromEntries(items)))
+      .catch(console.error);
+  }, []);
+
   // Filters
   const [selectedTaskTypeId, setSelectedTaskTypeId] = useState<string>('');
   const [selectedPriority, setSelectedPriority] = useState<string>('');
@@ -35,7 +50,9 @@ export const TasksView: React.FC = () => {
   // Modals & Drawer
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [createModalOpen, setCreateModalOpen] = useState(false);
-  const [createModalInitialStatus, setCreateModalInitialStatus] = useState<string | undefined>(undefined);
+  const [createModalInitialStatus, setCreateModalInitialStatus] = useState<
+    string | undefined
+  >(undefined);
 
   // Fetch initial workflow statuses & task types
   useEffect(() => {
@@ -61,9 +78,12 @@ export const TasksView: React.FC = () => {
         taskTypeId: selectedTaskTypeId || undefined,
         priority: selectedPriority || undefined,
         search: searchQuery || undefined,
-        limit: 100,
+        ...facets,
+        page,
+        limit: 30,
       });
 
+      setPages(res.meta?.total_pages || res.meta?.totalPages || 1);
       const list = res?.data?.tasks || res?.tasks || res?.data || [];
       setTasks(Array.isArray(list) ? list : []);
 
@@ -72,7 +92,8 @@ export const TasksView: React.FC = () => {
       if (urlTaskId) {
         const found = list.find((t: any) => t.id === urlTaskId);
         if (found) {
-          setSelectedTask(found);
+          const detail: any = await tasksApi.getTaskById(urlTaskId);
+          setSelectedTask(detail.data);
         }
       }
     } catch (err) {
@@ -84,11 +105,24 @@ export const TasksView: React.FC = () => {
 
   useEffect(() => {
     fetchTasks();
-  }, [selectedBranchId, selectedTaskTypeId, selectedPriority, searchQuery]);
+  }, [
+    selectedBranchId,
+    selectedTaskTypeId,
+    selectedPriority,
+    searchQuery,
+    facets,
+    page,
+  ]);
 
   // Open drawer for a task and sync URL
-  const handleOpenDetail = (task: Task) => {
-    setSelectedTask(task);
+  const handleOpenDetail = async (task: Task) => {
+    try {
+      const detail: any = await tasksApi.getTaskById(task.id);
+      setSelectedTask(detail.data);
+    } catch (e: any) {
+      alert(e.response?.data?.message || 'Unable to load task');
+      return;
+    }
     setSearchParams({ taskId: task.id });
   };
 
@@ -152,6 +186,57 @@ export const TasksView: React.FC = () => {
         </div>
       </div>
 
+      <div className="flex flex-wrap gap-3">
+        {[
+          ['projectId', 'projects', 'project_name'],
+          ['productId', 'products', 'product_name'],
+          ['assigneeUserId', 'users', 'first_name'],
+        ].map(([key, source, label]) => (
+          <select
+            aria-label={source}
+            key={key}
+            className="rounded border p-2 text-xs dark:bg-slate-800"
+            value={facets[key] || ''}
+            onChange={(e) => {
+              setPage(1);
+              setFacets((prev) => {
+                const next = { ...prev };
+                if (e.target.value) next[key] = e.target.value;
+                else delete next[key];
+                return next;
+              });
+            }}
+          >
+            <option value="">All {source}</option>
+            {(choices[source] || []).map((r) => (
+              <option key={r.id} value={r.id}>
+                {r[label]}
+              </option>
+            ))}
+          </select>
+        ))}
+        <select
+          aria-label="Status filter"
+          className="rounded border p-2 text-xs dark:bg-slate-800"
+          value={facets.statusId || ''}
+          onChange={(e) => {
+            setPage(1);
+            setFacets((prev) => {
+              const next = { ...prev };
+              if (e.target.value) next.statusId = e.target.value;
+              else delete next.statusId;
+              return next;
+            });
+          }}
+        >
+          <option value="">All statuses</option>
+          {statuses.map((s) => (
+            <option key={s.id} value={s.id}>
+              {s.status_name}
+            </option>
+          ))}
+        </select>
+      </div>
       {/* Filter Toolbar */}
       <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
         <div className="relative flex-1 min-w-[200px]">
@@ -186,6 +271,7 @@ export const TasksView: React.FC = () => {
           className="rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-medium text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
         >
           <option value="">All Priorities</option>
+          <option value="CRITICAL">Critical</option>
           <option value="URGENT">Urgent</option>
           <option value="HIGH">High</option>
           <option value="MEDIUM">Medium</option>
@@ -201,6 +287,7 @@ export const TasksView: React.FC = () => {
           </div>
         ) : viewMode === 'kanban' ? (
           <KanbanBoard
+            onMoved={fetchTasks}
             tasks={tasks}
             statuses={statuses}
             onOpenDetail={handleOpenDetail}
@@ -278,7 +365,10 @@ export const TasksView: React.FC = () => {
                       <td className="px-4 py-3">
                         {task.is_chargeable ? (
                           <span className="font-semibold text-emerald-600 dark:text-emerald-400">
-                            ₹{parseFloat(task.charge_amount as any || 0).toLocaleString('en-IN')}
+                            ₹
+                            {parseFloat(
+                              (task.charge_amount as any) || 0,
+                            ).toLocaleString('en-IN')}
                           </span>
                         ) : (
                           <span className="text-slate-400">No</span>
@@ -297,7 +387,9 @@ export const TasksView: React.FC = () => {
                               </div>
                             ))
                           ) : (
-                            <span className="text-[10px] text-slate-400">—</span>
+                            <span className="text-[10px] text-slate-400">
+                              —
+                            </span>
                           )}
                         </div>
                       </td>
@@ -310,9 +402,21 @@ export const TasksView: React.FC = () => {
         )}
       </div>
 
+      <div className="flex gap-4 text-sm">
+        <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
+          Previous
+        </button>
+        <span>
+          Page {page} of {pages}
+        </span>
+        <button disabled={page >= pages} onClick={() => setPage((p) => p + 1)}>
+          Next
+        </button>
+      </div>
       {/* Task Detail Drawer */}
       {selectedTask && (
         <TaskDrawer
+          key={selectedTask?.id}
           task={selectedTask}
           onClose={handleCloseDetail}
           onTaskUpdated={() => {

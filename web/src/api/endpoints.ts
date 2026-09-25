@@ -24,20 +24,24 @@ import {
 // Authentication APIs
 // ==========================================
 export const authApi = {
-  loginPassword: (data: { email: string; password: string; devicePlatform?: string }) =>
-    api.post('/auth/login-password', data),
+  loginPassword: (data: {
+    email: string;
+    password: string;
+    devicePlatform?: string;
+  }) => api.post('/auth/login-password', data),
 
   requestOtp: (data: { mobileNumber: string }) =>
     api.post('/auth/request-otp', data),
 
-  loginOtp: (data: { mobileNumber: string; otpCode: string; devicePlatform?: string }) =>
-    api.post('/auth/login-otp', data),
+  loginOtp: (data: {
+    mobileNumber: string;
+    otpCode: string;
+    devicePlatform?: string;
+  }) => api.post('/auth/login-otp', data),
 
-  getMe: (): Promise<{ data: User }> =>
-    api.get('/auth/me'),
+  getMe: (): Promise<{ data: User }> => api.get('/auth/me'),
 
-  logout: (refreshToken: string) =>
-    api.post('/auth/logout', { refreshToken }),
+  logout: (refreshToken: string) => api.post('/auth/logout', { refreshToken }),
 };
 
 // ==========================================
@@ -47,11 +51,9 @@ export const tasksApi = {
   getTasks: (params?: any): Promise<{ data: PaginatedResponse<Task> }> =>
     api.get('/tasks', { params }),
 
-  getTaskById: (id: string): Promise<{ data: Task }> =>
-    api.get(`/tasks/${id}`),
+  getTaskById: (id: string): Promise<{ data: Task }> => api.get(`/tasks/${id}`),
 
-  createTask: (data: any): Promise<{ data: Task }> =>
-    api.post('/tasks', data),
+  createTask: (data: any): Promise<{ data: Task }> => api.post('/tasks', data),
 
   updateTask: (id: string, data: any): Promise<{ data: Task }> =>
     api.put(`/tasks/${id}`, data),
@@ -59,17 +61,28 @@ export const tasksApi = {
   updateStatus: (id: string, toStatusId: string, remarks?: string) =>
     api.patch(`/tasks/${id}/status`, { toStatusId, remarks }),
 
-  updateAssignees: (id: string, assignees: Array<{ userId: string; isPrimary?: boolean }>) =>
-    api.put(`/tasks/${id}/assignees`, { assignees }),
+  updateAssignees: (
+    id: string,
+    assignees: Array<{ userId: string; isPrimary?: boolean }>,
+  ) =>
+    api.put(`/tasks/${id}/assignees`, {
+      assigneeIds: assignees.map((a) => a.userId),
+      primaryAssigneeId: assignees.find((a) => a.isPrimary)?.userId,
+    }),
 
-  updateChargeable: (id: string, isChargeable: boolean, chargeAmount?: number) =>
-    api.patch(`/tasks/${id}/chargeable`, { isChargeable, chargeAmount }),
+  updateChargeable: (
+    id: string,
+    isChargeable: boolean,
+    chargeAmount?: number,
+  ) => api.put(`/tasks/${id}`, { isChargeable, chargeAmount }),
 
   getSubtasks: (taskId: string): Promise<{ data: SubTask[] }> =>
     api.get(`/tasks/${taskId}/subtasks`),
 
-  createSubtask: (taskId: string, data: { title: string; assignedToUserId?: string; dueDate?: string }) =>
-    api.post(`/tasks/${taskId}/subtasks`, data),
+  createSubtask: (
+    taskId: string,
+    data: { title: string; assignedToUserId?: string; dueDate?: string },
+  ) => api.post(`/tasks/${taskId}/subtasks`, data),
 
   toggleSubtask: (subtaskId: string, isCompleted: boolean) =>
     api.patch(`/tasks/subtasks/${subtaskId}/toggle`, { isCompleted }),
@@ -88,10 +101,17 @@ export const timeLogsApi = {
     durationMinutes: number;
     description?: string;
     isBillable?: boolean;
-  }) => api.post('/time-logs', data),
+  }) =>
+    api.post('/time-logs', {
+      taskId: data.taskId,
+      logDate: data.logDate,
+      hoursSpent: data.durationMinutes / 60,
+      description: data.description || 'Work logged',
+      isBillable: data.isBillable,
+    }),
 
   getTaskEffortSummary: (taskId: string) =>
-    api.get(`/time-logs/task/${taskId}/summary`),
+    api.get(`/time-logs/task/${taskId}`),
 };
 
 // ==========================================
@@ -101,8 +121,11 @@ export const commentsApi = {
   getComments: (taskId: string): Promise<{ data: TaskComment[] }> =>
     api.get(`/comments/task/${taskId}`),
 
-  addComment: (data: { taskId: string; commentText: string; parentCommentId?: string }) =>
-    api.post('/comments', data),
+  addComment: (data: {
+    taskId: string;
+    commentText: string;
+    parentCommentId?: string;
+  }) => api.post('/comments', data),
 };
 
 // ==========================================
@@ -117,17 +140,13 @@ export const attachmentsApi = {
     fileSizeBytes: number;
   }) => api.post('/attachments/presigned-upload-url', data),
 
-  confirmUpload: (data: {
-    entityType: string;
-    entityId: string;
-    fileName: string;
-    originalName: string;
-    fileSizeBytes: number;
-    mimeType: string;
-    s3Key: string;
-  }) => api.post('/attachments/confirm-upload', data),
+  confirmUpload: (data: { attachmentId: string }) =>
+    api.post('/attachments/confirm-upload', data),
 
-  getEntityAttachments: (type: string, id: string): Promise<{ data: Attachment[] }> =>
+  getEntityAttachments: (
+    type: string,
+    id: string,
+  ): Promise<{ data: Attachment[] }> =>
     api.get(`/attachments/entity/${type}/${id}`),
 
   getDownloadUrl: (id: string): Promise<{ data: { downloadUrl: string } }> =>
@@ -138,11 +157,9 @@ export const attachmentsApi = {
 // Masters APIs
 // ==========================================
 export const mastersApi = {
-  getBranches: (): Promise<{ data: Branch[] }> =>
-    api.get('/branches'),
+  getBranches: (): Promise<{ data: Branch[] }> => api.get('/branches'),
 
-  createBranch: (data: any) =>
-    api.post('/branches', data),
+  createBranch: (data: any) => api.post('/branches', data),
 
   getDepartments: (branchId?: string): Promise<{ data: Department[] }> =>
     api.get('/departments', { params: { branchId } }),
@@ -153,34 +170,36 @@ export const mastersApi = {
   getUsers: (params?: any): Promise<{ data: PaginatedResponse<User> }> =>
     api.get('/users', { params }),
 
-  createUser: (data: any): Promise<{ data: User }> =>
-    api.post('/users', data),
+  createUser: (data: any): Promise<{ data: User }> => api.post('/users', data),
 
-  getTaskTypes: (): Promise<{ data: TaskType[] }> =>
-    api.get('/task-types'),
+  getTaskTypes: (): Promise<{ data: TaskType[] }> => api.get('/task-types'),
 
-  getWorkflowStatuses: (taskTypeId?: string): Promise<{ data: TaskWorkflowStatus[] }> =>
+  getWorkflowStatuses: (
+    taskTypeId?: string,
+  ): Promise<{ data: TaskWorkflowStatus[] }> =>
     api.get('/task-workflows/statuses', { params: { taskTypeId } }),
 
-  getAllowedNextStatuses: (taskTypeId: string, currentStatusId: string): Promise<{ data: TaskWorkflowStatus[] }> =>
-    api.get(`/task-workflows/next-statuses/${taskTypeId}/${currentStatusId}`),
+  getAllowedNextStatuses: (
+    taskTypeId: string,
+    currentStatusId: string,
+  ): Promise<{ data: TaskWorkflowStatus[] }> =>
+    api.get('/task-workflows/allowed-next-statuses', {
+      params: { taskTypeId, fromStatusId: currentStatusId },
+    }),
 };
 
 // ==========================================
 // Business Modules: Clients, Projects, Products
 // ==========================================
 export const projectsApi = {
-  getClients: (): Promise<{ data: Client[] }> =>
-    api.get('/clients'),
+  getClients: (): Promise<{ data: Client[] }> => api.get('/clients'),
 
   createClient: (data: any): Promise<{ data: Client }> =>
     api.post('/clients', data),
 
-  convertProspect: (id: string) =>
-    api.patch(`/clients/${id}/convert`),
+  convertProspect: (id: string) => api.post(`/clients/${id}/convert-to-active`),
 
-  getProducts: (): Promise<{ data: Product[] }> =>
-    api.get('/products'),
+  getProducts: (): Promise<{ data: Product[] }> => api.get('/products'),
 
   getProjects: (params?: any): Promise<{ data: Project[] }> =>
     api.get('/projects', { params }),
@@ -188,31 +207,38 @@ export const projectsApi = {
   createProject: (data: any): Promise<{ data: Project }> =>
     api.post('/projects', data),
 
-  getVersions: (params?: { productId?: string; projectId?: string }): Promise<{ data: Version[] }> =>
-    api.get('/versions', { params }),
+  getVersions: (params?: {
+    productId?: string;
+    projectId?: string;
+  }): Promise<{ data: Version[] }> => api.get('/versions', { params }),
 };
 
 // ==========================================
 // Notifications & Audit APIs
 // ==========================================
 export const notificationsApi = {
-  getNotifications: (params?: any): Promise<{ data: { notifications: NotificationItem[]; unreadCount: number } }> =>
-    api.get('/notifications', { params }),
+  getNotifications: (
+    params?: any,
+  ): Promise<{
+    data: { notifications: NotificationItem[]; unreadCount: number };
+  }> => api.get('/notifications', { params }),
 
   getUnreadCount: (): Promise<{ data: { unreadCount: number } }> =>
     api.get('/notifications/unread-count'),
 
-  markAsRead: (id: string) =>
-    api.patch(`/notifications/${id}/read`),
+  markAsRead: (id: string) => api.patch(`/notifications/${id}/read`),
 
-  markAllAsRead: () =>
-    api.patch('/notifications/read-all'),
+  markAllAsRead: () => api.patch('/notifications/read-all'),
 
-  registerPushToken: (data: { deviceType: 'WEB' | 'ANDROID' | 'IOS'; fcmToken: string }) =>
-    api.post('/notifications/push-token', data),
+  registerPushToken: (data: {
+    deviceType: 'WEB' | 'ANDROID' | 'IOS';
+    fcmToken: string;
+  }) => api.post('/notifications/push-token', data),
 };
 
 export const auditLogsApi = {
-  getAuditLogs: (params?: any): Promise<{ data: { auditLogs: AuditLogItem[]; totalCount: number } }> =>
+  getAuditLogs: (
+    params?: any,
+  ): Promise<{ data: { auditLogs: AuditLogItem[]; totalCount: number } }> =>
     api.get('/audit-logs', { params }),
 };

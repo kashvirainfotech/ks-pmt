@@ -1,3 +1,4 @@
+import { IsUUID } from '../../../common/validators/record-id';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsDateString,
@@ -5,12 +6,14 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
-  IsUUID,
   MaxLength,
 } from 'class-validator';
 
 export class CreateVersionDto {
-  @ApiProperty({ example: 'v2.5.0', description: 'Semantic version or sprint code (e.g. v1.0.0, Sprint 4)' })
+  @ApiProperty({
+    example: 'v2.5.0',
+    description: 'Semantic version or sprint code (e.g. v1.0.0, Sprint 4)',
+  })
   @IsString()
   @IsNotEmpty()
   @MaxLength(50)
@@ -22,7 +25,9 @@ export class CreateVersionDto {
   @MaxLength(150)
   versionName?: string;
 
-  @ApiPropertyOptional({ example: 'Changelog: Stripe webhook integration, refund automation' })
+  @ApiPropertyOptional({
+    example: 'Changelog: Stripe webhook integration, refund automation',
+  })
   @IsString()
   @IsOptional()
   description?: string;
@@ -33,12 +38,18 @@ export class CreateVersionDto {
   @IsIn(['PRODUCT', 'PROJECT'])
   entityType: string;
 
-  @ApiPropertyOptional({ example: '55555555-5555-5555-5555-555555555551', description: 'Required if entityType is PRODUCT' })
+  @ApiPropertyOptional({
+    example: '55555555-5555-5555-5555-555555555551',
+    description: 'Required if entityType is PRODUCT',
+  })
   @IsUUID()
   @IsOptional()
   productId?: string;
 
-  @ApiPropertyOptional({ example: '99999999-9999-9999-9999-999999999991', description: 'Required if entityType is PROJECT' })
+  @ApiPropertyOptional({
+    example: '99999999-9999-9999-9999-999999999991',
+    description: 'Required if entityType is PROJECT',
+  })
   @IsUUID()
   @IsOptional()
   projectId?: string;
@@ -55,11 +66,25 @@ export class CreateVersionDto {
 
   @ApiPropertyOptional({
     example: 'PLANNING',
-    enum: ['PLANNING', 'IN_PROGRESS', 'CODE_FREEZE', 'RELEASED', 'ARCHIVED'],
+    enum: [
+      'PLANNING',
+      'IN_PROGRESS',
+      'CODE_FREEZE',
+      'RELEASED',
+      'DEPRECATED',
+      'ARCHIVED',
+    ],
     default: 'PLANNING',
   })
   @IsString()
   @IsOptional()
-  @IsIn(['PLANNING', 'IN_PROGRESS', 'CODE_FREEZE', 'RELEASED', 'ARCHIVED'])
+  @IsIn([
+    'PLANNING',
+    'IN_PROGRESS',
+    'CODE_FREEZE',
+    'RELEASED',
+    'DEPRECATED',
+    'ARCHIVED',
+  ])
   status?: string;
 }

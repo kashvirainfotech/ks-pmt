@@ -1,3 +1,4 @@
+import { ParseUUIDPipe } from '../../common/validators/record-id';
 import {
   Controller,
   Get,
@@ -8,10 +9,12 @@ import {
   Param,
   Query,
   UseGuards,
-  ParseUUIDPipe,
 } from '@nestjs/common';
 import { NotificationsService } from './notifications.service';
-import { RegisterPushTokenDto, DeregisterPushTokenDto } from './dto/register-push-token.dto';
+import {
+  RegisterPushTokenDto,
+  DeregisterPushTokenDto,
+} from './dto/register-push-token.dto';
 import { QueryNotificationDto } from './dto/query-notification.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';

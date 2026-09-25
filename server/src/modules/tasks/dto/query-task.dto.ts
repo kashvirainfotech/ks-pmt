@@ -1,6 +1,14 @@
+import { IsUUID } from '../../../common/validators/record-id';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
-import { IsBoolean, IsIn, IsInt, IsOptional, IsString, IsUUID, Min } from 'class-validator';
+import { Type, Transform } from 'class-transformer';
+import {
+  IsBoolean,
+  IsIn,
+  IsInt,
+  IsOptional,
+  IsString,
+  Min,
+} from 'class-validator';
 
 export class QueryTaskDto {
   @ApiPropertyOptional({ example: 1, default: 1 })
@@ -42,7 +50,10 @@ export class QueryTaskDto {
   @IsOptional()
   statusId?: string;
 
-  @ApiPropertyOptional({ example: 'HIGH', enum: ['LOW', 'MEDIUM', 'HIGH', 'URGENT', 'CRITICAL'] })
+  @ApiPropertyOptional({
+    example: 'HIGH',
+    enum: ['LOW', 'MEDIUM', 'HIGH', 'URGENT', 'CRITICAL'],
+  })
   @IsString()
   @IsIn(['LOW', 'MEDIUM', 'HIGH', 'URGENT', 'CRITICAL'])
   @IsOptional()
@@ -59,7 +70,7 @@ export class QueryTaskDto {
   branchId?: string;
 
   @ApiPropertyOptional({ description: 'Filter chargeable tasks only' })
-  @Type(() => Boolean)
+  @Transform(({ value }) => value === true || value === 'true')
   @IsBoolean()
   @IsOptional()
   isChargeable?: boolean;

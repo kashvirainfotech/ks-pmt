@@ -1,0 +1,54 @@
+[
+  {
+    "check": "Project team allocation through UI",
+    "status": "passed"
+  },
+  {
+    "check": "Client license through UI",
+    "status": "passed"
+  },
+  {
+    "check": "Workflow transition through UI",
+    "status": "passed"
+  },
+  {
+    "check": "Assignment rule through UI",
+    "status": "passed"
+  },
+  {
+    "check": "Subtask creation and workflow completion API",
+    "status": "passed"
+  },
+  {
+    "check": "Task chargeability and assignee readback",
+    "status": "passed"
+  },
+  {
+    "check": "Threaded comments API",
+    "status": "passed"
+  },
+  {
+    "check": "Manual worklog and effort rollup API",
+    "status": "passed"
+  },
+  {
+    "check": "Prospect conversion and readback",
+    "status": "passed"
+  },
+  {
+    "check": "Role permission matrix and override precedence",
+    "status": "passed"
+  },
+  {
+    "check": "Missing schema field rejected without partial record",
+    "status": "passed"
+  },
+  {
+    "check": "Invalid time-log pagination rejected",
+    "status": "passed"
+  },
+  {
+    "check": "Profile and notification screens render",
+    "status": "passed"
+  }
+]

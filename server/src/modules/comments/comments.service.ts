@@ -1,3 +1,4 @@
+import { taskEvent } from '../notifications/task-events';
 import {
   ForbiddenException,
   Injectable,
@@ -19,7 +20,10 @@ export class CommentsService {
 
     if (dto.parentCommentId) {
       const parentQuery = `SELECT id FROM task_comments WHERE id = $1 AND task_id = $2;`;
-      const parentResult = await this.db.query(parentQuery, [dto.parentCommentId, dto.taskId]);
+      const parentResult = await this.db.query(parentQuery, [
+        dto.parentCommentId,
+        dto.taskId,
+      ]);
       if (parentResult.rowCount === 0) {
         throw new NotFoundException('Parent comment not found for this task.');
       }
@@ -43,6 +47,26 @@ export class CommentsService {
       dto.isInternalOnly ?? false,
     ]);
 
+    const mentions = [...dto.commentText.matchAll(/@([A-Za-z0-9_.+-]+)/g)].map(
+      (match) => match[1],
+    );
+    const recipients = mentions.length
+      ? (
+          await this.db.query(
+            'SELECT id FROM users WHERE employee_code=ANY($1::text[]) AND is_active=TRUE',
+            [mentions],
+          )
+        ).rows.map((row) => row.id)
+      : [];
+    await taskEvent(
+      this.db,
+      dto.taskId,
+      userId,
+      recipients.length ? 'MENTIONED' : 'COMMENT_ADDED',
+      'New task comment',
+      dto.commentText,
+      recipients,
+    );
     return result.rows[0];
   }
 
@@ -80,7 +104,10 @@ export class CommentsService {
     }
 
     for (const comment of comments) {
-      if (comment.parent_comment_id && commentMap.has(comment.parent_comment_id)) {
+      if (
+        comment.parent_comment_id &&
+        commentMap.has(comment.parent_comment_id)
+      ) {
         commentMap.get(comment.parent_comment_id).replies.push(comment);
       } else {
         rootComments.push(comment);

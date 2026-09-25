@@ -1,0 +1,23 @@
+[
+  {
+    "check": "Timesheet entry through browser form",
+    "status": "passed"
+  },
+  {
+    "check": "Branch scope rejects foreign header and task",
+    "status": "passed"
+  },
+  {
+    "check": "Task financial data hidden without financial permission",
+    "status": "passed"
+  },
+  {
+    "check": "Test employee preferences saved through browser form",
+    "status": "passed"
+  },
+  {
+    "check": "S3 attachment upload, confirmation and download",
+    "status": "failed",
+    "message": "S3 upload returned 403: InvalidAccessKeyId"
+  }
+]

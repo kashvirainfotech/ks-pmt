@@ -1,0 +1,62 @@
+[
+  {
+    "check": "Employee emergency contact and employment status persist",
+    "status": "passed"
+  },
+  {
+    "check": "Product technical, documentation and commercial fields persist",
+    "status": "passed"
+  },
+  {
+    "check": "Project technical, invoice and actual-date fields persist",
+    "status": "passed"
+  },
+  {
+    "check": "Task severity and actual dates persist",
+    "status": "passed"
+  },
+  {
+    "check": "Task type default severity and custom field schema persist",
+    "status": "passed"
+  },
+  {
+    "check": "New tasks inherit task-type severity and billing defaults",
+    "status": "passed"
+  },
+  {
+    "check": "Employee activation keeps employment status consistent",
+    "status": "passed"
+  },
+  {
+    "check": "Client license support tier persists",
+    "status": "passed"
+  },
+  {
+    "check": "Subtask list query and completion",
+    "status": "passed"
+  },
+  {
+    "check": "Timesheet submit, reject, resubmit and approve",
+    "status": "passed"
+  },
+  {
+    "check": "Notification preferences persist for test employee",
+    "status": "passed"
+  },
+  {
+    "check": "In-app task event notification delivered",
+    "status": "passed"
+  },
+  {
+    "check": "Refresh rotation rejects replay",
+    "status": "passed"
+  },
+  {
+    "check": "Remote session revocation rejects access and refresh",
+    "status": "passed"
+  },
+  {
+    "check": "Server rejects inverted project dates",
+    "status": "passed"
+  }
+]

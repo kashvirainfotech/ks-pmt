@@ -1,3 +1,8 @@
+import { SessionService } from './session.service';
+import {
+  NotificationPreferencesDto,
+  ChangePasswordDto,
+} from './dto/profile.dto';
 import {
   BadRequestException,
   Injectable,
@@ -26,6 +31,7 @@ export class AuthService {
     private readonly configService: ConfigService,
     private readonly rbacService: RbacService,
     private readonly otpService: OtpService,
+    private readonly sessions: SessionService,
   ) {}
 
   /**
@@ -42,7 +48,7 @@ export class AuthService {
              d.dept_name,
              des.desig_name
       FROM users u
-      INNER JOIN roles r ON u.role_id = r.id
+      INNER JOIN roles r ON u.role_id = r.id AND r.is_active = TRUE
       INNER JOIN branches b ON u.primary_branch_id = b.id
       INNER JOIN departments d ON u.department_id = d.id
       INNER JOIN designations des ON u.designation_id = des.id
@@ -51,24 +57,35 @@ export class AuthService {
     const result = await this.db.query(userQuery, [dto.email]);
 
     if (result.rowCount === 0) {
-      throw new UnauthorizedException('Invalid email credentials or user not registered');
+      throw new UnauthorizedException(
+        'Invalid email credentials or user not registered',
+      );
     }
 
     const user = result.rows[0];
 
     if (!user.is_active) {
-      throw new UnauthorizedException('Your account is deactivated. Please contact your administrator.');
+      throw new UnauthorizedException(
+        'Your account is deactivated. Please contact your administrator.',
+      );
     }
 
     if (!user.is_email_login_allowed) {
-      throw new UnauthorizedException('Email/Password login is not enabled for this account. Please use Mobile OTP.');
+      throw new UnauthorizedException(
+        'Email/Password login is not enabled for this account. Please use Mobile OTP.',
+      );
     }
 
     if (!user.password_hash) {
-      throw new UnauthorizedException('Password not set for this account. Please login using Mobile OTP.');
+      throw new UnauthorizedException(
+        'Password not set for this account. Please login using Mobile OTP.',
+      );
     }
 
-    const isPasswordValid = await bcrypt.compare(dto.password, user.password_hash);
+    const isPasswordValid = await bcrypt.compare(
+      dto.password,
+      user.password_hash,
+    );
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid email credentials');
     }
@@ -80,8 +97,15 @@ export class AuthService {
     );
 
     // Generate tokens & fetch permissions
-    const tokens = await this.generateTokens(user);
-    const permissions = await this.rbacService.getEffectivePermissions(user.id, user.primary_branch_id);
+    const sessionId = await this.sessions.create(
+      user.id,
+      dto.devicePlatform || 'WEB',
+    );
+    const tokens = await this.generateTokens(user, sessionId);
+    const permissions = await this.rbacService.getEffectivePermissions(
+      user.id,
+      user.primary_branch_id,
+    );
 
     return {
       tokens,
@@ -104,17 +128,23 @@ export class AuthService {
     const result = await this.db.query(userQuery, [dto.mobileNumber]);
 
     if (result.rowCount === 0) {
-      throw new BadRequestException('Mobile number is not registered in KS-PMT.');
+      throw new BadRequestException(
+        'Mobile number is not registered in KS-PMT.',
+      );
     }
 
     const user = result.rows[0];
 
     if (!user.is_active) {
-      throw new BadRequestException('Account is inactive. Please contact your administrator.');
+      throw new BadRequestException(
+        'Account is inactive. Please contact your administrator.',
+      );
     }
 
     if (!user.is_otp_login_allowed) {
-      throw new BadRequestException('Mobile OTP login is disabled for this account.');
+      throw new BadRequestException(
+        'Mobile OTP login is disabled for this account.',
+      );
     }
 
     return await this.otpService.generateAndSendOtp(user.mobile_number);
@@ -142,7 +172,7 @@ export class AuthService {
              d.dept_name,
              des.desig_name
       FROM users u
-      INNER JOIN roles r ON u.role_id = r.id
+      INNER JOIN roles r ON u.role_id = r.id AND r.is_active = TRUE
       INNER JOIN branches b ON u.primary_branch_id = b.id
       INNER JOIN departments d ON u.department_id = d.id
       INNER JOIN designations des ON u.designation_id = des.id
@@ -156,8 +186,10 @@ export class AuthService {
 
     const user = result.rows[0];
 
-    if (!user.is_active) {
-      throw new UnauthorizedException('Your account is deactivated.');
+    if (!user.is_active || !user.is_otp_login_allowed) {
+      throw new UnauthorizedException(
+        'Your account or OTP login is deactivated.',
+      );
     }
 
     // Update login audit info
@@ -167,8 +199,15 @@ export class AuthService {
     );
 
     // Generate tokens & fetch permissions
-    const tokens = await this.generateTokens(user);
-    const permissions = await this.rbacService.getEffectivePermissions(user.id, user.primary_branch_id);
+    const sessionId = await this.sessions.create(
+      user.id,
+      dto.devicePlatform || 'WEB',
+    );
+    const tokens = await this.generateTokens(user, sessionId);
+    const permissions = await this.rbacService.getEffectivePermissions(
+      user.id,
+      user.primary_branch_id,
+    );
 
     return {
       tokens,
@@ -197,17 +236,25 @@ export class AuthService {
                u.mobile_number, u.primary_branch_id, u.department_id, 
                u.designation_id, u.role_id, u.is_active, r.role_code
         FROM users u
-        INNER JOIN roles r ON u.role_id = r.id
+        INNER JOIN roles r ON u.role_id = r.id AND r.is_active = TRUE
         WHERE u.id = $1;
       `;
       const result = await this.db.query(userQuery, [payload.sub]);
 
       if (result.rowCount === 0 || !result.rows[0].is_active) {
-        throw new UnauthorizedException('Session expired or account deactivated');
+        throw new UnauthorizedException(
+          'Session expired or account deactivated',
+        );
       }
 
       const user = result.rows[0];
-      return await this.generateTokens(user);
+      if (payload.sid)
+        await this.sessions.consumeRefresh(payload.sid, dto.refreshToken);
+      else if (await this.sessions.available())
+        throw new UnauthorizedException(
+          'Please log in again to create a tracked session',
+        );
+      return await this.generateTokens(user, payload.sid);
     } catch (error) {
       throw new UnauthorizedException('Invalid or expired refresh token');
     }
@@ -226,7 +273,7 @@ export class AuthService {
              d.dept_name,
              des.desig_name, des.hierarchy_level
       FROM users u
-      INNER JOIN roles r ON u.role_id = r.id
+      INNER JOIN roles r ON u.role_id = r.id AND r.is_active = TRUE
       INNER JOIN branches b ON u.primary_branch_id = b.id
       INNER JOIN departments d ON u.department_id = d.id
       INNER JOIN designations des ON u.designation_id = des.id
@@ -253,8 +300,10 @@ export class AuthService {
   /**
    * Helper: Generate Access and Refresh Tokens
    */
-  private async generateTokens(user: any) {
+  private async generateTokens(user: any, sessionId?: string) {
     const payload: JwtPayload = {
+      sid: sessionId,
+      jti: require('crypto').randomUUID(),
       sub: user.id,
       email: user.email,
       employeeCode: user.employee_code,
@@ -268,13 +317,19 @@ export class AuthService {
       'JWT_ACCESS_SECRET',
       'ks_pmt_jwt_super_secret_access_key_2026_change_in_prod',
     );
-    const accessExpiration = this.configService.get<string>('JWT_ACCESS_EXPIRATION', '15m');
+    const accessExpiration = this.configService.get<string>(
+      'JWT_ACCESS_EXPIRATION',
+      '15m',
+    );
 
     const refreshSecret = this.configService.get<string>(
       'JWT_REFRESH_SECRET',
       'ks_pmt_jwt_super_secret_refresh_key_2026_change_in_prod',
     );
-    const refreshExpiration = this.configService.get<string>('JWT_REFRESH_EXPIRATION', '7d');
+    const refreshExpiration = this.configService.get<string>(
+      'JWT_REFRESH_EXPIRATION',
+      '7d',
+    );
 
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload, {
@@ -287,6 +342,14 @@ export class AuthService {
       }),
     ]);
 
+    if (sessionId) {
+      const decoded = this.jwtService.decode(refreshToken) as { exp: number };
+      await this.sessions.setRefresh(
+        sessionId,
+        refreshToken,
+        new Date(decoded.exp * 1000),
+      );
+    }
     return {
       accessToken,
       refreshToken,
@@ -297,6 +360,47 @@ export class AuthService {
   /**
    * Helper: Remove sensitive fields from user response
    */
+  async preferences(userId: string) {
+    const row = (
+      await this.db.query(
+        "SELECT to_jsonb(users)->'notification_preferences' AS preferences FROM users WHERE id=$1",
+        [userId],
+      )
+    ).rows[0];
+    return row?.preferences || { inApp: true, email: true, push: true };
+  }
+  async savePreferences(userId: string, dto: NotificationPreferencesDto) {
+    const result = await this.db.writeWithFields(
+      'UPDATE users SET updated_by=$1,updated_at=CURRENT_TIMESTAMP WHERE id=$1 RETURNING id',
+      [userId],
+      'users',
+      { notification_preferences: dto },
+    );
+    return result.rows[0].notification_preferences;
+  }
+  async changePassword(userId: string, dto: ChangePasswordDto) {
+    const user = (
+      await this.db.query('SELECT password_hash FROM users WHERE id=$1', [
+        userId,
+      ])
+    ).rows[0];
+    if (
+      !user?.password_hash ||
+      !(await bcrypt.compare(dto.currentPassword, user.password_hash))
+    )
+      throw new UnauthorizedException('Current password is incorrect');
+    const hash = await bcrypt.hash(dto.newPassword, 12);
+    await this.db.query(
+      'UPDATE users SET password_hash=$1, updated_by=$2, updated_at=CURRENT_TIMESTAMP WHERE id=$2',
+      [hash, userId],
+    );
+    if (await this.sessions.available())
+      await this.db.query(
+        'UPDATE user_sessions SET revoked_at=CURRENT_TIMESTAMP,updated_at=CURRENT_TIMESTAMP,updated_by=$1 WHERE user_id=$1',
+        [userId],
+      );
+    return { success: true };
+  }
   private sanitizeUser(user: any) {
     const { password_hash, ...safeUser } = user;
     return safeUser;

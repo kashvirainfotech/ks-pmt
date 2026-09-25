@@ -1,9 +1,9 @@
+import { ParseUUIDPipe } from '../../common/validators/record-id';
 import {
   Body,
   Controller,
   Get,
   Param,
-  ParseUUIDPipe,
   Patch,
   Post,
   Put,
@@ -16,6 +16,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { TasksService } from './tasks.service';
+import { CreateSubtaskDto, ToggleSubtaskDto } from './dto/subtask.dto';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { ChangeTaskStatusDto } from './dto/change-status.dto';
@@ -30,17 +31,53 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
 
+  @Post(':id/subtasks')
+  @RequirePermissions('TASKS:CREATE')
+  async createSubtask(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: CreateSubtaskDto,
+    @CurrentUser('id') userId: string,
+  ) {
+    const parent = await this.tasksService.findOne(id);
+    return {
+      data: await this.tasksService.create(
+        {
+          title: dto.title,
+          parentTaskId: id,
+          taskTypeId: parent.task_type_id,
+          projectId: parent.project_id || undefined,
+          productId: parent.product_id || undefined,
+          versionId: parent.version_id || undefined,
+          branchId: parent.branch_id || undefined,
+          plannedEndDate: dto.dueDate,
+          assigneeIds: dto.assignedToUserId ? [dto.assignedToUserId] : [],
+        },
+        userId,
+      ),
+    };
+  }
+
+  @Patch('subtasks/:id/toggle')
+  @RequirePermissions('TASKS:STATUS_CHANGE')
+  async toggleSubtask(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: ToggleSubtaskDto,
+    @CurrentUser('id') userId: string,
+  ) {
+    return {
+      data: await this.tasksService.toggleSubtask(id, dto.isCompleted, userId),
+    };
+  }
+
   @Post()
   @RequirePermissions('TASKS:CREATE')
   @ApiOperation({
     summary: 'Create a new task with multi-assignees and subtask hierarchy',
-    description: 'Supports project/product scoping, estimated hours, chargeable tracking, and auto-assignment matrix evaluation.',
+    description:
+      'Supports project/product scoping, estimated hours, chargeable tracking, and auto-assignment matrix evaluation.',
   })
   @ApiResponse({ status: 201, description: 'Task created successfully' })
-  async create(
-    @Body() dto: CreateTaskDto,
-    @CurrentUser('id') userId: string,
-  ) {
+  async create(@Body() dto: CreateTaskDto, @CurrentUser('id') userId: string) {
     const data = await this.tasksService.create(dto, userId);
     return {
       message: 'Task created successfully',
@@ -50,7 +87,10 @@ export class TasksController {
 
   @Get()
   @RequirePermissions('TASKS:READ')
-  @ApiOperation({ summary: 'List tasks with advanced filtering (project, status, assignee, priority, search)' })
+  @ApiOperation({
+    summary:
+      'List tasks with advanced filtering (project, status, assignee, priority, search)',
+  })
   async findAll(@Query() query: QueryTaskDto) {
     const result = await this.tasksService.findAll(query);
     return {
@@ -62,7 +102,10 @@ export class TasksController {
 
   @Get(':id')
   @RequirePermissions('TASKS:READ')
-  @ApiOperation({ summary: 'Get full task details with assignees, subtask count, and logged effort' })
+  @ApiOperation({
+    summary:
+      'Get full task details with assignees, subtask count, and logged effort',
+  })
   async findOne(@Param('id', ParseUUIDPipe) id: string) {
     const data = await this.tasksService.findOne(id);
     return {
@@ -86,7 +129,8 @@ export class TasksController {
   @RequirePermissions('TASKS:STATUS_CHANGE')
   @ApiOperation({
     summary: 'Progress task status through the dynamic state machine',
-    description: 'Enforces allowable transitions defined in workflow status matrix and triggers auto-reassignment rules.',
+    description:
+      'Enforces allowable transitions defined in workflow status matrix and triggers auto-reassignment rules.',
   })
   async changeStatus(
     @Param('id', ParseUUIDPipe) id: string,
@@ -117,7 +161,9 @@ export class TasksController {
 
   @Put(':id')
   @RequirePermissions('TASKS:UPDATE')
-  @ApiOperation({ summary: 'Update task properties, estimates, or chargeable amounts' })
+  @ApiOperation({
+    summary: 'Update task properties, estimates, or chargeable amounts',
+  })
   async update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateTaskDto,

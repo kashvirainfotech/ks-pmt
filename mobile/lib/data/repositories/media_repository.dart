@@ -32,7 +32,7 @@ class MediaRepository {
 
     final presignedData = presignedResponse.data['data'] ?? presignedResponse.data;
     final String uploadUrl = presignedData['uploadUrl'];
-    final String s3Key = presignedData['s3Key'];
+    final String attachmentId = presignedData['attachmentId'];
     final String originalName = presignedData['originalName'] ?? fileName;
 
     // 2. Direct binary stream PUT to S3
@@ -54,15 +54,7 @@ class MediaRepository {
     // 3. Confirm upload and save metadata to PostgreSQL
     await apiClient.dio.post(
       ApiConstants.confirmUpload,
-      data: {
-        'entityType': entityType,
-        'entityId': entityId,
-        'fileName': fileName,
-        'originalName': originalName,
-        'fileSizeBytes': fileBytes,
-        'mimeType': mimeType,
-        's3Key': s3Key,
-      },
+      data: {'attachmentId': attachmentId},
     );
   }
 

@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../data/models/time_log_model.dart';
+import '../../../data/models/time_log_model.dart';
 
 class TimesheetScreen extends StatefulWidget {
   const TimesheetScreen({super.key});

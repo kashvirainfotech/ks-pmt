@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { RecordForm, errorText } from '../management/EntityManager';
+import { taskFields } from '../management/config';
 import {
   Task,
   TaskWorkflowStatus,
@@ -47,18 +49,25 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({
 }) => {
   if (!task) return null;
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'subtasks' | 'timetracker' | 'attachments' | 'comments'>('overview');
-  const [allowedStatuses, setAllowedStatuses] = useState<TaskWorkflowStatus[]>([]);
+  const [activeTab, setActiveTab] = useState<
+    'overview' | 'subtasks' | 'timetracker' | 'attachments' | 'comments'
+  >('overview');
+  const [allowedStatuses, setAllowedStatuses] = useState<TaskWorkflowStatus[]>(
+    [],
+  );
   const [subtasks, setSubtasks] = useState<SubTask[]>([]);
   const [comments, setComments] = useState<TaskComment[]>([]);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [timeLogs, setTimeLogs] = useState<TimeLog[]>([]);
+
+  const [editing, setEditing] = useState(false);
 
   // Subtask form
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
 
   // Comment form
   const [newCommentText, setNewCommentText] = useState('');
+  const [replyTo, setReplyTo] = useState<string | undefined>();
 
   // Live Timer state
   const [timerRunning, setTimerRunning] = useState(false);
@@ -86,7 +95,10 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({
   useEffect(() => {
     const fetchWorkflowData = async () => {
       try {
-        const res: any = await mastersApi.getAllowedNextStatuses(task.task_type_id, task.status_id);
+        const res: any = await mastersApi.getAllowedNextStatuses(
+          task.task_type_id,
+          task.status_id,
+        );
         const data = res?.data || res || [];
         setAllowedStatuses(Array.isArray(data) ? data : []);
       } catch (err) {
@@ -101,7 +113,9 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({
     try {
       const res: any = await tasksApi.getSubtasks(task.id);
       setSubtasks(res?.data || res || []);
-    } catch (e) {}
+    } catch (e) {
+      alert(errorText(e));
+    }
   };
 
   // Load Comments
@@ -109,15 +123,22 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({
     try {
       const res: any = await commentsApi.getComments(task.id);
       setComments(res?.data || res || []);
-    } catch (e) {}
+    } catch (e) {
+      alert(errorText(e));
+    }
   };
 
   // Load Attachments
   const fetchAttachments = async () => {
     try {
-      const res: any = await attachmentsApi.getEntityAttachments('TASK', task.id);
+      const res: any = await attachmentsApi.getEntityAttachments(
+        'TASK',
+        task.id,
+      );
       setAttachments(res?.data || res || []);
-    } catch (e) {}
+    } catch (e) {
+      alert(errorText(e));
+    }
   };
 
   // Load Time Logs
@@ -125,7 +146,9 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({
     try {
       const res: any = await timeLogsApi.getTimeLogs({ taskId: task.id });
       setTimeLogs(res?.data?.timeLogs || res?.data || []);
-    } catch (e) {}
+    } catch (e) {
+      alert(errorText(e));
+    }
   };
 
   useEffect(() => {
@@ -164,7 +187,10 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({
       await tasksApi.updateStatus(task.id, toStatusId);
       onTaskUpdated();
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Status transition not allowed by workflow state machine.');
+      alert(
+        err.response?.data?.message ||
+          'Status transition not allowed by workflow state machine.',
+      );
     } finally {
       setStatusUpdating(false);
     }
@@ -179,18 +205,27 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({
       setNewSubtaskTitle('');
       fetchSubtasks();
       onTaskUpdated();
-    } catch (e) {}
+    } catch (e) {
+      alert(errorText(e));
+    }
   };
 
   // Toggle Subtask
-  const handleToggleSubtask = async (subtaskId: string, isCompleted: boolean) => {
+  const handleToggleSubtask = async (
+    subtaskId: string,
+    isCompleted: boolean,
+  ) => {
     try {
       await tasksApi.toggleSubtask(subtaskId, !isCompleted);
       setSubtasks((prev) =>
-        prev.map((s) => (s.id === subtaskId ? { ...s, is_completed: !isCompleted } : s)),
+        prev.map((s) =>
+          s.id === subtaskId ? { ...s, is_completed: !isCompleted } : s,
+        ),
       );
       onTaskUpdated();
-    } catch (e) {}
+    } catch (e) {
+      alert(errorText(e));
+    }
   };
 
   // Add Comment
@@ -198,10 +233,17 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({
     e.preventDefault();
     if (!newCommentText.trim()) return;
     try {
-      await commentsApi.addComment({ taskId: task.id, commentText: newCommentText.trim() });
+      await commentsApi.addComment({
+        taskId: task.id,
+        commentText: newCommentText.trim(),
+        parentCommentId: replyTo,
+      });
+      setReplyTo(undefined);
       setNewCommentText('');
       fetchComments();
-    } catch (e) {}
+    } catch (e) {
+      alert(errorText(e));
+    }
   };
 
   // Save Timer as Time Log
@@ -219,13 +261,16 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({
       setTimerRunning(false);
       fetchTimeLogs();
       onTaskUpdated();
-    } catch (e) {}
+    } catch (e) {
+      alert(errorText(e));
+    }
   };
 
   // Save Manual Time Log
   const handleManualLog = async (e: React.FormEvent) => {
     e.preventDefault();
-    const duration = parseInt(logHours || '0', 10) * 60 + parseInt(logMinutes || '0', 10);
+    const duration =
+      parseInt(logHours || '0', 10) * 60 + parseInt(logMinutes || '0', 10);
     if (duration <= 0) return;
     try {
       await timeLogsApi.logTime({
@@ -238,7 +283,9 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({
       setLogDescription('');
       fetchTimeLogs();
       onTaskUpdated();
-    } catch (e) {}
+    } catch (e) {
+      alert(errorText(e));
+    }
   };
 
   // AWS S3 Direct Upload
@@ -260,37 +307,32 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({
         fileSizeBytes: file.size,
       });
 
-      const { uploadUrl, s3Key, originalName, mimeType, fileSizeBytes } =
-        presignedRes?.data || presignedRes;
+      const { uploadUrl, attachmentId } = presignedRes?.data || presignedRes;
 
       // 2. Direct PUT binary upload to S3
       await axios.put(uploadUrl, file, {
         headers: {
-          'Content-Type': mimeType,
+          'Content-Type': file.type || 'application/octet-stream',
         },
         onUploadProgress: (progressEvent) => {
           if (progressEvent.total) {
-            const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            const percent = Math.round(
+              (progressEvent.loaded * 100) / progressEvent.total,
+            );
             setUploadProgress(percent);
           }
         },
       });
 
       // 3. Confirm upload and save metadata to PostgreSQL
-      await attachmentsApi.confirmUpload({
-        entityType: 'TASK',
-        entityId: task.id,
-        fileName: file.name,
-        originalName: originalName || file.name,
-        fileSizeBytes: fileSizeBytes || file.size,
-        mimeType: mimeType || file.type,
-        s3Key,
-      });
+      await attachmentsApi.confirmUpload({ attachmentId });
 
       fetchAttachments();
       setUploading(false);
     } catch (err: any) {
-      setUploadError('Failed to upload file to AWS S3. Please verify network access.');
+      setUploadError(
+        'Failed to upload file to AWS S3. Please verify network access.',
+      );
       setUploading(false);
     }
   };
@@ -313,11 +355,37 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({
     try {
       await tasksApi.updateChargeable(task.id, isChargeable, chargeAmount);
       onTaskUpdated();
-    } catch (e) {}
+    } catch (e) {
+      alert(errorText(e));
+    }
   };
 
   return (
     <div className="fixed inset-y-0 right-0 z-50 flex w-full max-w-2xl flex-col border-l border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900 transition-transform">
+      {editing && (
+        <div className="overflow-y-auto border-b p-4">
+          <RecordForm
+            fields={taskFields}
+            editing
+            initial={{
+              ...task,
+              assigneeIds: task.assignees?.map((a) => a.user_id),
+            }}
+            onCancel={() => setEditing(false)}
+            onSave={async (values) => {
+              await tasksApi.updateTask(task.id, values);
+              setEditing(false);
+              onTaskUpdated();
+            }}
+          />
+        </div>
+      )}
+      <button
+        className="p-3 text-left text-blue-600"
+        onClick={() => setEditing(!editing)}
+      >
+        Edit task details and assignees
+      </button>
       {/* Header Bar */}
       <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4 dark:border-slate-800">
         <div className="flex items-center gap-3">
@@ -376,10 +444,22 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({
       <div className="flex border-b border-slate-200 px-6 dark:border-slate-800">
         {[
           { key: 'overview', label: 'Overview', icon: FileText },
-          { key: 'subtasks', label: `Subtasks (${subtasks.length})`, icon: CheckSquare },
+          {
+            key: 'subtasks',
+            label: `Subtasks (${subtasks.length})`,
+            icon: CheckSquare,
+          },
           { key: 'timetracker', label: 'Time & Effort', icon: Clock },
-          { key: 'attachments', label: `Files (${attachments.length})`, icon: Paperclip },
-          { key: 'comments', label: `Comments (${comments.length})`, icon: MessageSquare },
+          {
+            key: 'attachments',
+            label: `Files (${attachments.length})`,
+            icon: Paperclip,
+          },
+          {
+            key: 'comments',
+            label: `Comments (${comments.length})`,
+            icon: MessageSquare,
+          },
         ].map((tab) => {
           const Icon = tab.icon;
           return (
@@ -415,7 +495,9 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({
               <div className="rounded-xl border border-slate-200 p-3 dark:border-slate-800">
                 <span className="text-slate-400">Project / Product</span>
                 <p className="font-semibold text-slate-800 dark:text-slate-200 mt-0.5 truncate">
-                  {task.project_name || task.product_name || 'General / Unassigned'}
+                  {task.project_name ||
+                    task.product_name ||
+                    'General / Unassigned'}
                 </p>
               </div>
 
@@ -429,7 +511,9 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({
               <div className="rounded-xl border border-slate-200 p-3 dark:border-slate-800">
                 <span className="text-slate-400">Planned Due Date</span>
                 <p className="font-semibold text-slate-800 dark:text-slate-200 mt-0.5">
-                  {task.planned_due_date ? new Date(task.planned_due_date).toLocaleDateString() : 'None'}
+                  {task.planned_due_date
+                    ? new Date(task.planned_due_date).toLocaleDateString()
+                    : 'None'}
                 </p>
               </div>
             </div>
@@ -438,7 +522,8 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({
             <div className="rounded-2xl border border-slate-200 p-4 dark:border-slate-800 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-                  <DollarSign className="h-4 w-4 text-emerald-500" /> Financial & Billing
+                  <DollarSign className="h-4 w-4 text-emerald-500" /> Financial
+                  & Billing
                 </span>
                 <label className="flex items-center gap-2 cursor-pointer text-xs">
                   <input
@@ -453,11 +538,15 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({
 
               {isChargeable && (
                 <div className="flex items-center gap-3 pt-2">
-                  <span className="text-xs text-slate-500">Charge Amount (₹):</span>
+                  <span className="text-xs text-slate-500">
+                    Charge Amount (₹):
+                  </span>
                   <input
                     type="number"
                     value={chargeAmount}
-                    onChange={(e) => setChargeAmount(parseFloat(e.target.value) || 0)}
+                    onChange={(e) =>
+                      setChargeAmount(parseFloat(e.target.value) || 0)
+                    }
                     className="w-32 rounded-lg border border-slate-200 px-2.5 py-1 text-xs dark:border-slate-700 dark:bg-slate-800"
                   />
                   <button
@@ -496,7 +585,9 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({
                     </div>
                   ))
                 ) : (
-                  <p className="text-xs text-slate-400 italic">No assignees yet</p>
+                  <p className="text-xs text-slate-400 italic">
+                    No assignees yet
+                  </p>
                 )}
               </div>
             </div>
@@ -524,7 +615,9 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({
 
             <div className="divide-y divide-slate-100 dark:divide-slate-800 space-y-1">
               {subtasks.length === 0 ? (
-                <p className="py-6 text-center text-xs text-slate-400">No subtasks created yet</p>
+                <p className="py-6 text-center text-xs text-slate-400">
+                  No subtasks created yet
+                </p>
               ) : (
                 subtasks.map((st) => (
                   <div
@@ -535,7 +628,9 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({
                       <input
                         type="checkbox"
                         checked={st.is_completed}
-                        onChange={() => handleToggleSubtask(st.id, st.is_completed)}
+                        onChange={() =>
+                          handleToggleSubtask(st.id, st.is_completed)
+                        }
                         className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                       />
                       <span
@@ -597,7 +692,10 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({
             </div>
 
             {/* Manual Time Log Form */}
-            <form onSubmit={handleManualLog} className="rounded-2xl border border-slate-200 p-4 dark:border-slate-800 space-y-3">
+            <form
+              onSubmit={handleManualLog}
+              className="rounded-2xl border border-slate-200 p-4 dark:border-slate-800 space-y-3"
+            >
               <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200">
                 Log Working Effort Manually
               </h4>
@@ -650,18 +748,25 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({
               </h4>
               <div className="divide-y divide-slate-100 dark:divide-slate-800">
                 {timeLogs.map((tl) => (
-                  <div key={tl.id} className="py-2.5 flex items-center justify-between text-xs">
+                  <div
+                    key={tl.id}
+                    className="py-2.5 flex items-center justify-between text-xs"
+                  >
                     <div>
                       <p className="font-semibold text-slate-800 dark:text-slate-200">
                         {tl.user_name || 'Team Member'}
                       </p>
-                      <p className="text-[11px] text-slate-400">{tl.description || 'Logged effort'}</p>
+                      <p className="text-[11px] text-slate-400">
+                        {tl.description || 'Logged effort'}
+                      </p>
                     </div>
                     <div className="text-right">
                       <span className="font-mono font-bold text-blue-600 dark:text-blue-400">
                         {(tl.duration_minutes / 60).toFixed(1)} hrs
                       </span>
-                      <p className="text-[10px] text-slate-400">{tl.log_date}</p>
+                      <p className="text-[10px] text-slate-400">
+                        {tl.log_date}
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -701,7 +806,9 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({
                       style={{ width: `${uploadProgress}%` }}
                     />
                   </div>
-                  <span className="text-[10px] text-slate-400">{uploadProgress}% uploaded to S3</span>
+                  <span className="text-[10px] text-slate-400">
+                    {uploadProgress}% uploaded to S3
+                  </span>
                 </div>
               )}
 
@@ -713,7 +820,9 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({
             {/* Attachments List */}
             <div className="divide-y divide-slate-100 dark:divide-slate-800">
               {attachments.length === 0 ? (
-                <p className="py-6 text-center text-xs text-slate-400">No attachments found</p>
+                <p className="py-6 text-center text-xs text-slate-400">
+                  No attachments found
+                </p>
               ) : (
                 attachments.map((att) => (
                   <div
@@ -727,7 +836,8 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({
                           {att.original_name}
                         </p>
                         <p className="text-[10px] text-slate-400">
-                          {(att.file_size_bytes / 1024).toFixed(1)} KB • {new Date(att.created_at).toLocaleDateString()}
+                          {(att.file_size_bytes / 1024).toFixed(1)} KB •{' '}
+                          {new Date(att.created_at).toLocaleDateString()}
                         </p>
                       </div>
                     </div>
@@ -750,6 +860,11 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({
         {activeTab === 'comments' && (
           <div className="space-y-4">
             <form onSubmit={handleAddComment} className="space-y-2">
+              {replyTo && (
+                <button type="button" onClick={() => setReplyTo(undefined)}>
+                  Cancel reply
+                </button>
+              )}
               <textarea
                 rows={3}
                 value={newCommentText}
@@ -769,7 +884,9 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({
 
             <div className="space-y-3 pt-2">
               {comments.length === 0 ? (
-                <p className="py-6 text-center text-xs text-slate-400">No comments yet</p>
+                <p className="py-6 text-center text-xs text-slate-400">
+                  No comments yet
+                </p>
               ) : (
                 comments.map((c) => (
                   <div
@@ -786,7 +903,10 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({
                         </span>
                       </div>
                       <span className="text-[10px] text-slate-400">
-                        {new Date(c.created_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
+                        {new Date(c.created_at).toLocaleString([], {
+                          dateStyle: 'short',
+                          timeStyle: 'short',
+                        })}
                       </span>
                     </div>
                     <p className="mt-2 text-xs text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">

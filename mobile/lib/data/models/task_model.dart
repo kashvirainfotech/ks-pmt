@@ -60,8 +60,8 @@ class TaskModel {
       projectName: json['project_name'],
       productName: json['product_name'],
       taskTypeId: json['task_type_id'] ?? '',
-      taskTypeName: json['task_type_name'],
-      taskTypeColor: json['task_type_color'],
+      taskTypeName: json['task_type_name'] ?? json['type_name'],
+      taskTypeColor: json['task_type_color'] ?? json['type_color'],
       statusId: json['status_id'] ?? '',
       statusCode: json['status_code'],
       statusName: json['status_name'] ?? 'Active',
@@ -77,7 +77,7 @@ class TaskModel {
       chargeAmount: json['charge_amount'] != null
           ? double.tryParse(json['charge_amount'].toString())
           : null,
-      plannedDueDate: json['planned_due_date'],
+      plannedDueDate: json['planned_due_date'] ?? json['planned_end_date'],
       subtasksCount: json['subtasks_count'] ?? 0,
       completedSubtasksCount: json['completed_subtasks_count'] ?? 0,
     );
@@ -102,7 +102,7 @@ class SubTaskModel {
       id: json['id'] ?? '',
       taskId: json['task_id'] ?? '',
       title: json['title'] ?? '',
-      isCompleted: json['is_completed'] ?? false,
+      isCompleted: json['is_completed'] ?? (json['status_category'] == 'DONE'),
     );
   }
 }
@@ -131,10 +131,10 @@ class TaskWorkflowStatusModel {
       id: json['id'] ?? '',
       statusCode: json['status_code'] ?? '',
       statusName: json['status_name'] ?? '',
-      colorCode: json['color_code'] ?? '#3b82f6',
-      stageOrder: json['stage_order'] ?? 0,
-      isInitial: json['is_initial'] ?? false,
-      isCompleted: json['is_completed'] ?? false,
+      colorCode: json['color_code'] ?? json['color_hex'] ?? '#3b82f6',
+      stageOrder: json['stage_order'] ?? json['sequence_order'] ?? 0,
+      isInitial: json['is_initial'] ?? (json['status_category'] == 'TODO'),
+      isCompleted: json['is_completed'] ?? (json['status_category'] == 'DONE'),
     );
   }
 }

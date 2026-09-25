@@ -1,5 +1,6 @@
+import { IsUUID } from '../../../common/validators/record-id';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class CreateDepartmentDto {
   @ApiProperty({ example: 'DEPT-ENG', description: 'Unique departmental code' })
@@ -8,7 +9,10 @@ export class CreateDepartmentDto {
   @MaxLength(50)
   deptCode: string;
 
-  @ApiProperty({ example: 'Software Engineering', description: 'Department name' })
+  @ApiProperty({
+    example: 'Software Engineering',
+    description: 'Department name',
+  })
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)
@@ -19,7 +23,10 @@ export class CreateDepartmentDto {
   @IsOptional()
   description?: string;
 
-  @ApiPropertyOptional({ example: 'c1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c', description: 'Head of Department User UUID' })
+  @ApiPropertyOptional({
+    example: 'c1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c',
+    description: 'Head of Department User UUID',
+  })
   @IsUUID()
   @IsOptional()
   hodUserId?: string;

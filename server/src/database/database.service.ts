@@ -1,6 +1,12 @@
-import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  OnModuleDestroy,
+  OnModuleInit,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Pool, PoolClient, QueryResult, QueryResultRow } from 'pg';
+import { persistExtended } from './extended-fields';
 
 @Injectable()
 export class DatabaseService implements OnModuleInit, OnModuleDestroy {
@@ -49,10 +55,14 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     try {
       const res = await this.pool.query<T>(text, params);
       const duration = Date.now() - start;
-      this.logger.debug(`Executed query in ${duration}ms: ${text.substring(0, 80)}...`);
+      this.logger.debug(
+        `Executed query in ${duration}ms: ${text.substring(0, 80)}...`,
+      );
       return res;
     } catch (error) {
-      this.logger.error(`Database query error: ${error.message} | Query: ${text}`);
+      this.logger.error(
+        `Database query error: ${error.message} | Query: ${text}`,
+      );
       throw error;
     }
   }
@@ -64,10 +74,23 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     return await this.pool.connect();
   }
 
+  async writeWithFields(
+    sql: string,
+    params: any[],
+    table: string,
+    fields: Record<string, any>,
+  ) {
+    return this.transaction((client) =>
+      persistExtended(client, sql, params, table, fields),
+    );
+  }
+
   /**
    * Execute work inside an isolated database transaction
    */
-  async transaction<T>(callback: (client: PoolClient) => Promise<T>): Promise<T> {
+  async transaction<T>(
+    callback: (client: PoolClient) => Promise<T>,
+  ): Promise<T> {
     const client = await this.getClient();
     try {
       await client.query('BEGIN');

@@ -15,7 +15,9 @@ export class TaskTypesService {
     const checkQuery = `SELECT id FROM task_types WHERE type_code = $1;`;
     const checkResult = await this.db.query(checkQuery, [dto.typeCode]);
     if (checkResult.rowCount > 0) {
-      throw new BadRequestException(`Task type code '${dto.typeCode}' already exists.`);
+      throw new BadRequestException(
+        `Task type code '${dto.typeCode}' already exists.`,
+      );
     }
 
     const insertQuery = `
@@ -26,15 +28,23 @@ export class TaskTypesService {
       ) VALUES ($1, $2, $3, $4, $5, $6, TRUE, $7, $7)
       RETURNING *;
     `;
-    const result = await this.db.query(insertQuery, [
-      dto.typeCode,
-      dto.typeName,
-      dto.description || null,
-      dto.colorHex || '#3B82F6',
-      dto.iconName || 'check-square',
-      dto.isChargeableDefault || false,
-      userId,
-    ]);
+    const result = await this.db.writeWithFields(
+      insertQuery,
+      [
+        dto.typeCode,
+        dto.typeName,
+        dto.description || null,
+        dto.colorHex || '#3B82F6',
+        dto.iconName || 'check-square',
+        dto.isChargeableDefault || false,
+        userId,
+      ],
+      'task_types',
+      {
+        default_severity: dto.defaultSeverity,
+        custom_fields: dto.customFields,
+      },
+    );
 
     return result.rows[0];
   }
@@ -87,16 +97,24 @@ export class TaskTypesService {
       WHERE id = $8
       RETURNING *;
     `;
-    const result = await this.db.query(updateQuery, [
-      dto.typeName,
-      dto.description,
-      dto.colorHex,
-      dto.iconName,
-      dto.isChargeableDefault,
-      dto.isActive,
-      userId,
-      id,
-    ]);
+    const result = await this.db.writeWithFields(
+      updateQuery,
+      [
+        dto.typeName,
+        dto.description,
+        dto.colorHex,
+        dto.iconName,
+        dto.isChargeableDefault,
+        dto.isActive,
+        userId,
+        id,
+      ],
+      'task_types',
+      {
+        default_severity: dto.defaultSeverity,
+        custom_fields: dto.customFields,
+      },
+    );
 
     return result.rows[0];
   }

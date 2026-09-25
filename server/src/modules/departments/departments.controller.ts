@@ -1,9 +1,9 @@
+import { ParseUUIDPipe } from '../../common/validators/record-id';
 import {
   Body,
   Controller,
   Get,
   Param,
-  ParseUUIDPipe,
   Patch,
   Post,
   Put,
@@ -87,7 +87,11 @@ export class DepartmentsController {
     @Body('isActive') isActive: boolean,
     @CurrentUser('id') userId: string,
   ) {
-    const data = await this.departmentsService.toggleActive(id, isActive, userId);
+    const data = await this.departmentsService.toggleActive(
+      id,
+      isActive,
+      userId,
+    );
     return {
       message: `Department status updated to ${isActive ? 'Active' : 'Inactive'}`,
       data,

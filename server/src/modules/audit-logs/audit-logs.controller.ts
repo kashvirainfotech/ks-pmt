@@ -1,11 +1,5 @@
-import {
-  Controller,
-  Get,
-  Param,
-  Query,
-  UseGuards,
-  ParseUUIDPipe,
-} from '@nestjs/common';
+import { ParseUUIDPipe } from '../../common/validators/record-id';
+import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
 import { AuditLogsService } from './audit-logs.service';
 import { QueryAuditLogDto } from './dto/query-audit-log.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';

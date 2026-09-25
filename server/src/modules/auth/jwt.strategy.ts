@@ -1,3 +1,4 @@
+import { SessionService } from './session.service';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
@@ -6,6 +7,8 @@ import { DatabaseService } from '../../database/database.service';
 
 export interface JwtPayload {
   sub: string;
+  sid?: string;
+  jti?: string;
   email: string;
   employeeCode: string;
   primaryBranchId: string;
@@ -19,6 +22,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   constructor(
     private readonly configService: ConfigService,
     private readonly db: DatabaseService,
+    private readonly sessions: SessionService,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -37,7 +41,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
              u.mobile_number, u.primary_branch_id, u.department_id, 
              u.designation_id, u.role_id, r.role_code, u.is_active
       FROM users u
-      INNER JOIN roles r ON u.role_id = r.id
+      INNER JOIN roles r ON u.role_id = r.id AND r.is_active = TRUE
       WHERE u.id = $1;
     `;
     const result = await this.db.query(userQuery, [payload.sub]);
@@ -46,8 +50,10 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       throw new UnauthorizedException('User account is inactive or not found');
     }
 
+    if (payload.sid) await this.sessions.validate(payload.sid, payload.sub);
     const row = result.rows[0];
     return {
+      sessionId: payload.sid,
       id: row.id,
       employeeCode: row.employee_code,
       firstName: row.first_name,

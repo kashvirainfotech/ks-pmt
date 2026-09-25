@@ -1,3 +1,7 @@
+import { validateDateRanges } from '../../common/validators/date-ranges';
+import { taskEvent } from '../notifications/task-events';
+import { randomUUID } from 'crypto';
+import { persistExtended } from '../../database/extended-fields';
 import {
   BadRequestException,
   Injectable,
@@ -23,6 +27,24 @@ export class TasksService {
     private readonly assignmentService: AssignmentService,
   ) {}
 
+  async toggleSubtask(id: string, completed: boolean, userId: string) {
+    const task = await this.findOne(id);
+    if (!task.parent_task_id)
+      throw new BadRequestException('This record is not a subtask');
+    const allowed = await this.workflowsService.getAllowedNextStatuses(
+      task.task_type_id,
+      task.status_id,
+    );
+    const target = allowed.find((s) =>
+      completed ? s.status_category === 'DONE' : !s.is_terminal,
+    );
+    if (!target)
+      throw new BadRequestException(
+        'No permitted completion/reopen transition. Open this task and follow its configured workflow.',
+      );
+    return this.changeStatus(id, { toStatusId: target.id }, userId);
+  }
+
   /**
    * Helper: Generate sequential unique task code (e.g. TSK-1001)
    */
@@ -36,24 +58,75 @@ export class TasksService {
       }
     }
 
-    const countQuery = `SELECT COUNT(id) AS total FROM tasks;`;
-    const countResult = await this.db.query(countQuery);
-    const nextNum = parseInt(countResult.rows[0].total, 10) + 1001;
-    return `${prefix}-${nextNum}`;
+    return `${prefix.slice(0, 20)}-${randomUUID().replace(/-/g, '').slice(0, 24)}`;
   }
 
   /**
    * Create task with subtask hierarchy, multi-assignees, and auto-assignment evaluation
    */
   async create(dto: CreateTaskDto, userId: string) {
+    validateDateRanges(dto);
     if (dto.projectId && dto.productId) {
-      throw new BadRequestException('A task cannot belong to both a Project and a Product simultaneously.');
+      throw new BadRequestException(
+        'A task cannot belong to both a Project and a Product simultaneously.',
+      );
     }
+
+    if (
+      dto.primaryAssigneeId &&
+      !dto.assigneeIds?.includes(dto.primaryAssigneeId)
+    )
+      throw new BadRequestException(
+        'Primary assignee must be in the assignee list',
+      );
+    if (
+      dto.plannedStartDate &&
+      dto.plannedEndDate &&
+      dto.plannedEndDate < dto.plannedStartDate
+    )
+      throw new BadRequestException('Planned end must follow planned start');
+    if (dto.parentTaskId) {
+      const parent = await this.findOne(dto.parentTaskId);
+      if (
+        (dto.projectId || null) !== parent.project_id ||
+        (dto.productId || null) !== parent.product_id
+      )
+        throw new BadRequestException(
+          'Subtask must use its parent project or product',
+        );
+    }
+    if (dto.versionId) {
+      const version = (
+        await this.db.query(
+          'SELECT project_id,product_id FROM versions WHERE id=$1 AND is_active=TRUE',
+          [dto.versionId],
+        )
+      ).rows[0];
+      if (
+        !version ||
+        (version.project_id || null) !== (dto.projectId || null) ||
+        (version.product_id || null) !== (dto.productId || null)
+      )
+        throw new BadRequestException(
+          'Version must belong to the selected project or product',
+        );
+    }
+    const type = (
+      await this.db.query(
+        "SELECT is_chargeable_default, to_jsonb(task_types)->>'default_severity' AS default_severity FROM task_types WHERE id=$1 AND is_active=TRUE",
+        [dto.taskTypeId],
+      )
+    ).rows[0];
+    if (!type) throw new BadRequestException('Choose an active task type');
+    if (dto.isChargeable === undefined)
+      dto.isChargeable = type.is_chargeable_default;
+    if (dto.severity === undefined && type.default_severity)
+      dto.severity = type.default_severity;
 
     // Default status: Find initial status (e.g. 'OPEN' or lowest sequence order)
     const statusQuery = `
       SELECT id FROM task_statuses
-      WHERE is_active = TRUE
+      WHERE is_active = TRUE AND status_category = 'TODO'
       ORDER BY sequence_order ASC
       LIMIT 1;
     `;
@@ -81,26 +154,32 @@ export class TasksService {
         RETURNING *;
       `;
 
-      const taskResult = await client.query(insertTaskQuery, [
-        taskCode,
-        dto.title,
-        dto.description || null,
-        dto.taskTypeId,
-        initialStatusId,
-        dto.priority || 'MEDIUM',
-        dto.projectId || null,
-        dto.productId || null,
-        dto.versionId || null,
-        dto.parentTaskId || null,
-        dto.plannedStartDate || null,
-        dto.plannedEndDate || null,
-        dto.estimatedHours || 0.00,
-        dto.isChargeable ?? false,
-        dto.chargeAmount || 0.00,
-        dto.currency || 'INR',
-        dto.branchId || null,
-        userId,
-      ]);
+      const taskResult = await persistExtended(
+        client,
+        insertTaskQuery,
+        [
+          taskCode,
+          dto.title,
+          dto.description || null,
+          dto.taskTypeId,
+          initialStatusId,
+          dto.priority || 'MEDIUM',
+          dto.projectId || null,
+          dto.productId || null,
+          dto.versionId || null,
+          dto.parentTaskId || null,
+          dto.plannedStartDate || null,
+          dto.plannedEndDate || null,
+          dto.estimatedHours || 0.0,
+          dto.isChargeable ?? false,
+          dto.chargeAmount || 0.0,
+          dto.currency || 'INR',
+          dto.branchId || null,
+          userId,
+        ],
+        'tasks',
+        { severity: dto.severity },
+      );
 
       const newTask = taskResult.rows[0];
 
@@ -122,7 +201,8 @@ export class TasksService {
 
       // Insert assigned users
       for (const assigneeId of finalAssigneeIds) {
-        const isPrimary = assigneeId === (dto.primaryAssigneeId || finalAssigneeIds[0]);
+        const isPrimary =
+          assigneeId === (dto.primaryAssigneeId || finalAssigneeIds[0]);
         await client.query(
           `INSERT INTO task_assignees (task_id, user_id, is_primary_assignee, assigned_by_user_id, created_by, updated_by)
            VALUES ($1, $2, $3, $4, $4, $4)
@@ -131,6 +211,14 @@ export class TasksService {
         );
       }
 
+      await taskEvent(
+        client,
+        newTask.id,
+        userId,
+        'TASK_ASSIGNED',
+        'Task assigned',
+        newTask.title,
+      );
       return newTask;
     });
   }
@@ -188,15 +276,20 @@ export class TasksService {
 
     if (query.assigneeUserId) {
       params.push(query.assigneeUserId);
-      whereClauses.push(`EXISTS (SELECT 1 FROM task_assignees ta WHERE ta.task_id = t.id AND ta.user_id = $${params.length})`);
+      whereClauses.push(
+        `EXISTS (SELECT 1 FROM task_assignees ta WHERE ta.task_id = t.id AND ta.user_id = $${params.length})`,
+      );
     }
 
     if (query.search) {
       params.push(`%${query.search.trim()}%`);
-      whereClauses.push(`(t.task_code ILIKE $${params.length} OR t.title ILIKE $${params.length})`);
+      whereClauses.push(
+        `(t.task_code ILIKE $${params.length} OR t.title ILIKE $${params.length})`,
+      );
     }
 
-    const whereSql = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
+    const whereSql =
+      whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
 
     const countSql = `SELECT COUNT(t.id) AS total FROM tasks t ${whereSql};`;
     const countResult = await this.db.query(countSql, params);
@@ -210,7 +303,7 @@ export class TasksService {
 
     const dataSql = `
       SELECT 
-        t.id, t.task_code, t.title, t.priority, t.estimated_hours,
+        t.id, t.task_code, t.title, t.description, t.task_type_id, t.status_id, t.project_id, t.product_id, t.version_id, t.branch_id, t.priority, t.estimated_hours,
         t.is_chargeable, t.charge_amount, t.currency,
         t.planned_start_date, t.planned_end_date,
         t.actual_start_date, t.actual_end_date,
@@ -314,7 +407,11 @@ export class TasksService {
       ...task,
       assignees: assigneesResult.rows,
       totalSubtasks: parseInt(subtasksCountResult.rows[0].total_subtasks, 10),
-      effortSummary: effortResult.rows[0] || { total_hours: 0, billable_hours: 0, non_billable_hours: 0 },
+      effortSummary: effortResult.rows[0] || {
+        total_hours: 0,
+        billable_hours: 0,
+        non_billable_hours: 0,
+      },
     };
   }
 
@@ -326,10 +423,10 @@ export class TasksService {
 
     const query = `
       SELECT 
-        t.id, t.task_code, t.title, t.priority, t.estimated_hours,
+        t.id, t.task_code, t.title, t.description, t.task_type_id, t.status_id, t.project_id, t.product_id, t.version_id, t.branch_id, t.priority, t.estimated_hours,
         t.is_chargeable, t.charge_amount,
         tt.type_name, tt.color_hex AS type_color,
-        ts.status_name, ts.color_hex AS status_color, ts.is_terminal,
+        ts.status_name, ts.color_hex AS status_color, ts.is_terminal, (ts.status_category = 'DONE') AS is_completed,
         COALESCE(
           json_agg(
             json_build_object(
@@ -345,7 +442,7 @@ export class TasksService {
       LEFT JOIN task_assignees ta ON t.id = ta.task_id
       LEFT JOIN users u ON ta.user_id = u.id
       WHERE t.parent_task_id = $1
-      GROUP BY t.id, tt.type_name, tt.color_hex, ts.status_name, ts.color_hex, ts.is_terminal
+      GROUP BY t.id, tt.type_name, tt.color_hex, ts.status_name, ts.color_hex, ts.is_terminal, ts.status_category
       ORDER BY t.created_at ASC;
     `;
     const result = await this.db.query(query, [parentTaskId]);
@@ -365,7 +462,7 @@ export class TasksService {
     );
 
     const isPermitted = allowedStatuses.some((s) => s.id === dto.toStatusId);
-    if (!isPermitted && allowedStatuses.length > 0) {
+    if (!isPermitted) {
       const allowedNames = allowedStatuses.map((s) => s.status_name).join(', ');
       throw new BadRequestException(
         `Invalid status transition. Allowed next status(es): [${allowedNames}]`,
@@ -373,18 +470,24 @@ export class TasksService {
     }
 
     // 2. Fetch destination status details
-    const destStatus = await this.workflowsService.findOneStatus(dto.toStatusId);
+    const destStatus = await this.workflowsService.findOneStatus(
+      dto.toStatusId,
+    );
 
     // Auto date updates
     let actualStartUpdate = '';
     let actualEndUpdate = '';
 
     // If entering IN_PROGRESS category and actual_start_date is null
-    if (destStatus.status_category === 'IN_PROGRESS' && !task.actual_start_date) {
+    if (
+      destStatus.status_category === 'IN_PROGRESS' &&
+      !task.actual_start_date
+    ) {
       actualStartUpdate = `, actual_start_date = CURRENT_TIMESTAMP`;
     }
 
     // If entering terminal state (e.g. Closed)
+    if (!destStatus.is_terminal) actualEndUpdate = `, actual_end_date = NULL`;
     if (destStatus.is_terminal && !task.actual_end_date) {
       actualEndUpdate = `, actual_end_date = CURRENT_TIMESTAMP`;
     }
@@ -400,7 +503,11 @@ export class TasksService {
       RETURNING *;
     `;
 
-    const result = await this.db.query(updateQuery, [dto.toStatusId, userId, id]);
+    const result = await this.db.query(updateQuery, [
+      dto.toStatusId,
+      userId,
+      id,
+    ]);
     const updatedTask = result.rows[0];
 
     // 3. Evaluate Auto-Assignment Matrix rule on status change
@@ -414,10 +521,24 @@ export class TasksService {
     );
 
     if (autoUser) {
-      await this.assignUsers(id, { assigneeIds: [autoUser], primaryAssigneeId: autoUser }, userId);
-      this.logger.log(`Task ${task.task_code} auto-reassigned to user ${autoUser} on status change.`);
+      await this.assignUsers(
+        id,
+        { assigneeIds: [autoUser], primaryAssigneeId: autoUser },
+        userId,
+      );
+      this.logger.log(
+        `Task ${task.task_code} auto-reassigned to user ${autoUser} on status change.`,
+      );
     }
 
+    await taskEvent(
+      this.db,
+      id,
+      userId,
+      'STATUS_CHANGED',
+      'Task status changed',
+      `${task.title}: ${destStatus.status_name}`,
+    );
     return updatedTask;
   }
 
@@ -426,14 +547,26 @@ export class TasksService {
    */
   async assignUsers(id: string, dto: AssignTaskDto, assignedByUserId: string) {
     await this.findOne(id);
+    if (
+      dto.primaryAssigneeId &&
+      !dto.assigneeIds.includes(dto.primaryAssigneeId)
+    )
+      throw new BadRequestException(
+        'Primary assignee must be in the assignee list',
+      );
+    if (new Set(dto.assigneeIds).size !== dto.assigneeIds.length)
+      throw new BadRequestException('Assignees must be unique');
 
     return await this.db.transaction(async (client) => {
       // Clear existing assignees
-      await client.query(`DELETE FROM task_assignees WHERE task_id = $1;`, [id]);
+      await client.query(`DELETE FROM task_assignees WHERE task_id = $1;`, [
+        id,
+      ]);
 
       // Insert new assignees
       for (const assigneeId of dto.assigneeIds) {
-        const isPrimary = assigneeId === (dto.primaryAssigneeId || dto.assigneeIds[0]);
+        const isPrimary =
+          assigneeId === (dto.primaryAssigneeId || dto.assigneeIds[0]);
         await client.query(
           `INSERT INTO task_assignees (
             task_id, user_id, is_primary_assignee, assigned_by_user_id, created_by, updated_by
@@ -442,6 +575,14 @@ export class TasksService {
         );
       }
 
+      await taskEvent(
+        client,
+        id,
+        assignedByUserId,
+        'TASK_ASSIGNED',
+        'Task assignment changed',
+        'You have been assigned to this task',
+      );
       return { success: true, count: dto.assigneeIds.length };
     });
   }
@@ -450,7 +591,8 @@ export class TasksService {
    * Update task parameters
    */
   async update(id: string, dto: UpdateTaskDto, userId: string) {
-    await this.findOne(id);
+    const existing = await this.findOne(id);
+    validateDateRanges(dto, existing);
 
     const updateQuery = `
       UPDATE tasks SET
@@ -474,30 +616,38 @@ export class TasksService {
       RETURNING *;
     `;
 
-    const result = await this.db.query(updateQuery, [
-      dto.title,
-      dto.description,
-      dto.taskTypeId,
-      dto.priority,
-      dto.versionId,
-      dto.plannedStartDate,
-      dto.plannedEndDate,
-      dto.actualStartDate,
-      dto.actualEndDate,
-      dto.estimatedHours,
-      dto.isChargeable,
-      dto.chargeAmount,
-      dto.currency,
-      dto.branchId,
-      userId,
-      id,
-    ]);
+    const result = await this.db.writeWithFields(
+      updateQuery,
+      [
+        dto.title,
+        dto.description,
+        dto.taskTypeId,
+        dto.priority,
+        dto.versionId,
+        dto.plannedStartDate,
+        dto.plannedEndDate,
+        dto.actualStartDate,
+        dto.actualEndDate,
+        dto.estimatedHours,
+        dto.isChargeable,
+        dto.chargeAmount,
+        dto.currency,
+        dto.branchId,
+        userId,
+        id,
+      ],
+      'tasks',
+      { severity: dto.severity },
+    );
 
     // Update assignees if provided
     if (dto.assigneeIds) {
       await this.assignUsers(
         id,
-        { assigneeIds: dto.assigneeIds, primaryAssigneeId: dto.primaryAssigneeId },
+        {
+          assigneeIds: dto.assigneeIds,
+          primaryAssigneeId: dto.primaryAssigneeId,
+        },
         userId,
       );
     }

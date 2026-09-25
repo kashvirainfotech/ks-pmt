@@ -25,7 +25,7 @@ class AuthRepository {
     await apiClient.storage.write(key: ApiClient.keyAccessToken, value: accessToken);
     await apiClient.storage.write(key: ApiClient.keyRefreshToken, value: refreshToken);
 
-    final user = UserModel.fromJson(data['user']);
+    final user = UserModel.fromJson({...data['user'], 'permissions': data['permissions'] ?? []});
     if (user.primaryBranchId.isNotEmpty) {
       await apiClient.storage.write(key: ApiClient.keyBranchId, value: user.primaryBranchId);
     }
@@ -56,7 +56,7 @@ class AuthRepository {
     await apiClient.storage.write(key: ApiClient.keyAccessToken, value: accessToken);
     await apiClient.storage.write(key: ApiClient.keyRefreshToken, value: refreshToken);
 
-    final user = UserModel.fromJson(data['user']);
+    final user = UserModel.fromJson({...data['user'], 'permissions': data['permissions'] ?? []});
     if (user.primaryBranchId.isNotEmpty) {
       await apiClient.storage.write(key: ApiClient.keyBranchId, value: user.primaryBranchId);
     }
@@ -67,7 +67,7 @@ class AuthRepository {
     try {
       final response = await apiClient.dio.get(ApiConstants.getMe);
       final data = response.data['data'] ?? response.data;
-      return UserModel.fromJson(data);
+      return UserModel.fromJson({...data['user'], 'permissions': data['permissions'] ?? []});
     } catch (_) {
       return null;
     }

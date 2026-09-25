@@ -1,11 +1,13 @@
 import {
   Injectable,
+  BadRequestException,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
   GetObjectCommand,
+  HeadObjectCommand,
   PutObjectCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
@@ -37,7 +39,9 @@ export class AttachmentsService {
     );
 
     const accessKeyId = this.configService.get<string>('AWS_ACCESS_KEY_ID');
-    const secretAccessKey = this.configService.get<string>('AWS_SECRET_ACCESS_KEY');
+    const secretAccessKey = this.configService.get<string>(
+      'AWS_SECRET_ACCESS_KEY',
+    );
 
     this.s3Client = new S3Client({
       region: this.region,
@@ -54,7 +58,12 @@ export class AttachmentsService {
   /**
    * Generates AWS S3 pre-signed upload URL (PUT) for direct client-to-S3 upload
    */
-  async generatePresignedUploadUrl(dto: RequestPresignedUploadDto, userId: string) {
+  async generatePresignedUploadUrl(
+    dto: RequestPresignedUploadDto,
+    userId: string,
+  ) {
+    if (dto.fileSizeBytes > 100 * 1024 * 1024)
+      throw new BadRequestException('Files cannot exceed 100 MB');
     const sanitizedFileName = dto.fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
     const fileId = crypto.randomUUID();
     const s3ObjectKey = `${dto.entityType.toLowerCase()}s/${dto.entityId}/${fileId}-${sanitizedFileName}`;
@@ -83,7 +92,7 @@ export class AttachmentsService {
         file_size_bytes, s3_bucket_name, s3_object_key, s3_region,
         description, is_active, created_by, updated_by
       ) VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, TRUE, $10, $10
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, FALSE, $10, $10
       )
       RETURNING *;
     `;
@@ -110,6 +119,44 @@ export class AttachmentsService {
       expiresInSeconds: this.presignedUrlExpires,
       attachment,
     };
+  }
+
+  async confirmUpload(id: string, userId: string) {
+    const result = await this.db.query(
+      'SELECT * FROM attachments WHERE id=$1 AND created_by=$2',
+      [id, userId],
+    );
+    if (!result.rowCount)
+      throw new NotFoundException('Upload request not found');
+    const attachment = result.rows[0];
+    const object = await this.s3Client.send(
+      new HeadObjectCommand({
+        Bucket: attachment.s3_bucket_name,
+        Key: attachment.s3_object_key,
+      }),
+    );
+    if (
+      Number(object.ContentLength) !== Number(attachment.file_size_bytes) ||
+      object.ContentType !== attachment.mime_type
+    )
+      throw new BadRequestException(
+        'Uploaded file does not match the requested size or content type',
+      );
+    return this.db.transaction(async (client) => {
+      const confirmed = await client.query(
+        'UPDATE attachments SET is_active=TRUE, updated_by=$2, updated_at=CURRENT_TIMESTAMP WHERE id=$1 RETURNING *',
+        [id, userId],
+      );
+      if (attachment.entity_type === 'USER_AVATAR') {
+        if (attachment.entity_id !== userId)
+          throw new BadRequestException('You may only update your own avatar');
+        await client.query(
+          'UPDATE users SET avatar_s3_key=$1, updated_by=$2, updated_at=CURRENT_TIMESTAMP WHERE id=$2',
+          [attachment.s3_object_key, userId],
+        );
+      }
+      return confirmed.rows[0];
+    });
   }
 
   /**

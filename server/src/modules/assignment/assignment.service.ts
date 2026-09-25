@@ -15,7 +15,9 @@ export class AssignmentService {
 
   async createRule(dto: CreateAssignmentRuleDto, userId: string) {
     if (dto.targetAssignmentType === 'SPECIFIC_USER' && !dto.targetUserId) {
-      throw new BadRequestException('targetUserId is required when targetAssignmentType is SPECIFIC_USER.');
+      throw new BadRequestException(
+        'targetUserId is required when targetAssignmentType is SPECIFIC_USER.',
+      );
     }
     if (
       (dto.targetAssignmentType === 'DEPARTMENT_HOD' ||
@@ -23,9 +25,18 @@ export class AssignmentService {
         dto.targetAssignmentType === 'ROUND_ROBIN') &&
       !dto.targetDepartmentId
     ) {
-      throw new BadRequestException('targetDepartmentId is required for this assignment strategy.');
+      throw new BadRequestException(
+        'targetDepartmentId is required for this assignment strategy.',
+      );
     }
 
+    if (
+      dto.targetAssignmentType === 'DESIGNATION_HIERARCHY' &&
+      !dto.targetDesignationId
+    )
+      throw new BadRequestException('Select a target designation');
+    if (dto.triggerEvent === 'ON_STATUS_CHANGE' && !dto.toStatusId)
+      throw new BadRequestException('Select a destination status');
     const insertQuery = `
       INSERT INTO auto_assignment_rules (
         rule_name, trigger_event, task_type_id, from_status_id,
@@ -129,17 +140,27 @@ export class AssignmentService {
     }
 
     const rule = ruleResult.rows[0];
-    this.logger.log(`Matching auto-assignment rule found: ${rule.rule_name} (${rule.target_assignment_type})`);
+    this.logger.log(
+      `Matching auto-assignment rule found: ${rule.rule_name} (${rule.target_assignment_type})`,
+    );
 
     // 1. Specific User
-    if (rule.target_assignment_type === 'SPECIFIC_USER' && rule.target_user_id) {
+    if (
+      rule.target_assignment_type === 'SPECIFIC_USER' &&
+      rule.target_user_id
+    ) {
       return rule.target_user_id;
     }
 
     // 2. Department Head (HOD)
-    if (rule.target_assignment_type === 'DEPARTMENT_HOD' && rule.target_department_id) {
+    if (
+      rule.target_assignment_type === 'DEPARTMENT_HOD' &&
+      rule.target_department_id
+    ) {
       const hodQuery = `SELECT hod_user_id FROM departments WHERE id = $1 AND is_active = TRUE;`;
-      const hodResult = await this.db.query(hodQuery, [rule.target_department_id]);
+      const hodResult = await this.db.query(hodQuery, [
+        rule.target_department_id,
+      ]);
       if (hodResult.rowCount > 0 && hodResult.rows[0].hod_user_id) {
         return hodResult.rows[0].hod_user_id;
       }
@@ -175,9 +196,12 @@ export class AssignmentService {
     }
 
     // 5. Round Robin (Least Loaded Employee in Department)
-    if (rule.target_assignment_type === 'ROUND_ROBIN' && rule.target_department_id) {
+    if (
+      rule.target_assignment_type === 'ROUND_ROBIN' &&
+      rule.target_department_id
+    ) {
       const rrQuery = `
-        SELECT u.id, COUNT(ta.task_id) AS active_load
+        SELECT u.id, COUNT(ta.task_id) FILTER (WHERE ts.id IS NOT NULL) AS active_load
         FROM users u
         LEFT JOIN task_assignees ta ON u.id = ta.user_id
         LEFT JOIN tasks t ON ta.task_id = t.id
@@ -187,7 +211,9 @@ export class AssignmentService {
         ORDER BY active_load ASC, u.created_at ASC
         LIMIT 1;
       `;
-      const rrResult = await this.db.query(rrQuery, [rule.target_department_id]);
+      const rrResult = await this.db.query(rrQuery, [
+        rule.target_department_id,
+      ]);
       if (rrResult.rowCount > 0) {
         return rrResult.rows[0].id;
       }

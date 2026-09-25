@@ -1,5 +1,6 @@
+import { IsUUID } from '../../../common/validators/record-id';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class ChangeTaskStatusDto {
   @ApiProperty({
@@ -10,7 +11,9 @@ export class ChangeTaskStatusDto {
   @IsNotEmpty()
   toStatusId: string;
 
-  @ApiPropertyOptional({ example: 'Code review approved by Tech Lead; deploying to QA environment' })
+  @ApiPropertyOptional({
+    example: 'Code review approved by Tech Lead; deploying to QA environment',
+  })
   @IsString()
   @IsOptional()
   remarks?: string;

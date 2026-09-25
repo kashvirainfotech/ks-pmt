@@ -1,3 +1,10 @@
+import { IsUUID } from '../../../common/validators/record-id';
+import {
+  IsObject as ExtraObject,
+  IsNumber as ExtraNumber,
+  Min as ExtraMin,
+  IsIn as ExtraIn,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import {
@@ -7,59 +14,60 @@ import {
   IsNumber,
   IsOptional,
   IsString,
-  IsUUID,
   MaxLength,
   Min,
   ValidateIf,
 } from 'class-validator';
 
 export class CreateProjectDto {
-  @ApiProperty({ example: 'PRJ-FINTECH-02', description: 'Unique project code' })
+  @ApiProperty({
+    example: 'PRJ-FINTECH-02',
+    description: 'Unique project code',
+  })
   @IsString()
   @IsNotEmpty()
   @MaxLength(50)
   projectCode: string;
 
-  @ApiProperty({ example: 'NextGen Payment Gateway Integration', description: 'Project name' })
+  @ApiProperty({
+    example: 'NextGen Payment Gateway Integration',
+    description: 'Project name',
+  })
   @IsString()
   @IsNotEmpty()
   @MaxLength(200)
   projectName: string;
 
-  @ApiPropertyOptional({ example: 'Complete integration of multi-currency acquiring rails' })
+  @ApiPropertyOptional({
+    example: 'Complete integration of multi-currency acquiring rails',
+  })
   @IsString()
   @IsOptional()
   description?: string;
 
-  @ApiPropertyOptional({ example: '77777777-7777-7777-7777-777777777771', description: 'Client UUID' })
-  @Transform(({ value }) =>
-    typeof value === 'string' &&
-    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value.trim())
-      ? value.trim()
-      : undefined,
-  )
+  @ApiPropertyOptional({
+    example: '77777777-7777-7777-7777-777777777771',
+    description: 'Client UUID',
+  })
+  @Transform(({ value }) => (value === '' ? undefined : value))
   @IsUUID()
   @IsOptional()
   clientId?: string;
 
-  @ApiPropertyOptional({ example: '11111111-1111-1111-1111-111111111111', description: 'Branch UUID executing the project' })
-  @Transform(({ value }) =>
-    typeof value === 'string' &&
-    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value.trim())
-      ? value.trim()
-      : undefined,
-  )
+  @ApiPropertyOptional({
+    example: '11111111-1111-1111-1111-111111111111',
+    description: 'Branch UUID executing the project',
+  })
+  @Transform(({ value }) => (value === '' ? undefined : value))
   @IsUUID()
   @IsOptional()
   branchId?: string;
 
-  @ApiPropertyOptional({ example: '00000000-0000-0000-0000-000000000001', description: 'Project Manager User UUID' })
-  @Transform(({ value }) =>
-    typeof value === 'string' &&
-    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value.trim())
-      ? value.trim()
-      : undefined,
-  )
+  @ApiPropertyOptional({
+    example: '00000000-0000-0000-0000-000000000001',
+    description: 'Project Manager User UUID',
+  })
+  @Transform(({ value }) => (value === '' ? undefined : value))
   @IsUUID()
   @IsOptional()
   projectManagerUserId?: string;
@@ -75,25 +83,41 @@ export class CreateProjectDto {
   @IsIn(['FIXED_COST', 'FIXED_PRICE', 'TIME_AND_MATERIAL', 'RETAINER'])
   billingType?: string;
 
-  @ApiPropertyOptional({ example: 850000.00, default: 0.00, description: 'Captured project contract amount' })
+  @ApiPropertyOptional({
+    example: 850000.0,
+    default: 0.0,
+    description: 'Captured project contract amount',
+  })
   @IsNumber()
   @Min(0)
   @IsOptional()
   contractAmount?: number;
 
-  @ApiPropertyOptional({ example: 1200.00, default: 0.00, description: 'Hourly billing rate (used for T&M)' })
+  @ApiPropertyOptional({
+    example: 1200.0,
+    default: 0.0,
+    description: 'Hourly billing rate (used for T&M)',
+  })
   @IsNumber()
   @Min(0)
   @IsOptional()
   hourlyRate?: number;
 
-  @ApiPropertyOptional({ example: 650.00, default: 0.00, description: 'Estimated budget hours' })
+  @ApiPropertyOptional({
+    example: 650.0,
+    default: 0.0,
+    description: 'Estimated budget hours',
+  })
   @IsNumber()
   @Min(0)
   @IsOptional()
   budgetedHours?: number;
 
-  @ApiPropertyOptional({ example: 650.00, default: 0.00, description: 'Alias for budgetedHours' })
+  @ApiPropertyOptional({
+    example: 650.0,
+    default: 0.0,
+    description: 'Alias for budgetedHours',
+  })
   @IsNumber()
   @Min(0)
   @IsOptional()
@@ -117,11 +141,35 @@ export class CreateProjectDto {
 
   @ApiPropertyOptional({
     example: 'PLANNING',
-    enum: ['PLANNING', 'ACTIVE', 'ON_HOLD', 'COMPLETED', 'CANCELLED'],
+    enum: [
+      'PLANNING',
+      'ACTIVE',
+      'ON_HOLD',
+      'COMPLETED',
+      'TERMINATED',
+      'CANCELLED',
+    ],
     default: 'PLANNING',
   })
   @IsString()
   @IsOptional()
-  @IsIn(['PLANNING', 'ACTIVE', 'ON_HOLD', 'COMPLETED', 'CANCELLED'])
+  @IsIn([
+    'PLANNING',
+    'ACTIVE',
+    'ON_HOLD',
+    'COMPLETED',
+    'TERMINATED',
+    'CANCELLED',
+  ])
   projectStatus?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  techStack?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  invoicingMilestones?: string;
 }

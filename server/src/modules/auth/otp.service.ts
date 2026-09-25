@@ -1,4 +1,10 @@
-import { Injectable, Logger, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  BadRequestException,
+  ServiceUnavailableException,
+  HttpException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
 
@@ -6,6 +12,7 @@ interface OtpRecord {
   code: string;
   expiresAt: number;
   attempts: number;
+  sentAt: number;
 }
 
 @Injectable()
@@ -18,8 +25,21 @@ export class OtpService {
   /**
    * Generate a 6-digit cryptographic OTP and store with expiration
    */
-  async generateAndSendOtp(mobileNumber: string): Promise<{ success: boolean; message: string }> {
-    const expirySeconds = this.configService.get<number>('OTP_EXPIRY_SECONDS', 300);
+  async generateAndSendOtp(
+    mobileNumber: string,
+  ): Promise<{ success: boolean; message: string }> {
+    const previous = this.otpCache.get(mobileNumber);
+    if (previous && Date.now() - previous.sentAt < 60000)
+      throw new HttpException(
+        'Wait 60 seconds before requesting another OTP',
+        429,
+      );
+    if (this.configService.get<string>('OTP_MOCK_DISPATCH', 'true') !== 'true')
+      throw new ServiceUnavailableException('SMS provider is not configured');
+    const expirySeconds = this.configService.get<number>(
+      'OTP_EXPIRY_SECONDS',
+      300,
+    );
     const code = crypto.randomInt(100000, 999999).toString();
     const expiresAt = Date.now() + expirySeconds * 1000;
 
@@ -27,13 +47,17 @@ export class OtpService {
       code,
       expiresAt,
       attempts: 0,
+      sentAt: Date.now(),
     });
 
     // Dispatch OTP
-    const isMock = this.configService.get<string>('OTP_MOCK_DISPATCH', 'true') === 'true';
+    const isMock =
+      this.configService.get<string>('OTP_MOCK_DISPATCH', 'true') === 'true';
 
     if (isMock) {
-      this.logger.log(`[MOCK SMS] OTP for ${mobileNumber} is: [ ${code} ] (Expires in ${expirySeconds}s)`);
+      this.logger.log(
+        `[MOCK SMS] OTP for ${mobileNumber} is: [ ${code} ] (Expires in ${expirySeconds}s)`,
+      );
     } else {
       // In production, invoke third-party SMS gateway (AWS SNS, Twilio, MSG91, etc.)
       this.logger.log(`Dispatching live SMS OTP to ${mobileNumber}...`);
@@ -52,12 +76,16 @@ export class OtpService {
     const record = this.otpCache.get(mobileNumber);
 
     if (!record) {
-      throw new BadRequestException('No active OTP found for this mobile number. Please request a new one.');
+      throw new BadRequestException(
+        'No active OTP found for this mobile number. Please request a new one.',
+      );
     }
 
     if (Date.now() > record.expiresAt) {
       this.otpCache.delete(mobileNumber);
-      throw new BadRequestException('OTP has expired. Please request a new OTP.');
+      throw new BadRequestException(
+        'OTP has expired. Please request a new OTP.',
+      );
     }
 
     const maxAttempts = this.configService.get<number>('OTP_MAX_ATTEMPTS', 5);
@@ -65,7 +93,9 @@ export class OtpService {
 
     if (record.attempts > maxAttempts) {
       this.otpCache.delete(mobileNumber);
-      throw new BadRequestException('Maximum verification attempts exceeded. Please request a new OTP.');
+      throw new BadRequestException(
+        'Maximum verification attempts exceeded. Please request a new OTP.',
+      );
     }
 
     if (record.code !== enteredOtp) {

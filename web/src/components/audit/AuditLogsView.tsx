@@ -1,13 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { auditLogsApi } from '../../api/endpoints';
 import { AuditLogItem } from '../../types';
-import { ShieldCheck, Search, Filter, Eye, X, Globe, Smartphone, Monitor } from 'lucide-react';
+import {
+  ShieldCheck,
+  Search,
+  Filter,
+  Eye,
+  X,
+  Globe,
+  Smartphone,
+  Monitor,
+} from 'lucide-react';
 
 export const AuditLogsView: React.FC = () => {
   const [logs, setLogs] = useState<AuditLogItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionType, setActionType] = useState('');
   const [entityName, setEntityName] = useState('');
+  const [page, setPage] = useState(1);
+  const [pages, setPages] = useState(1);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [error, setError] = useState('');
   const [selectedLog, setSelectedLog] = useState<AuditLogItem | null>(null);
 
   const fetchLogs = async () => {
@@ -17,10 +31,15 @@ export const AuditLogsView: React.FC = () => {
         actionType: actionType || undefined,
         entityName: entityName || undefined,
         limit: 50,
+        page,
+        startDate: startDate || undefined,
+        endDate: endDate ? `${endDate}T23:59:59.999` : undefined,
       });
       setLogs(res?.data?.auditLogs || res?.data || []);
+      setPages(res?.data?.totalPages || 1);
+      setError('');
     } catch (err) {
-      console.error(err);
+      setError('Unable to load audit events. Please retry.');
     } finally {
       setLoading(false);
     }
@@ -28,7 +47,7 @@ export const AuditLogsView: React.FC = () => {
 
   useEffect(() => {
     fetchLogs();
-  }, [actionType, entityName]);
+  }, [actionType, entityName, page, startDate, endDate]);
 
   const getPlatformIcon = (platform?: string) => {
     if (platform === 'ANDROID' || platform === 'IOS') {
@@ -44,7 +63,8 @@ export const AuditLogsView: React.FC = () => {
           Security & Central Audit Trail
         </h1>
         <p className="text-xs text-slate-400">
-          Immutable system-wide event logs, access tracking and state transition history
+          Immutable system-wide event logs, access tracking and state transition
+          history
         </p>
       </div>
 
@@ -52,21 +72,37 @@ export const AuditLogsView: React.FC = () => {
       <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
         <select
           value={actionType}
-          onChange={(e) => setActionType(e.target.value)}
+          aria-label="Action type"
+          onChange={(e) => {
+            setPage(1);
+            setActionType(e.target.value);
+          }}
           className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs dark:border-slate-700 dark:bg-slate-800"
         >
           <option value="">All Action Types</option>
-          <option value="LOGIN_SUCCESS">Login Success</option>
-          <option value="LOGIN_FAILED">Login Failed</option>
-          <option value="TASK_CREATED">Task Created</option>
-          <option value="STATUS_CHANGED">Status Changed</option>
-          <option value="FILE_ATTACHED">File Attached</option>
-          <option value="TIME_LOGGED">Time Logged</option>
+          {[
+            'INSERT',
+            'UPDATE',
+            'DELETE',
+            'LOGIN',
+            'LOGOUT',
+            'DOWNLOAD',
+            'LOGIN_SUCCESS',
+            'LOGIN_FAILED',
+          ].map((action) => (
+            <option key={action} value={action}>
+              {action.replace(/_/g, ' ')}
+            </option>
+          ))}
         </select>
 
         <select
           value={entityName}
-          onChange={(e) => setEntityName(e.target.value)}
+          aria-label="Entity"
+          onChange={(e) => {
+            setPage(1);
+            setEntityName(e.target.value);
+          }}
           className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs dark:border-slate-700 dark:bg-slate-800"
         >
           <option value="">All Entities</option>
@@ -74,10 +110,39 @@ export const AuditLogsView: React.FC = () => {
           <option value="tasks">Tasks</option>
           <option value="projects">Projects</option>
           <option value="attachments">Attachments</option>
-          <option value="time_logs">Time Logs</option>
+          <option value="task_time_logs">Time Logs</option>
         </select>
       </div>
 
+      <div className="flex flex-wrap gap-3">
+        <label>
+          From{' '}
+          <input
+            type="date"
+            value={startDate}
+            onChange={(e) => {
+              setPage(1);
+              setStartDate(e.target.value);
+            }}
+          />
+        </label>
+        <label>
+          To{' '}
+          <input
+            type="date"
+            value={endDate}
+            onChange={(e) => {
+              setPage(1);
+              setEndDate(e.target.value);
+            }}
+          />
+        </label>
+      </div>
+      {error && (
+        <p role="alert">
+          {error} <button onClick={fetchLogs}>Retry</button>
+        </p>
+      )}
       {/* Table */}
       <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
         <table className="w-full text-left text-xs">
@@ -141,6 +206,17 @@ export const AuditLogsView: React.FC = () => {
         </table>
       </div>
 
+      <div className="flex gap-4">
+        <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
+          Previous
+        </button>
+        <span>
+          Page {page} of {pages}
+        </span>
+        <button disabled={page >= pages} onClick={() => setPage((p) => p + 1)}>
+          Next
+        </button>
+      </div>
       {/* JSON Diff & Audit Details Modal */}
       {selectedLog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
@@ -150,7 +226,9 @@ export const AuditLogsView: React.FC = () => {
                 <h3 className="text-sm font-bold text-slate-900 dark:text-white">
                   Audit Event Details: {selectedLog.action_type}
                 </h3>
-                <p className="text-[11px] text-slate-400">Record ID: {selectedLog.record_id || 'N/A'}</p>
+                <p className="text-[11px] text-slate-400">
+                  Record ID: {selectedLog.record_id || 'N/A'}
+                </p>
               </div>
               <button
                 onClick={() => setSelectedLog(null)}
@@ -165,7 +243,8 @@ export const AuditLogsView: React.FC = () => {
                 <div className="rounded-xl border border-slate-200 p-2.5 dark:border-slate-800">
                   <span className="text-slate-400">User / Actor</span>
                   <p className="font-semibold text-slate-800 dark:text-slate-200 mt-0.5">
-                    {selectedLog.user_name || 'System / Anonymous'} ({selectedLog.user_email || 'N/A'})
+                    {selectedLog.user_name || 'System / Anonymous'} (
+                    {selectedLog.user_email || 'N/A'})
                   </p>
                 </div>
                 <div className="rounded-xl border border-slate-200 p-2.5 dark:border-slate-800">
@@ -179,7 +258,9 @@ export const AuditLogsView: React.FC = () => {
               {selectedLog.remarks && (
                 <div className="rounded-xl border border-slate-200 p-2.5 dark:border-slate-800">
                   <span className="text-slate-400">Remarks</span>
-                  <p className="text-slate-700 dark:text-slate-300 mt-0.5">{selectedLog.remarks}</p>
+                  <p className="text-slate-700 dark:text-slate-300 mt-0.5">
+                    {selectedLog.remarks}
+                  </p>
                 </div>
               )}
 

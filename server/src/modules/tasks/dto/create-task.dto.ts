@@ -1,3 +1,10 @@
+import { IsUUID } from '../../../common/validators/record-id';
+import {
+  IsObject as ExtraObject,
+  IsNumber as ExtraNumber,
+  Min as ExtraMin,
+  IsIn as ExtraIn,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsArray,
@@ -8,24 +15,32 @@ import {
   IsNumber,
   IsOptional,
   IsString,
-  IsUUID,
   MaxLength,
   Min,
 } from 'class-validator';
 
 export class CreateTaskDto {
-  @ApiProperty({ example: 'Implement Stripe Webhook Handler', description: 'Task title' })
+  @ApiProperty({
+    example: 'Implement Stripe Webhook Handler',
+    description: 'Task title',
+  })
   @IsString()
   @IsNotEmpty()
   @MaxLength(255)
   title: string;
 
-  @ApiPropertyOptional({ example: 'Handle customer.subscription.updated and invoice.payment_failed events' })
+  @ApiPropertyOptional({
+    example:
+      'Handle customer.subscription.updated and invoice.payment_failed events',
+  })
   @IsString()
   @IsOptional()
   description?: string;
 
-  @ApiProperty({ example: '55555555-5555-5555-5555-555555555551', description: 'Dynamic Task Type UUID' })
+  @ApiProperty({
+    example: '55555555-5555-5555-5555-555555555551',
+    description: 'Dynamic Task Type UUID',
+  })
   @IsUUID()
   @IsNotEmpty()
   taskTypeId: string;
@@ -40,12 +55,18 @@ export class CreateTaskDto {
   @IsIn(['LOW', 'MEDIUM', 'HIGH', 'URGENT', 'CRITICAL'])
   priority?: string;
 
-  @ApiPropertyOptional({ example: '99999999-9999-9999-9999-999999999991', description: 'Project UUID (if project task)' })
+  @ApiPropertyOptional({
+    example: '99999999-9999-9999-9999-999999999991',
+    description: 'Project UUID (if project task)',
+  })
   @IsUUID()
   @IsOptional()
   projectId?: string;
 
-  @ApiPropertyOptional({ example: '55555555-5555-5555-5555-555555555551', description: 'Product UUID (if product task)' })
+  @ApiPropertyOptional({
+    example: '55555555-5555-5555-5555-555555555551',
+    description: 'Product UUID (if product task)',
+  })
   @IsUUID()
   @IsOptional()
   productId?: string;
@@ -55,7 +76,9 @@ export class CreateTaskDto {
   @IsOptional()
   versionId?: string;
 
-  @ApiPropertyOptional({ description: 'Parent Task UUID (if this is a subtask)' })
+  @ApiPropertyOptional({
+    description: 'Parent Task UUID (if this is a subtask)',
+  })
   @IsUUID()
   @IsOptional()
   parentTaskId?: string;
@@ -70,18 +93,30 @@ export class CreateTaskDto {
   @IsOptional()
   plannedEndDate?: string;
 
-  @ApiPropertyOptional({ example: 16.0, default: 0.00, description: 'Estimated effort in hours' })
+  @ApiPropertyOptional({
+    example: 16.0,
+    default: 0.0,
+    description: 'Estimated effort in hours',
+  })
   @IsNumber()
   @Min(0)
   @IsOptional()
   estimatedHours?: number;
 
-  @ApiPropertyOptional({ example: false, default: false, description: 'Whether this task is chargeable to the client' })
+  @ApiPropertyOptional({
+    example: false,
+    default: false,
+    description: 'Whether this task is chargeable to the client',
+  })
   @IsBoolean()
   @IsOptional()
   isChargeable?: boolean;
 
-  @ApiPropertyOptional({ example: 600.00, default: 0.00, description: 'Amount charged for this task if chargeable' })
+  @ApiPropertyOptional({
+    example: 600.0,
+    default: 0.0,
+    description: 'Amount charged for this task if chargeable',
+  })
   @IsNumber()
   @Min(0)
   @IsOptional()
@@ -111,4 +146,9 @@ export class CreateTaskDto {
   @IsUUID()
   @IsOptional()
   primaryAssigneeId?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  severity?: string;
 }

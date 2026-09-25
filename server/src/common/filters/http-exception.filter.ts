@@ -33,8 +33,25 @@ export class HttpExceptionFilter implements ExceptionFilter {
         message = exception.message;
       }
     } else if (exception instanceof Error) {
-      message = exception.message;
-      this.logger.error(`Unhandled Exception: ${exception.message}`, exception.stack);
+      const code = (exception as any).code;
+      if (code === '23505') {
+        statusCode = HttpStatus.CONFLICT;
+        error = 'Conflict';
+        message = 'A record with this unique value already exists.';
+      } else if (code === '23503') {
+        statusCode = HttpStatus.BAD_REQUEST;
+        error = 'Bad Request';
+        message =
+          'A selected related record does not exist or is still in use.';
+      } else if (code === '23514' || code === '23502' || code === '22P02') {
+        statusCode = HttpStatus.BAD_REQUEST;
+        error = 'Bad Request';
+        message = 'Invalid or missing field value.';
+      }
+      this.logger.error(
+        `Unhandled Exception: ${exception.message}`,
+        exception.stack,
+      );
     }
 
     response.status(statusCode).json({

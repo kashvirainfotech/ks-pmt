@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../core/theme/app_theme.dart';
-import '../../presentation/auth_provider.dart';
+import '../../../core/theme/app_theme.dart';
+import '../../auth_provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -15,8 +15,8 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   late TabController _tabController;
 
   // Email / Password Form
-  final _emailController = TextEditingController(text: 'admin@kashvirainfotech.com');
-  final _passwordController = TextEditingController(text: 'Admin@123456');
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
 
   // Mobile / OTP Form
   final _mobileController = TextEditingController(text: '+919999900000');

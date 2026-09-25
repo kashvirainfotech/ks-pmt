@@ -1,9 +1,9 @@
+import { ParseUUIDPipe } from '../../common/validators/record-id';
 import {
   Body,
   Controller,
   Get,
   Param,
-  ParseUUIDPipe,
   Patch,
   Post,
   Put,
@@ -30,7 +30,10 @@ export class ClientsController {
 
   @Post()
   @ApiOperation({ summary: 'Create a new client or sales prospect' })
-  @ApiResponse({ status: 201, description: 'Client record created successfully' })
+  @ApiResponse({
+    status: 201,
+    description: 'Client record created successfully',
+  })
   async create(
     @Body() dto: CreateClientDto,
     @CurrentUser('id') userId: string,
@@ -43,7 +46,9 @@ export class ClientsController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'List clients and prospects with search and filtering' })
+  @ApiOperation({
+    summary: 'List clients and prospects with search and filtering',
+  })
   async findAll(@Query() query: QueryClientDto) {
     const result = await this.clientsService.findAll(query);
     return {
@@ -54,7 +59,10 @@ export class ClientsController {
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Get client details by ID including mapped products/licenses and projects' })
+  @ApiOperation({
+    summary:
+      'Get client details by ID including mapped products/licenses and projects',
+  })
   async findOne(@Param('id', ParseUUIDPipe) id: string) {
     const data = await this.clientsService.findOne(id);
     return {
@@ -78,7 +86,9 @@ export class ClientsController {
   }
 
   @Post(':id/convert-to-active')
-  @ApiOperation({ summary: 'Convert a sales prospect into an active paying client' })
+  @ApiOperation({
+    summary: 'Convert a sales prospect into an active paying client',
+  })
   async convertToActive(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser('id') userId: string,

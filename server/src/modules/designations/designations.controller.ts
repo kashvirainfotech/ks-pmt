@@ -1,9 +1,9 @@
+import { ParseUUIDPipe } from '../../common/validators/record-id';
 import {
   Body,
   Controller,
   Get,
   Param,
-  ParseUUIDPipe,
   Patch,
   Post,
   Put,
@@ -51,7 +51,10 @@ export class DesignationsController {
     @Query('departmentId') departmentId?: string,
     @Query('includeInactive') includeInactive?: boolean,
   ) {
-    const data = await this.designationsService.findAll(departmentId, includeInactive);
+    const data = await this.designationsService.findAll(
+      departmentId,
+      includeInactive,
+    );
     return {
       message: 'Designations retrieved successfully',
       data,
@@ -91,7 +94,11 @@ export class DesignationsController {
     @Body('isActive') isActive: boolean,
     @CurrentUser('id') userId: string,
   ) {
-    const data = await this.designationsService.toggleActive(id, isActive, userId);
+    const data = await this.designationsService.toggleActive(
+      id,
+      isActive,
+      userId,
+    );
     return {
       message: `Designation status updated to ${isActive ? 'Active' : 'Inactive'}`,
       data,

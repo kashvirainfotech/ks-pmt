@@ -3,10 +3,13 @@ import { CreateUserDto } from './create-user.dto';
 import { IsBoolean, IsOptional, IsString, MinLength } from 'class-validator';
 
 export class UpdateUserDto extends PartialType(CreateUserDto) {
-  @ApiPropertyOptional({ example: 'NewSecret@2026', description: 'Reset password' })
+  @ApiPropertyOptional({
+    example: 'NewSecret@2026',
+    description: 'Reset password',
+  })
   @IsString()
   @IsOptional()
-  @MinLength(6)
+  @MinLength(10)
   password?: string;
 
   @ApiPropertyOptional({ example: true })

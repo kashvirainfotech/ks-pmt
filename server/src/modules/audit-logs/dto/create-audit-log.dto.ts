@@ -1,4 +1,5 @@
-import { IsNotEmpty, IsString, IsOptional, IsUUID } from 'class-validator';
+import { IsUUID } from '../../../common/validators/record-id';
+import { IsNotEmpty, IsString, IsOptional } from 'class-validator';
 
 export class CreateAuditLogDto {
   @IsOptional()

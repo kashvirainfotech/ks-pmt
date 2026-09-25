@@ -41,7 +41,7 @@ class ApiClient {
           return handler.next(options);
         },
         onError: (DioException error, handler) async {
-          if (error.response?.statusCode == 401 &&
+          if (error.response?.statusCode == 401 && error.requestOptions.extra['retried'] != true &&
               !error.requestOptions.path.contains('/auth/login') &&
               !error.requestOptions.path.contains('/auth/refresh-token')) {
             // Attempt silent token refresh
@@ -57,10 +57,13 @@ class ApiClient {
                 final newAccessToken = res.data['data']?['accessToken'] ?? res.data['accessToken'];
                 if (newAccessToken != null) {
                   await storage.write(key: keyAccessToken, value: newAccessToken);
+                  final rotated = res.data['data']?['refreshToken'];
+                  if (rotated != null) await storage.write(key: keyRefreshToken, value: rotated);
+                  error.requestOptions.extra['retried'] = true;
 
                   // Retry the original failed request with new access token
                   error.requestOptions.headers['Authorization'] = 'Bearer $newAccessToken';
-                  final retryRes = await dio.fetch(error.requestOptions);
+                  final retryRes = await refreshDio.fetch(error.requestOptions);
                   return handler.resolve(retryRes);
                 }
               } catch (refreshErr) {

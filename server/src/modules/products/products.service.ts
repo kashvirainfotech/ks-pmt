@@ -1,3 +1,4 @@
+import { validateDateRanges } from '../../common/validators/date-ranges';
 import {
   BadRequestException,
   Injectable,
@@ -18,10 +19,13 @@ export class ProductsService {
   // ----------------------------------------------------
 
   async create(dto: CreateProductDto, userId: string) {
+    validateDateRanges(dto);
     const checkQuery = `SELECT id FROM products WHERE product_code = $1;`;
     const checkResult = await this.db.query(checkQuery, [dto.productCode]);
     if (checkResult.rowCount > 0) {
-      throw new BadRequestException(`Product code '${dto.productCode}' already exists.`);
+      throw new BadRequestException(
+        `Product code '${dto.productCode}' already exists.`,
+      );
     }
 
     const insertQuery = `
@@ -32,18 +36,28 @@ export class ProductsService {
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, TRUE, $10, $10)
       RETURNING *;
     `;
-    const result = await this.db.query(insertQuery, [
-      dto.productCode,
-      dto.productName,
-      dto.description || null,
-      dto.category || null,
-      dto.currentVersion || null,
-      dto.baseLicensePrice || 0.00,
-      dto.standardAmcPercentage || 18.00,
-      dto.currency || 'INR',
-      dto.productManagerUserId || null,
-      userId,
-    ]);
+    const result = await this.db.writeWithFields(
+      insertQuery,
+      [
+        dto.productCode,
+        dto.productName,
+        dto.description || null,
+        dto.category || null,
+        dto.currentVersion || null,
+        dto.baseLicensePrice || 0.0,
+        dto.standardAmcPercentage ?? 18.0,
+        dto.currency || 'INR',
+        dto.productManagerUserId || null,
+        userId,
+      ],
+      'products',
+      {
+        tech_stack: dto.techStack,
+        documentation_links: dto.documentationLinks,
+        subscription_plans: dto.subscriptionPlans,
+        implementation_fee: dto.implementationFee,
+      },
+    );
 
     return result.rows[0];
   }
@@ -127,7 +141,8 @@ export class ProductsService {
   }
 
   async update(id: string, dto: UpdateProductDto, userId: string) {
-    await this.findOne(id);
+    const existing = await this.findOne(id);
+    validateDateRanges(dto, existing);
 
     const updateQuery = `
       UPDATE products SET
@@ -145,19 +160,29 @@ export class ProductsService {
       WHERE id = $11
       RETURNING *;
     `;
-    const result = await this.db.query(updateQuery, [
-      dto.productName,
-      dto.description,
-      dto.category,
-      dto.currentVersion,
-      dto.baseLicensePrice,
-      dto.standardAmcPercentage,
-      dto.currency,
-      dto.productManagerUserId,
-      dto.isActive,
-      userId,
-      id,
-    ]);
+    const result = await this.db.writeWithFields(
+      updateQuery,
+      [
+        dto.productName,
+        dto.description,
+        dto.category,
+        dto.currentVersion,
+        dto.baseLicensePrice,
+        dto.standardAmcPercentage,
+        dto.currency,
+        dto.productManagerUserId,
+        dto.isActive,
+        userId,
+        id,
+      ],
+      'products',
+      {
+        tech_stack: dto.techStack,
+        documentation_links: dto.documentationLinks,
+        subscription_plans: dto.subscriptionPlans,
+        implementation_fee: dto.implementationFee,
+      },
+    );
 
     return result.rows[0];
   }
@@ -181,6 +206,7 @@ export class ProductsService {
   // ----------------------------------------------------
 
   async mapClient(productId: string, dto: MapProductClientDto, userId: string) {
+    validateDateRanges(dto);
     await this.findOne(productId);
 
     const insertQuery = `
@@ -195,20 +221,25 @@ export class ProductsService {
       RETURNING *;
     `;
 
-    const result = await this.db.query(insertQuery, [
-      productId,
-      dto.clientId,
-      dto.licenseType,
-      dto.contractValue,
-      dto.amcAmount || 0.00,
-      dto.currency || 'INR',
-      dto.licenseStartDate,
-      dto.licenseEndDate || null,
-      dto.amcRenewalDate || null,
-      dto.status || 'ACTIVE',
-      dto.notes || null,
-      userId,
-    ]);
+    const result = await this.db.writeWithFields(
+      insertQuery,
+      [
+        productId,
+        dto.clientId,
+        dto.licenseType,
+        dto.contractValue,
+        dto.amcAmount || 0.0,
+        dto.currency || 'INR',
+        dto.licenseStartDate,
+        dto.licenseEndDate || null,
+        dto.amcRenewalDate || null,
+        dto.status || 'ACTIVE',
+        dto.notes || null,
+        userId,
+      ],
+      'product_client_mappings',
+      { support_tier: dto.supportTier },
+    );
 
     return result.rows[0];
   }
@@ -231,11 +262,17 @@ export class ProductsService {
     return result.rows;
   }
 
-  async updateClientMapping(mappingId: string, dto: UpdateProductClientDto, userId: string) {
+  async updateClientMapping(
+    mappingId: string,
+    dto: UpdateProductClientDto,
+    userId: string,
+  ) {
     const checkQuery = `SELECT id FROM product_client_mappings WHERE id = $1;`;
     const checkResult = await this.db.query(checkQuery, [mappingId]);
     if (checkResult.rowCount === 0) {
-      throw new NotFoundException(`Product-Client mapping with ID ${mappingId} not found.`);
+      throw new NotFoundException(
+        `Product-Client mapping with ID ${mappingId} not found.`,
+      );
     }
 
     const updateQuery = `
@@ -256,20 +293,25 @@ export class ProductsService {
       RETURNING *;
     `;
 
-    const result = await this.db.query(updateQuery, [
-      dto.licenseType,
-      dto.contractValue,
-      dto.amcAmount,
-      dto.currency,
-      dto.licenseStartDate,
-      dto.licenseEndDate,
-      dto.amcRenewalDate,
-      dto.status,
-      dto.notes,
-      dto.isActive,
-      userId,
-      mappingId,
-    ]);
+    const result = await this.db.writeWithFields(
+      updateQuery,
+      [
+        dto.licenseType,
+        dto.contractValue,
+        dto.amcAmount,
+        dto.currency,
+        dto.licenseStartDate,
+        dto.licenseEndDate,
+        dto.amcRenewalDate,
+        dto.status,
+        dto.notes,
+        dto.isActive,
+        userId,
+        mappingId,
+      ],
+      'product_client_mappings',
+      { support_tier: dto.supportTier },
+    );
 
     return result.rows[0];
   }

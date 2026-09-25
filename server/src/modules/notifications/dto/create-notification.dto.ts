@@ -1,4 +1,5 @@
-import { IsNotEmpty, IsUUID, IsString, IsOptional, IsBoolean } from 'class-validator';
+import { IsUUID } from '../../../common/validators/record-id';
+import { IsNotEmpty, IsString, IsOptional, IsBoolean } from 'class-validator';
 
 export class CreateNotificationDto {
   @IsNotEmpty()

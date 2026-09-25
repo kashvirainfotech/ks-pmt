@@ -1,10 +1,10 @@
+import { ParseUUIDPipe } from '../../common/validators/record-id';
 import {
   Body,
   Controller,
   Delete,
   Get,
   Param,
-  ParseUUIDPipe,
   Patch,
   Post,
   Put,
@@ -34,7 +34,8 @@ export class UsersController {
   @RequirePermissions('USERS:MANAGE')
   @ApiOperation({
     summary: 'Provision a new employee / system user',
-    description: 'Admin-only user creation with primary & secondary branch mapping, department, designation, and credentials.',
+    description:
+      'Admin-only user creation with primary & secondary branch mapping, department, designation, and credentials.',
   })
   @ApiResponse({ status: 201, description: 'User provisioned successfully' })
   async create(
@@ -49,7 +50,9 @@ export class UsersController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'List employees with pagination, search, and branch/dept filters' })
+  @ApiOperation({
+    summary: 'List employees with pagination, search, and branch/dept filters',
+  })
   async findAll(@Query() query: QueryUserDto) {
     const result = await this.usersService.findAll(query);
     return {
@@ -60,7 +63,10 @@ export class UsersController {
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Get employee details by ID including branch mappings and permission overrides' })
+  @ApiOperation({
+    summary:
+      'Get employee details by ID including branch mappings and permission overrides',
+  })
   async findOne(@Param('id', ParseUUIDPipe) id: string) {
     const data = await this.usersService.findOne(id);
     return {
@@ -92,7 +98,11 @@ export class UsersController {
     @Body('isActive') isActive: boolean,
     @CurrentUser('id') updaterUserId: string,
   ) {
-    const data = await this.usersService.toggleActive(id, isActive, updaterUserId);
+    const data = await this.usersService.toggleActive(
+      id,
+      isActive,
+      updaterUserId,
+    );
     return {
       message: `Employee account status updated to ${isActive ? 'Active' : 'Inactive'}`,
       data,
@@ -103,14 +113,19 @@ export class UsersController {
   @RequirePermissions('USERS:MANAGE')
   @ApiOperation({
     summary: 'Grant or revoke dynamic user-level permission override',
-    description: 'Explicit user-level overrides take precedence over the base role permissions.',
+    description:
+      'Explicit user-level overrides take precedence over the base role permissions.',
   })
   async setPermissionOverride(
     @Param('id', ParseUUIDPipe) userId: string,
     @Body() dto: PermissionOverrideDto,
     @CurrentUser('id') updaterUserId: string,
   ) {
-    const data = await this.usersService.setPermissionOverride(userId, dto, updaterUserId);
+    const data = await this.usersService.setPermissionOverride(
+      userId,
+      dto,
+      updaterUserId,
+    );
     return {
       message: 'User permission override updated successfully',
       data,

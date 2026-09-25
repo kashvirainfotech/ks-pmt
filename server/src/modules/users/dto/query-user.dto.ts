@@ -1,6 +1,7 @@
+import { IsUUID } from '../../../common/validators/record-id';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
-import { IsBoolean, IsInt, IsOptional, IsString, IsUUID, Min } from 'class-validator';
+import { Type, Transform } from 'class-transformer';
+import { IsBoolean, IsInt, IsOptional, IsString, Min } from 'class-validator';
 
 export class QueryUserDto {
   @ApiPropertyOptional({ example: 1, default: 1 })
@@ -37,13 +38,15 @@ export class QueryUserDto {
   @IsOptional()
   roleId?: string;
 
-  @ApiPropertyOptional({ description: 'Search by employee code, name, or email' })
+  @ApiPropertyOptional({
+    description: 'Search by employee code, name, or email',
+  })
   @IsString()
   @IsOptional()
   search?: string;
 
   @ApiPropertyOptional({ example: false, default: false })
-  @Type(() => Boolean)
+  @Transform(({ value }) => value === true || value === 'true')
   @IsBoolean()
   @IsOptional()
   includeInactive?: boolean = false;
