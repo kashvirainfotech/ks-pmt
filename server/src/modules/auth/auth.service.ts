@@ -85,6 +85,8 @@ export class AuthService {
 
     return {
       tokens,
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
       user: this.sanitizeUser(user),
       permissions: Array.from(permissions.permissions),
     };
@@ -122,8 +124,13 @@ export class AuthService {
    * Method 2: Mobile Number + OTP Authentication
    */
   async loginWithOtp(dto: LoginOtpDto, ipAddress: string) {
+    const otpValue = dto.otp || dto.otpCode;
+    if (!otpValue) {
+      throw new BadRequestException('OTP code is required');
+    }
+
     // 1. Verify OTP first
-    await this.otpService.verifyOtp(dto.mobileNumber, dto.otp);
+    await this.otpService.verifyOtp(dto.mobileNumber, otpValue);
 
     // 2. Fetch user profile
     const userQuery = `
@@ -165,6 +172,8 @@ export class AuthService {
 
     return {
       tokens,
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
       user: this.sanitizeUser(user),
       permissions: Array.from(permissions.permissions),
     };

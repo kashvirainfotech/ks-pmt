@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, Length, Matches } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsNotEmpty, IsOptional, IsString, Length, Matches } from 'class-validator';
 
 export class LoginOtpDto {
   @ApiProperty({
@@ -13,13 +13,28 @@ export class LoginOtpDto {
   })
   mobileNumber: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: '123456',
     description: '6-digit OTP received via SMS',
   })
   @IsString()
-  @IsNotEmpty({ message: 'OTP is required' })
-  @Length(6, 6, { message: 'OTP must be exactly 6 numeric digits' })
-  @Matches(/^\d{6}$/, { message: 'OTP must contain numbers only' })
-  otp: string;
+  @IsOptional()
+  otp?: string;
+
+  @ApiPropertyOptional({
+    example: '123456',
+    description: '6-digit OTP received via SMS (alias for otp)',
+  })
+  @IsString()
+  @IsOptional()
+  otpCode?: string;
+
+  @ApiPropertyOptional({
+    example: 'WEB',
+    description: 'Client device platform (WEB, ANDROID, IOS)',
+  })
+  @IsString()
+  @IsOptional()
+  devicePlatform?: string;
 }
+
