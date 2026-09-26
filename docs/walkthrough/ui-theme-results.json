@@ -1,0 +1,42 @@
+[
+  {
+    "check": "Login toggle changes computed colors and persists through reload against light OS preference",
+    "status": "passed"
+  },
+  {
+    "check": "Ten authenticated routes and branch dialog render in light mode against opposite OS preference",
+    "status": "passed"
+  },
+  {
+    "check": "Ten authenticated routes and branch dialog render in dark mode against opposite OS preference",
+    "status": "passed"
+  },
+  {
+    "check": "Responsive shell, route overflow and mobile navigation at 320px",
+    "status": "passed"
+  },
+  {
+    "check": "Responsive shell, route overflow and mobile navigation at 390px",
+    "status": "passed"
+  },
+  {
+    "check": "Responsive shell, route overflow and mobile navigation at 768px",
+    "status": "passed"
+  },
+  {
+    "check": "Desktop sidebar collapses and expands without clipping its control",
+    "status": "passed"
+  },
+  {
+    "check": "Theme changes synchronize between tabs",
+    "status": "passed"
+  },
+  {
+    "check": "Invalid stored theme falls back to OS preference",
+    "status": "passed"
+  },
+  {
+    "check": "No uncaught browser exceptions",
+    "status": "passed"
+  }
+]

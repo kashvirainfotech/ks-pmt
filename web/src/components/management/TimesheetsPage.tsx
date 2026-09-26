@@ -48,13 +48,14 @@ export function TimesheetsPage() {
     load();
   }, [page, startDate, endDate]);
   return (
-    <section className="space-y-4">
+    <section className="entity-panel space-y-5">
       <h1 className="text-xl font-bold">Timesheets and approvals</h1>
       <div className="flex flex-wrap gap-4">
         <label>
           From{' '}
           <input
             aria-label="From date"
+            className="form-control"
             type="date"
             value={startDate}
             onChange={(e) => {
@@ -67,6 +68,7 @@ export function TimesheetsPage() {
           To{' '}
           <input
             aria-label="To date"
+            className="form-control"
             type="date"
             value={endDate}
             onChange={(e) => {
@@ -85,12 +87,12 @@ export function TimesheetsPage() {
         )}
       </div>
       {error && (
-        <p role="alert" className="text-red-600">
+        <p role="alert" className="text-red-600 dark:text-red-400">
           {error}
         </p>
       )}
       <div className="overflow-x-auto">
-        <table className="w-full text-left text-sm">
+        <table className="data-table w-full text-left text-sm">
           <thead>
             <tr>
               {[
@@ -111,7 +113,7 @@ export function TimesheetsPage() {
           </thead>
           <tbody>
             {rows.map((r) => (
-              <tr key={r.id} className="border-t">
+              <tr key={r.id} className="border-t border-slate-200 dark:border-slate-700">
                 <td className="p-3">{String(r.log_date).slice(0, 10)}</td>
                 <td className="p-3">{r.user_name}</td>
                 <td className="p-3">{r.task_title}</td>
@@ -163,7 +165,7 @@ export function TimesheetsPage() {
         </button>
       </div>
       {adding && (
-        <div className="rounded border p-4">
+        <div className="entity-panel">
           <RecordForm
             fields={fields}
             initial={{ logDate: new Date().toISOString().slice(0, 10) }}

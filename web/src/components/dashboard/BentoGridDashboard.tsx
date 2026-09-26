@@ -136,13 +136,14 @@ export const BentoGridDashboard: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header Bar */}
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+      <div className="page-intro">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-            Executive Dashboard
+          <p className="page-eyebrow mb-2">Workspace overview</p>
+          <h1 className="text-slate-900 dark:text-white">
+            Welcome back{user?.first_name ? `, ${user.first_name}` : ''}.
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            Task totals and recent activity for{' '}
+          <p className="page-description">
+            Here is where your team stands. Activity across{' '}
             <span className="font-semibold text-blue-600 dark:text-blue-400">
               {currentBranchName}
             </span>
@@ -154,13 +155,13 @@ export const BentoGridDashboard: React.FC = () => {
             onClick={() => navigate('/tasks')}
             className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white shadow-md shadow-blue-500/20 hover:bg-blue-700 transition"
           >
-            <Plus className="h-4 w-4" /> New Task
+            <ArrowUpRight className="h-4 w-4" /> Open tasks
           </button>
         </div>
       </div>
 
       {/* KPI Bento Row */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="dashboard-grid grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {/* KPI 1: Active Tasks */}
         <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900">
           <div className="flex items-center justify-between">
@@ -177,7 +178,7 @@ export const BentoGridDashboard: React.FC = () => {
             </span>
             <span className="text-xs text-emerald-600 dark:text-emerald-400 flex items-center font-medium">
               <TrendingUp className="h-3 w-3 mr-0.5" /> {stats.completedTasks}{' '}
-              closed
+              closed in latest 50
             </span>
           </div>
         </div>
@@ -268,8 +269,8 @@ export const BentoGridDashboard: React.FC = () => {
             ) : (
               statusDistribution.map((item, idx) => {
                 const pct =
-                  stats.totalTasks > 0
-                    ? Math.round((item.count / stats.totalTasks) * 100)
+                  statusDistribution.reduce((sum, status) => sum + status.count, 0) > 0
+                    ? Math.round((item.count / statusDistribution.reduce((sum, status) => sum + status.count, 0)) * 100)
                     : 0;
                 return (
                   <div key={idx} className="space-y-1.5">

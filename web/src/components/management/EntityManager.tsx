@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
+import { useDialogFocus } from '../../hooks/useDialogFocus';
 import api from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 
@@ -56,7 +57,7 @@ export async function allRows(path: string): Promise<Row[]> {
   }
 }
 const inputClass =
-  'mt-1 w-full rounded-lg border border-slate-300 bg-white p-2 text-sm text-slate-900 dark:border-slate-600 dark:bg-slate-800 dark:text-white';
+  'form-control mt-1.5 w-full text-slate-900 dark:text-white';
 export function RecordForm({
   fields,
   initial = {},
@@ -106,7 +107,7 @@ export function RecordForm({
   );
   return (
     <form
-      className="space-y-4"
+      className="record-form space-y-5"
       onSubmit={async (e) => {
         e.preventDefault();
         setBusy(true);
@@ -145,7 +146,7 @@ export function RecordForm({
       }}
     >
       {error && (
-        <p role="alert" className="rounded bg-red-50 p-3 text-sm text-red-700">
+        <p role="alert" className="rounded bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950/40 dark:text-red-300">
           {error}
         </p>
       )}
@@ -261,6 +262,8 @@ export function EntityManager({ config }: { config: Entity }) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState<Row | null>(null);
+  const closeForm = useCallback(() => setForm(null), []);
+  useDialogFocus(!!form, '[data-record-dialog]', closeForm);
   const [selected, setSelected] = useState<Row | null>(null);
   const load = async () => {
     setLoading(true);
@@ -294,7 +297,7 @@ export function EntityManager({ config }: { config: Entity }) {
       ? canCreate
       : hasPermission(config.updatePermission));
   return (
-    <section className="space-y-4">
+    <section className="entity-panel space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-xl font-bold">{config.title}</h2>
         {canCreate && (
@@ -322,7 +325,7 @@ export function EntityManager({ config }: { config: Entity }) {
         }}
       />
       {error && (
-        <p role="alert" className="text-red-600">
+        <p role="alert" className="text-red-600 dark:text-red-400">
           {error} <button onClick={load}>Retry</button>
         </p>
       )}
@@ -330,7 +333,7 @@ export function EntityManager({ config }: { config: Entity }) {
         <p role="status">Loading…</p>
       ) : (
         <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-700">
-          <table className="w-full text-left text-sm">
+          <table className="data-table w-full text-left text-sm">
             <thead>
               <tr>
                 {config.columns.map((c) => (
@@ -369,7 +372,7 @@ export function EntityManager({ config }: { config: Entity }) {
                       <div className="flex flex-wrap gap-3">
                         {canEdit && (
                           <button
-                            className="text-blue-600"
+                            className="text-blue-600 dark:text-blue-400"
                             onClick={async () => {
                               try {
                                 const detail: any =
@@ -420,7 +423,7 @@ export function EntityManager({ config }: { config: Entity }) {
                         )}
                         {config.children && (
                           <button
-                            className="text-blue-600"
+                            className="text-blue-600 dark:text-blue-400"
                             onClick={() => setSelected(r)}
                           >
                             Details
@@ -437,7 +440,7 @@ export function EntityManager({ config }: { config: Entity }) {
         </div>
       )}
       {config.paginated && (
-        <div className="flex items-center gap-4">
+        <div className="flex items-center justify-end gap-4 text-sm text-slate-500 dark:text-slate-400">
           <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
             Previous
           </button>
@@ -453,7 +456,7 @@ export function EntityManager({ config }: { config: Entity }) {
         </div>
       )}
       {selected && (
-        <div className="rounded-lg border p-4">
+        <div className="entity-panel">
           <button
             className="mb-4 text-blue-600"
             onClick={() => setSelected(null)}
@@ -466,6 +469,7 @@ export function EntityManager({ config }: { config: Entity }) {
       {form && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div
+            data-record-dialog
             role="dialog"
             aria-modal="true"
             aria-label={`${form.id ? 'Edit' : 'Add'} ${config.title}`}

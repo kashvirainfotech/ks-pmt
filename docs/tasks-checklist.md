@@ -1,6 +1,10 @@
 # Project Tasks & Verification Checklist
 ## KS-PMT: Multi-Branch Project & Product Management System
 
+Status reconciled on 2026-09-26 against the requirements audit, saved test results and implementation review. `[x]` means the stated scope is implemented or documented; `[ ]` means unfinished, partially implemented, blocked, or awaiting verification. A checked implementation item is not production certification. Earlier phase walkthroughs are historical and may overstate completion.
+
+Evidence: [completion review](walkthrough/completion-status-review-2026-09-26.md) and [requirements audit](walkthrough/requirements-screen-audit.md). Existing build/test evidence is historical unless a newer walkthrough explicitly records a rerun.
+
 ---
 
 ## 1. Documentation & Architecture Foundations
@@ -86,17 +90,18 @@
 ## 3. Backend REST API Implementation (`server/`)
 
 ### 3.1 Core Architecture & Security
-- [x] Initialize NestJS project with TypeScript, ESLint, and Prettier
+- [x] Initialize NestJS project with TypeScript and Prettier
+- [ ] Complete and verify ESLint configuration (including required tooling)
 - [x] Configure PostgreSQL database connection pool (`pg` / TypeORM / Kysely)
-- [x] Setup Redis client for OTP caching, rate-limiting, and session management
+- [ ] Setup Redis client for OTP caching, rate-limiting, and session management
 - [x] Implement global Exception Filter, Logging Interceptor, and Response Envelope Interceptor
 - [x] Implement validation pipes with `class-validator` and `class-transformer`
 - [x] Setup Swagger / OpenAPI documentation UI at `/api/docs`
 
 ### 3.2 Authentication & Dynamic RBAC Module
 - [x] `POST /api/v1/auth/login-password`: Authenticate with email and password
-- [x] `POST /api/v1/auth/request-otp`: Request 6-digit OTP to registered mobile number
-- [x] `POST /api/v1/auth/login-otp`: Verify mobile OTP and issue tokens
+- [ ] `POST /api/v1/auth/request-otp`: Request 6-digit OTP to registered mobile number
+- [x] `POST /api/v1/auth/login-otp`: Verify generated OTP and issue tokens (mock flow; live SMS acceptance pending)
 - [x] `POST /api/v1/auth/refresh-token`: Refresh short-lived access token
 - [x] `POST /api/v1/auth/logout`: Invalidate session and revoke refresh token
 - [x] Implement `@Roles()` and `@Permissions()` decorators
@@ -140,8 +145,8 @@
 
 ### 3.7 Notifications & Audit Service
 - [x] In-App notification list and mark-as-read endpoints (`/api/v1/notifications`)
-- [x] Firebase Cloud Messaging (FCM) integration service for push notifications
-- [x] AWS SES / SendGrid email notification dispatch service
+- [ ] Firebase Cloud Messaging (FCM) integration service for push notifications
+- [ ] AWS SES / SendGrid email notification dispatch service
 - [x] Central Audit Log querying endpoint (`/api/v1/audit-logs`) with date/entity filters
 
 ---
@@ -150,21 +155,24 @@
 
 ### 4.1 UI Framework & Layout
 - [x] Initialize React + Vite with TypeScript and Tailwind CSS
-- [x] Configure Shadcn UI component library and Lucide Icons
+- [ ] Reconcile planned Shadcn UI library with current custom components
+- [x] Integrate Lucide Icons
 - [x] Build responsive shell layout:
   - Collapsible desktop sidebar and mobile sliding drawer
   - Top navigation bar with branch switcher, notifications badge, search palette (`Ctrl+K`), and user profile
 - [x] Setup Dark / Light mode theme provider
 
 ### 4.2 Screens & User Flows
-- [x] Authentication Screens: Email/Password login & Mobile/OTP login
-- [x] Executive & Branch Bento-Grid Dashboard (KPI cards, active projects, sprint velocity, workload charts)
-- [x] Task Management Workspace:
+- [x] Authentication Screens: Email/Password login & Mobile/OTP form (live SMS delivery pending)
+- [x] Dashboard with task totals, recent activity and explicitly labeled sample metrics
+- [ ] Complete aggregate executive/branch reporting, sprint velocity and workload charts
+- [x] Task Management Workspace (board, paginated list and release timeline):
   - Interactive Kanban Board with drag-and-drop status progression
-  - Filterable Data Table (List View) with multi-column sorting and search
+  - Filterable Data Table (List View) with search
   - Calendar / Timeline view for Version milestones
-- [x] Task Detail View (Side Drawer):
-  - Inline editing of title, priority, planned/actual dates, estimated hours
+- [ ] Complete and verify multi-column sorting
+- [ ] Complete all advanced Task Detail View features (core drawer is implemented):
+  - Core field editing is implemented; full inline editing acceptance remains pending
   - Multi-assignee avatar chips and selector
   - Subtask checklist with quick-add
   - File attachments gallery with image preview and S3 upload progress bar
@@ -173,43 +181,113 @@
 - [x] Master Management Interfaces (Branches, Departments, Designations, Users, Dynamic Task Types)
 - [x] Dynamic RBAC Permission Matrix UI with User and Branch override toggles
 - [x] Clients & Projects Management with financial amount tracking (contract value, AMC, hourly billables)
-- [x] Timesheet Review & Approval screen for Managers
+- [x] Individual worklog submission, rejection, resubmission and manager approval screen
+- [ ] Grouped weekly/monthly timesheet submission and sign-off
 
 ---
 
 ## 5. Cross-Platform Mobile Application (`mobile/` - Android & iOS)
 
 ### 5.1 Core Architecture & Device Integrations
-- [x] Initialize Flutter project with clean modular architecture
+- [x] Create Flutter application source with modular architecture
+- [ ] Complete/verify native Android and iOS build scaffolding and successful builds
 - [x] Setup secure token storage (`flutter_secure_storage`)
 - [x] Configure Dio HTTP client with interceptors for auth tokens and error handling
 - [x] Setup State Management (Riverpod / Bloc / Provider)
-- [x] Integrate Firebase Cloud Messaging (`firebase_messaging`) for push alerts
+- [ ] Integrate Firebase Cloud Messaging (`firebase_messaging`) for push alerts
 
 ### 5.2 Screens & Native Capabilities
-- [x] Login screen with Email/Password and Mobile/OTP (SMS auto-fill)
+- [ ] Login screen with Email/Password and Mobile/OTP (SMS auto-fill)
 - [x] Bottom navigation bar (Home/Dashboard, Tasks, Timesheet, Notifications, Profile)
-- [x] Task List view with search, filter by project/product, and status chips
+- [ ] Task List view with search, filter by project/product, and status chips
 - [x] Task Detail screen with status transition selector and subtask checklist
-- [x] Camera & File Upload Integration:
+- [ ] Camera & File Upload Integration:
   - Snap photo or select document from gallery/file system
   - Image compression and direct upload to AWS S3 via pre-signed URL
-- [x] GPS Location Access:
+- [ ] GPS Location Access:
   - Capture current geo-coordinates on check-in or field task completion
   - Branch proximity / geofencing indicator
-- [x] Mobile Time Tracker:
+- [ ] Mobile Time Tracker:
   - Foreground live timer widget with notification drawer controls
   - Quick worklog submission
-- [x] In-App Notification Center with deep-linking to tasks
+- [ ] In-App Notification Center with deep-linking to tasks
 
 ---
 
 ## 6. Quality Assurance & Production Readiness
 
-- [x] Static code analysis and linting across backend, web, and mobile repositories
+- [ ] Static code analysis and linting across backend, web, and mobile repositories
 - [x] Unit testing for dynamic RBAC permission evaluation and auto-assignment rules
-- [x] Integration testing for task workflow status transitions
-- [x] Validation of SQL scripts in `dbscripts/` (schema syntax, foreign keys, triggers)
-- [x] Security review: rate-limiting verification, CORS policy, AWS S3 bucket least privilege
-- [ ] Manual review and execution of all SQL scripts by human developer
-- [ ] Manual review and git commitment by human developer
+- [x] Selected workflow API regressions and unit tests recorded in requirements audit
+- [ ] Comprehensive integration and authorization regression coverage
+- [ ] Validation of SQL scripts in `dbscripts/` (schema syntax, foreign keys, triggers)
+- [ ] Security review: rate-limiting verification, CORS policy, AWS S3 bucket least privilege
+- [x] Development schema changes manually applied by developer, as recorded in requirements audit
+- [ ] Target production database scripts reviewed/applied and deployment validated by human developer
+- [ ] Human review and commit of current changes (historical implementation commits already exist)
+
+---
+
+## 7. Additional Completed Scope From Requirements Audit
+
+- [x] Expanded organization, employee, product, project and license fields with persistence checks
+- [x] Role CRUD and role/branch/user permission matrix screens
+- [x] Project team allocation and product-client license management screens
+- [x] Version/release management and release timeline
+- [x] Task severity, dates, primary assignee and inherited task-type defaults
+- [x] Task-type custom-field schema definitions (per-task values remain pending)
+- [x] Threaded comment replies and workflow-aware subtask actions
+- [x] Overtime/weekend worklog classification and per-worklog approval protection
+- [x] Notification preferences and in-app task/assignment/status/comment events
+- [x] Profile password change, tracked sessions, refresh rotation and remote revocation
+- [x] Tested core branch checks and financial redaction (not exhaustive authorization certification)
+- [x] Audit filters, dates, detail view, pagination and error feedback
+- [x] Login DTO/envelope, proxy, UUID validation and seed-data fixes
+- [x] Company branding, README and Windows service-control scripts
+
+## 8. Remaining Requirements and Acceptance Gates
+
+### External services and infrastructure
+- [ ] Successful real S3 upload/confirmation/download/avatar test: last recorded PUT failed with HTTP 403 `InvalidAccessKeyId`; credentials and browser CORS need verification
+- [ ] Implement/configure actual SMS provider and verify OTP delivery/login end to end
+- [ ] Shared Redis OTP cache and distributed request throttling; current OTP state is process-local
+- [ ] Actual email and FCM dispatch with delivery verification (token/preferences storage exists)
+- [ ] Scheduled deadline/SLA alerts and WebSocket/SSE transport
+- [ ] Planned asynchronous delivery queues, audit archival/partitioning and operational infrastructure
+
+### Task collaboration and reporting
+- [ ] Dynamic per-task custom-field value storage and rendering
+- [ ] Rich-text descriptions/comments and comment-specific attachment composition
+- [ ] Responsibility flags beyond primary-assignee selection
+- [ ] Grouped weekly/monthly timesheets, exports and complete aggregate reports
+
+### Mobile
+- [ ] Flutter/Dart analysis, Android/iOS builds and device acceptance tests
+- [ ] Offline task/draft cache and conflict-aware reconnect synchronization
+- [ ] Integrated GPS/geofence check-in, field activity and location audit workflows
+- [ ] Native push initialization, notification deep links and SMS autofill
+- [ ] Notification timer controls and remaining web/mobile feature parity
+- [ ] Signing, release artifacts and store/TestFlight release validation
+
+### Security, operations and documentation
+- [ ] Password expiry and MFA challenge flow
+- [ ] External API-key/OAuth provisioning and IP allowlists
+- [ ] Full authorization review including secondary lookups and report routes
+- [ ] Reconcile current web localStorage tokens with documented HTTP-only-cookie architecture
+- [ ] Complete authentication/change/download audit coverage and actor/IP/device/location metadata
+- [ ] OWASP/penetration testing and production rate-limit verification
+- [ ] Load tests for latency, branches, users and task-volume targets
+- [ ] Backup/restore, encryption/TLS, monitoring and availability acceptance
+- [ ] Production deployment acceptance, rather than deployment instructions alone
+- [ ] Align older README/phase claims, framework versions, CORS environment names, ports, pagination and architecture descriptions
+
+## 9. Web UI Refresh and Theme Verification (2026-09-26)
+
+- [x] Refresh shared navigation, dashboard, login and management surfaces
+- [x] Connect Tailwind dark variants to the application's explicit theme selection
+- [x] Apply saved appearance before first paint, validate stored preference and synchronize tabs
+- [x] Add login theme control, keyboard focus styling, skip link and reduced-motion handling
+- [x] Browser verification of ten routes in both themes, record dialog focus, persistence/cross-tab sync, sidebar collapse and 320/390/768px layouts using intercepted API fixtures
+- [x] Web TypeScript and production build pass
+
+UI evidence: [refresh walkthrough](walkthrough/web-ui-refresh-and-checklist-2026-09-26.md) and [browser results](walkthrough/ui-theme-results.json). These checks do not replace live backend/provider or native mobile acceptance tests.

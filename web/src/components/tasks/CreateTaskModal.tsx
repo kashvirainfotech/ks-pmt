@@ -1,4 +1,5 @@
 import React from 'react';
+import { useDialogFocus } from '../../hooks/useDialogFocus';
 import { RecordForm } from '../management/EntityManager';
 import { taskFields } from '../management/config';
 import { tasksApi } from '../../api/endpoints';
@@ -8,10 +9,12 @@ export const CreateTaskModal: React.FC<{
   onClose: () => void;
   onCreated: () => void;
 }> = ({ onClose, onCreated }) => {
+  useDialogFocus(true, '[data-create-task-dialog]', onClose);
   const { selectedBranchId } = useAuth();
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div
+        data-create-task-dialog
         role="dialog"
         aria-modal="true"
         aria-label="Create task"

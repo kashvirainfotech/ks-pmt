@@ -139,13 +139,13 @@ export const TasksView: React.FC = () => {
   return (
     <div className="flex h-full flex-col space-y-4">
       {/* Top Action Bar */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="page-intro">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
-            Tasks Workspace
+            Tasks
           </h1>
           <p className="text-xs text-slate-400">
-            Dynamic status transition engine with multi-assignee tracking
+            Organize priorities, share ownership and move work forward.
           </p>
         </div>
 
@@ -195,7 +195,7 @@ export const TasksView: React.FC = () => {
           <select
             aria-label={source}
             key={key}
-            className="rounded border p-2 text-xs dark:bg-slate-800"
+            className="form-control max-w-full text-xs"
             value={facets[key] || ''}
             onChange={(e) => {
               setPage(1);
@@ -217,7 +217,7 @@ export const TasksView: React.FC = () => {
         ))}
         <select
           aria-label="Status filter"
-          className="rounded border p-2 text-xs dark:bg-slate-800"
+          className="form-control max-w-full text-xs"
           value={facets.statusId || ''}
           onChange={(e) => {
             setPage(1);

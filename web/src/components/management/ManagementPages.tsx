@@ -61,12 +61,12 @@ function RelatedRecords({
         {kind === 'projects' ? 'Team allocation' : 'Client licenses'}
       </h3>
       {error && (
-        <p role="alert" className="text-red-600">
+        <p role="alert" className="text-red-600 dark:text-red-400">
           {error}
         </p>
       )}
       {canEdit && (
-        <button className="text-blue-600" onClick={() => setForm({})}>
+        <button className="text-blue-600 dark:text-blue-400" onClick={() => setForm({})}>
           Add {kind === 'projects' ? 'team member' : 'license'}
         </button>
       )}
@@ -172,6 +172,7 @@ export function PortfolioPage() {
         : versionConfig;
   return (
     <div className="space-y-6">
+      <div className="page-intro"><div><p className="page-eyebrow mb-2">Portfolio</p><h1>Projects & products</h1><p className="page-description">Plan delivery, manage your team and keep releases on track.</p></div></div>
       <Tabs
         tabs={['Projects', 'Products', 'Versions']}
         active={tab}
@@ -189,7 +190,7 @@ export function ClientsPage() {
         actions: (r, reload) =>
           r.client_type === 'PROSPECT' && (
             <button
-              className="text-blue-600"
+              className="text-blue-600 dark:text-blue-400"
               onClick={async () => {
                 try {
                   await api.post(`/clients/${r.id}/convert-to-active`);
@@ -216,7 +217,7 @@ function Tabs({
   set: (s: string) => void;
 }) {
   return (
-    <div className="flex flex-wrap gap-2" role="tablist">
+    <div className="workspace-tabs flex flex-wrap gap-2" role="tablist">
       {tabs.map((t) => (
         <button
           role="tab"
@@ -272,7 +273,7 @@ function Transitions() {
         ))}
       </select>
       {hasPermission('TASKS:UPDATE') && (
-        <button className="ml-4 text-blue-600" onClick={() => setAdding(true)}>
+        <button className="ml-4 text-blue-600 dark:text-blue-400" onClick={() => setAdding(true)}>
           Add transition
         </button>
       )}
@@ -346,7 +347,7 @@ function PermissionMatrix() {
     <div className="space-y-4">
       <h2 className="text-xl font-bold">Role permissions and overrides</h2>
       {error && (
-        <p role="alert" className="text-red-600">
+        <p role="alert" className="text-red-600 dark:text-red-400">
           {error}
         </p>
       )}
@@ -457,6 +458,7 @@ export function AdminPage() {
   };
   return (
     <div className="space-y-6">
+      <div className="page-intro"><div><p className="page-eyebrow mb-2">Organization</p><h1>Masters & setup</h1><p className="page-description">Manage the people, structure and workflows behind your workspace.</p></div></div>
       <Tabs
         tabs={[...Object.keys(configs), 'Transitions', 'Permissions']}
         active={tab}

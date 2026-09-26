@@ -40,7 +40,7 @@ export function ProfilePage() {
         {user?.first_name} {user?.last_name} · {user?.email} · {user?.role_name}
       </p>
       {error && (
-        <p role="alert" className="text-red-600">
+        <p role="alert" className="text-red-600 dark:text-red-400">
           {error}
         </p>
       )}
@@ -84,7 +84,7 @@ export function ProfilePage() {
           }}
         />
       </label>
-      <section className="rounded-lg border p-4">
+      <section className="entity-panel">
         <h2 className="mb-3 font-bold">Notification channels</h2>
         {preferences && (
           <RecordForm
@@ -98,7 +98,7 @@ export function ProfilePage() {
           />
         )}
       </section>
-      <section className="rounded-lg border p-4">
+      <section className="entity-panel">
         <h2 className="mb-3 font-bold">Device sessions</h2>
         {sessionError && <p role="status">{sessionError}</p>}
         {sessions.map((s) => (
@@ -123,7 +123,7 @@ export function ProfilePage() {
           </div>
         ))}
       </section>
-      <section className="rounded-lg border p-4">
+      <section className="entity-panel">
         <h2 className="mb-3 font-bold">Change password</h2>
         <RecordForm
           fields={[
@@ -184,12 +184,12 @@ export function NotificationsPage() {
       {rows.map((r) => (
         <article
           key={r.id}
-          className={`rounded-lg border p-4 ${r.is_read ? '' : 'border-blue-500'}`}
+          className={`entity-panel ${r.is_read ? '' : 'border-blue-500'}`}
         >
           <h2 className="font-bold">{r.title}</h2>
           <p>{r.body}</p>
           {r.entity_type === 'TASK' && (
-            <a className="text-blue-600" href={`/tasks?taskId=${r.entity_id}`}>
+            <a className="text-blue-600 dark:text-blue-400" href={`/tasks?taskId=${r.entity_id}`}>
               Open task
             </a>
           )}
@@ -210,7 +210,7 @@ export function NotificationsPage() {
           )}
         </article>
       ))}
-      {!rows.length && <p>No notifications.</p>}
+      {!rows.length && <div className="entity-panel py-12 text-center"><h2 className="font-semibold">You are all caught up</h2><p className="page-description">Task updates and team activity will appear here.</p></div>}
       <div className="flex gap-4">
         <button disabled={page === 1} onClick={() => setPage((p) => p - 1)}>
           Previous

@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
 import { authApi } from '../../api/endpoints';
 import {
   Layers,
+  Sun,
+  Moon,
   Mail,
   Lock,
   Phone,
@@ -15,6 +18,7 @@ import {
 } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
+  const { theme, toggleTheme } = useTheme();
   const [tab, setTab] = useState<'password' | 'otp'>('password');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -100,9 +104,10 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen w-screen bg-slate-50 dark:bg-slate-950">
+    <div className="relative flex min-h-dvh w-full bg-slate-50 dark:bg-slate-950">
+      <button onClick={toggleTheme} aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`} className="absolute right-5 top-5 z-20 rounded-xl border border-slate-200 bg-white p-3 text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">{theme === 'light' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}</button>
       {/* Left Feature Showcase Banner (Hidden on Mobile) */}
-      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-950 p-12 text-white relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between bg-slate-900 p-12 text-white relative overflow-hidden">
         {/* Decorative background glow */}
         <div className="absolute -top-24 -left-24 h-96 w-96 rounded-full bg-blue-500/20 blur-3xl pointer-events-none" />
         <div className="absolute -bottom-24 -right-24 h-96 w-96 rounded-full bg-indigo-500/20 blur-3xl pointer-events-none" />
@@ -119,21 +124,21 @@ export const LoginPage: React.FC = () => {
 
         <div className="relative z-10 space-y-6 max-w-lg">
           <div className="inline-flex items-center gap-2 rounded-full border border-blue-400/30 bg-blue-500/10 px-3.5 py-1 text-xs font-semibold text-blue-300 backdrop-blur-xs">
-            <Sparkles className="h-3.5 w-3.5" /> Next-Gen Enterprise Solution
+            <Sparkles className="h-3.5 w-3.5" /> A shared space for great work
           </div>
           <h2 className="text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl">
-            Streamline projects, products, and multi-branch teams effortlessly.
+            Less scattered work. More shared progress.
           </h2>
           <p className="text-sm text-slate-300 leading-relaxed">
-            Dynamic task state machine, automated assignment matrix, client licensing, real-time AWS S3 cloud attachments, and granular RBAC overrides.
+            Bring projects, people and priorities together. One shared space to plan work, track progress and keep your team moving.
           </p>
 
           <div className="space-y-3 pt-2">
             {[
-              'Multi-Branch Geofenced Access & Department Matrix',
-              'Product Software Licensing, AMC & Milestones',
-              'Dual Login: Enterprise Email or Mobile OTP',
-              'Central Tamper-Evident Security Audit Logs',
+              'A connected workspace for every branch',
+              'Projects, products and milestones in one place',
+              'Clear ownership and flexible task workflows',
+              'Time tracking that keeps work visible',
             ].map((feature, idx) => (
               <div key={idx} className="flex items-center gap-2.5 text-xs text-slate-200">
                 <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
@@ -162,9 +167,9 @@ export const LoginPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xl shadow-slate-200/50 dark:border-slate-800 dark:bg-slate-900 dark:shadow-none sm:p-8">
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-              Welcome to KS-PMT
+          <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 dark:shadow-none sm:p-8">
+            <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+              Welcome back
             </h2>
             <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
               Sign in to your employee account to continue
@@ -221,6 +226,8 @@ export const LoginPage: React.FC = () => {
                     <Mail className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
                     <input
                       type="email"
+                      aria-label="Corporate Email"
+                      autoComplete="username"
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
@@ -240,6 +247,8 @@ export const LoginPage: React.FC = () => {
                     <Lock className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
                     <input
                       type="password"
+                      aria-label="Password"
+                      autoComplete="current-password"
                       required
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}

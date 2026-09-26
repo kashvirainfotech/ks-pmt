@@ -68,7 +68,8 @@ export const AppLayout: React.FC = () => {
   }, [searchQuery]);
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-slate-50 dark:bg-slate-950">
+    <div className="app-shell flex h-dvh w-full overflow-hidden text-slate-900 dark:text-slate-100">
+      <a href="#main-content" className="skip-link">Skip to content</a>
       {/* Sidebar */}
       <Sidebar
         collapsed={sidebarCollapsed}
@@ -78,14 +79,14 @@ export const AppLayout: React.FC = () => {
       />
 
       {/* Main Content Area */}
-      <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <Header
           onToggleSidebar={() => setMobileOpen(!mobileOpen)}
           onOpenSearch={() => setSearchOpen(true)}
         />
 
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-          <Outlet />
+        <main id="main-content" tabIndex={-1} className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+          <div className="app-content"><Outlet /></div>
         </main>
       </div>
 
