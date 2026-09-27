@@ -43,6 +43,8 @@ The Query Tool runs SQL, so use a plain SQL bundle instead of the psql-specific 
    node dbscripts/build-install.mjs
    ```
 
+   On Windows, double-click `build-db-install.bat` in the project root instead. It works from any working directory and pauses to show the result. Use `build-db-install.bat --no-pause` for terminal automation; failures return a nonzero exit code.
+
 2. In pgAdmin, select the blank database and open **Query Tool**.
 3. Use **Open File** to open `dbscripts/install.sql`.
 4. Clear any text selection and choose **Execute script** to run the entire file. These controls are documented in the [pgAdmin Query Tool toolbar reference](https://www.pgadmin.org/docs/pgadmin4/latest/query_tool_toolbar.html).
