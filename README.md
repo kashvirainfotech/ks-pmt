@@ -14,7 +14,7 @@
 
 ---
 
-**KS-PMT** is an enterprise-ready, multi-tenant capable, multi-branch task and product lifecycle management platform tailored for software IT companies delivering both **commercial software products** and **custom client development services**.
+**KS-PMT** is an enterprise-ready task and product lifecycle management platform designed for **one company with multiple locations and branches**, supporting both **commercial software products** and **custom client development services**. It is deployed for the company's own use and is not a SaaS offering.
 
 Built with a **NestJS REST API backend**, a modern **React 18 + Tailwind CSS web dashboard**, and a cross-platform **Flutter mobile app (Android & iOS)** with native hardware capabilities (GPS Geofencing, Camera/Gallery S3 Uploads, Live Timers, and FCM Push Notifications).
 
@@ -90,7 +90,7 @@ Built with a **NestJS REST API backend**, a modern **React 18 + Tailwind CSS web
 ## ✨ Key Features
 
 ### 1. Multi-Branch & Dynamic RBAC Engine
-- **Multi-Location Hubs**: Native support for single IT companies operating across multiple physical branches and regional tech centers with GPS coordinates and geofence radii.
+- **Multi-Location Hubs**: Native support for a single company operating across multiple physical branches and regional tech centers with GPS coordinates and geofence radii.
 - **Hierarchical Access Model**: 
   $$\text{Effective Permissions} = \text{Base Role} - \text{Branch Revocations} + \text{User Explicit Overrides}$$
 - **Granular Override Controls**: Instantly grant or revoke permissions at the specific branch or individual employee level without modifying global system roles.
@@ -378,7 +378,7 @@ Upon executing `dbscripts/inserts/inserts.sql`, the root Super Admin account is 
 
 ## 💬 Community, Feedback & Support
 
-This project is **100% open source** released under the [MIT License](LICENSE). We built **KS-PMT** with passion to provide software development and product companies with a rock-solid, production-grade project management tool that respects data ownership and avoids expensive per-seat SaaS costs.
+This project is **100% open source** released under the [MIT License](LICENSE). We built **KS-PMT** with passion to help a software development or product company manage its projects across all its locations and branches, with full control over its deployment and data.
 
 ### 📬 Get in Touch
 - **Contact Email**: `kashvirainfotech@gmail.com`
@@ -391,8 +391,8 @@ Hearing how KS-PMT helps your team gives us immense confidence, motivation, and 
 If you tested, installed, or previously used KS-PMT but decided to stop using it, **we would genuinely love to know why**.  
 Please email us with your honest feedback, pain points, or missing features. We welcome all feedback with open arms and will use it to continuously improve the tool for the entire developer community.
 
-### 🤝 Contributing & Bug Reports
-Contributions, feature suggestions, and bug reports are warmly welcomed! Feel free to open an issue or submit a pull request.
+### 🤝 Feedback, Suggestions & Bug Reports
+Feedback, feature suggestions, and bug reports are warmly welcomed! Please open an issue to share your ideas or report a problem, or email us at `kashvirainfotech@gmail.com`.
 
 ---
 
