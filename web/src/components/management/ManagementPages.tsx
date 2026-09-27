@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import api from '../../api/client';
 import {
   EntityManager,
+  type Entity,
   RecordForm,
   Row,
   allRows,
@@ -24,9 +25,9 @@ import {
   licenseFields,
   memberFields,
   f,
-  ref,
 } from './config';
 import { useAuth } from '../../context/AuthContext';
+import type { AdminScreen, PortfolioScreen } from './screens';
 
 function RelatedRecords({
   row,
@@ -156,15 +157,14 @@ function RelatedRecords({
     </div>
   );
 }
-export function PortfolioPage() {
-  const [tab, setTab] = useState('Projects');
+export function PortfolioPage({ screen }: { screen: PortfolioScreen }) {
   const config =
-    tab === 'Projects'
+    screen.title === 'Projects'
       ? {
           ...projectConfig,
           children: (r: Row) => <RelatedRecords row={r} kind="projects" />,
         }
-      : tab === 'Products'
+      : screen.title === 'Products'
         ? {
             ...productConfig,
             children: (r: Row) => <RelatedRecords row={r} kind="products" />,
@@ -172,13 +172,8 @@ export function PortfolioPage() {
         : versionConfig;
   return (
     <div className="space-y-6">
-      <div className="page-intro"><div><p className="page-eyebrow mb-2">Portfolio</p><h1>Projects & products</h1><p className="page-description">Plan delivery, manage your team and keep releases on track.</p></div></div>
-      <Tabs
-        tabs={['Projects', 'Products', 'Versions']}
-        active={tab}
-        set={setTab}
-      />
-      <EntityManager key={tab} config={config} />
+      <div className="page-intro"><div><p className="page-eyebrow mb-2">Portfolio</p><h1>{screen.title}</h1><p className="page-description">{screen.description}</p></div></div>
+      <EntityManager key={screen.path} config={config} />
     </div>
   );
 }
@@ -428,9 +423,8 @@ const roleConfig = {
     }),
   ],
 };
-export function AdminPage() {
-  const [tab, setTab] = useState('Branches');
-  const configs: Record<string, any> = {
+export function AdminPage({ screen }: { screen: AdminScreen }) {
+  const configs: Record<Exclude<AdminScreen['title'], 'Transitions' | 'Permissions'>, Entity> = {
     Branches: branchConfig,
     Departments: departmentConfig,
     Designations: designationConfig,
@@ -458,18 +452,13 @@ export function AdminPage() {
   };
   return (
     <div className="space-y-6">
-      <div className="page-intro"><div><p className="page-eyebrow mb-2">Organization</p><h1>Masters & setup</h1><p className="page-description">Manage the people, structure and workflows behind your workspace.</p></div></div>
-      <Tabs
-        tabs={[...Object.keys(configs), 'Transitions', 'Permissions']}
-        active={tab}
-        set={setTab}
-      />
-      {tab === 'Transitions' ? (
+      <div className="page-intro"><div><p className="page-eyebrow mb-2">Organization</p><h1>{screen.title}</h1><p className="page-description">{screen.description}</p></div></div>
+      {screen.title === 'Transitions' ? (
         <Transitions />
-      ) : tab === 'Permissions' ? (
+      ) : screen.title === 'Permissions' ? (
         <PermissionMatrix />
       ) : (
-        <EntityManager key={tab} config={configs[tab]} />
+        <EntityManager key={screen.path} config={configs[screen.title]} />
       )}
     </div>
   );

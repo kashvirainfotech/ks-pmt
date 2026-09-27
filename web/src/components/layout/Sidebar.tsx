@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { adminScreens, portfolioScreens } from '../management/screens';
 import {
   LayoutDashboard,
   Kanban,
@@ -34,18 +35,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const { hasPermission, user } = useAuth();
 
   const isSuperAdmin = user?.role_code === 'ROLE_SUPER_ADMIN';
+  const canViewMasters = isSuperAdmin || hasPermission('USERS:MANAGE') || hasPermission('BRANCHES:MANAGE');
 
   const groups = [
     { title: 'Workspace', items: [
       { label: 'Overview', path: '/dashboard', icon: LayoutDashboard, show: true },
       { label: 'Tasks', path: '/tasks', icon: Kanban, show: true },
-      { label: 'Projects & products', path: '/projects', icon: FolderKanban, show: true },
+      ...portfolioScreens.map(screen => ({ label: screen.title, path: screen.path, icon: FolderKanban, show: true })),
       { label: 'Release timeline', path: '/releases', icon: CalendarDays, show: true },
       { label: 'Timesheets', path: '/timesheets', icon: Clock, show: true },
       { label: 'Clients', path: '/clients', icon: Users2, show: true },
     ]},
     { title: 'Organization', items: [
-      { label: 'Masters & setup', path: '/admin', icon: Settings, show: isSuperAdmin || hasPermission('USERS:MANAGE') || hasPermission('BRANCHES:MANAGE') },
+      ...adminScreens.map(screen => ({ label: screen.title, path: screen.path, icon: Settings, show: canViewMasters })),
       { label: 'Audit trail', path: '/audit', icon: ShieldCheck, show: isSuperAdmin || hasPermission('AUDIT_LOGS:VIEW') },
     ]},
     { title: 'Personal', items: [

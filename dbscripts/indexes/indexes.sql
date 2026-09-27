@@ -87,3 +87,9 @@ CREATE INDEX IF NOT EXISTS idx_audit_logs_new_val_gin ON audit_logs USING GIN (n
 -- ========================================================
 CREATE INDEX IF NOT EXISTS idx_user_sessions_active ON user_sessions(user_id, expires_at) WHERE revoked_at IS NULL;
 CREATE INDEX IF NOT EXISTS idx_time_logs_approval ON task_time_logs(approval_status, log_date, user_id);
+
+-- ========================================================
+-- Date & Time: 2026-09-27 07:22:54 (UTC)
+-- Description: Support department head lookup and user relationship cleanup
+-- ========================================================
+CREATE INDEX idx_department_heads_user ON department_heads(user_id);

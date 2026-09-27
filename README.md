@@ -176,7 +176,7 @@ Built with a **NestJS REST API backend**, a modern **React 18 + Tailwind CSS web
 ```
 ks-pmt/
 ├── dbscripts/                        # Static PostgreSQL DDL/DML scripts (Static review only)
-│   ├── tables/                       # tables.sql, alter_tables.sql
+│   ├── tables/                       # tables.sql (current blank-database schema)
 │   ├── views/                        # vw_project_financial_summary.sql, etc.
 │   ├── functions/                    # fn_calculate_task_effort.sql, fn_set_updated_at.sql, etc.
 │   ├── triggers/                     # trg_tasks_updated_at.sql, trg_tasks_audit.sql, etc.
@@ -230,35 +230,22 @@ ks-pmt/
 
 ### Step 1: Database Setup (Static SQL Scripts)
 
-> [!NOTE]
-> Database scripts are static artifacts. Never run auto-migrations. Execute them in strict sequential order:
+> [!IMPORTANT]
+> **This project is under development.** After every major change, the developer / DBA will run and test it against a blank database. Maintain schema changes directly in the canonical `CREATE` definitions instead of adding `ALTER`, `DROP`, `UPDATE`, or `DELETE` migration statements. Required seed inserts and application logic inside SQL functions/procedures are retained. Incremental migrations will be used once the project is declared live. See [database script guidelines](AGENTS.md#1-database-script-generation--management-rules).
+
+Create a blank database manually, then run all object scripts and seed data from the project root with one command:
 
 ```bash
-# Connect to your PostgreSQL instance
-psql -U postgres
-
-# 1. Create database and enable pgcrypto
-CREATE DATABASE kspmt_db;
-\c kspmt_db;
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
-
-# 2. Execute scripts in sequence from the project root:
-psql -U postgres -d kspmt_db -f dbscripts/tables/tables.sql
-psql -U postgres -d kspmt_db -f dbscripts/tables/alter_tables.sql
-psql -U postgres -d kspmt_db -f dbscripts/functions/fn_set_updated_at.sql
-psql -U postgres -d kspmt_db -f dbscripts/functions/fn_calculate_task_effort.sql
-psql -U postgres -d kspmt_db -f dbscripts/functions/fn_log_task_audit.sql
-psql -U postgres -d kspmt_db -f dbscripts/triggers/trg_users_updated_at.sql
-psql -U postgres -d kspmt_db -f dbscripts/triggers/trg_projects_updated_at.sql
-psql -U postgres -d kspmt_db -f dbscripts/triggers/trg_tasks_updated_at.sql
-psql -U postgres -d kspmt_db -f dbscripts/triggers/trg_tasks_audit.sql
-psql -U postgres -d kspmt_db -f dbscripts/views/vw_project_financial_summary.sql
-psql -U postgres -d kspmt_db -f dbscripts/views/vw_product_license_summary.sql
-psql -U postgres -d kspmt_db -f dbscripts/views/vw_employee_workload.sql
-psql -U postgres -d kspmt_db -f dbscripts/views/vw_task_hierarchy.sql
-psql -U postgres -d kspmt_db -f dbscripts/indexes/indexes.sql
-psql -U postgres -d kspmt_db -f dbscripts/inserts/inserts.sql
+psql -X -v ON_ERROR_STOP=1 -U postgres -d kspmt_db -f dbscripts/install.psql
 ```
+
+For pgAdmin's Query Tool, generate the combined plain SQL file first (this does not execute SQL):
+
+```bash
+node dbscripts/build-install.mjs
+```
+
+Open `dbscripts/install.sql` in the Query Tool connected to the blank database and execute the entire script. Object files remain separate; regenerate this ignored bundle after SQL changes. See [database installation instructions](dbscripts/README.md) for prerequisites, execution order, and error handling.
 
 ---
 

@@ -1,0 +1,22 @@
+-- Fresh blank database only. Run manually with psql; see dbscripts/README.md.
+-- This is also the source manifest for the pgAdmin SQL bundle.
+\set ON_ERROR_STOP on
+BEGIN;
+SET LOCAL search_path TO public;
+
+\ir tables/tables.sql
+\ir functions/fn_set_updated_at.sql
+\ir functions/fn_calculate_task_effort.sql
+\ir functions/fn_log_task_audit.sql
+\ir triggers/trg_users_updated_at.sql
+\ir triggers/trg_projects_updated_at.sql
+\ir triggers/trg_tasks_updated_at.sql
+\ir triggers/trg_tasks_audit.sql
+\ir views/vw_project_financial_summary.sql
+\ir views/vw_product_license_summary.sql
+\ir views/vw_employee_workload.sql
+\ir views/vw_task_hierarchy.sql
+\ir indexes/indexes.sql
+\ir inserts/inserts.sql
+
+COMMIT;

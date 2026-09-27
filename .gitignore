@@ -91,3 +91,6 @@ tmp/
 temp/
 .temp/
 .cache/
+
+# Generated pgAdmin bundle; canonical SQL remains in dbscripts object folders.
+/dbscripts/install.sql

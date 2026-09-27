@@ -29,7 +29,7 @@ async function main() {
     const choose = (value) => ({ select: value });
     async function form(route, tab, button, values, expectedPath) {
       await page.goto(`http://127.0.0.1:3000${route}`);
-      if (tab) await page.getByRole('tab', { name: tab, exact: true }).click();
+      if (tab) await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: tab, exact: true }).click();
       await page.getByRole('button', { name: button, exact: true }).click();
       const dialog = page.getByRole('dialog');
       for (const [label, value] of Object.entries(values)) {

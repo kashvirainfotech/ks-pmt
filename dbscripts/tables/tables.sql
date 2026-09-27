@@ -43,7 +43,6 @@ CREATE TABLE IF NOT EXISTS departments (
     dept_code VARCHAR(50) NOT NULL UNIQUE,
     dept_name VARCHAR(100) NOT NULL,
     description TEXT,
-    hod_user_id UUID, -- Foreign key reference added in alter/post user table
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_by UUID NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -136,16 +135,14 @@ CREATE TABLE IF NOT EXISTS users (
     last_login_at TIMESTAMP WITH TIME ZONE,
     last_login_ip VARCHAR(45),
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    emergency_contact TEXT,
+    employment_status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' CHECK (employment_status IN ('ACTIVE','INACTIVE','SUSPENDED')),
+    notification_preferences JSONB NOT NULL DEFAULT '{"inApp":true,"email":true,"push":true}'::jsonb,
     created_by UUID NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_by UUID,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
-
--- Circular FK for departments HOD
-ALTER TABLE departments 
-ADD CONSTRAINT fk_departments_hod 
-FOREIGN KEY (hod_user_id) REFERENCES users(id) ON DELETE SET NULL;
 
 -- ========================================================
 -- 8. Multi-Branch Access for Users
@@ -237,6 +234,10 @@ CREATE TABLE IF NOT EXISTS products (
     currency VARCHAR(10) NOT NULL DEFAULT 'INR',
     product_manager_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    tech_stack TEXT,
+    documentation_links TEXT,
+    subscription_plans TEXT,
+    implementation_fee NUMERIC(15,2) NOT NULL DEFAULT 0 CHECK (implementation_fee >= 0),
     created_by UUID NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_by UUID,
@@ -260,6 +261,7 @@ CREATE TABLE IF NOT EXISTS product_client_mappings (
     status VARCHAR(50) NOT NULL DEFAULT 'ACTIVE', -- 'ACTIVE', 'EXPIRED', 'PENDING_RENEWAL', 'TERMINATED'
     notes TEXT,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    support_tier VARCHAR(100),
     created_by UUID NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_by UUID,
@@ -274,7 +276,7 @@ CREATE TABLE IF NOT EXISTS projects (
     project_code VARCHAR(50) NOT NULL UNIQUE,
     project_name VARCHAR(200) NOT NULL,
     description TEXT,
-    client_id UUID NOT NULL REFERENCES clients(id) ON DELETE RESTRICT,
+    client_id UUID REFERENCES clients(id) ON DELETE RESTRICT,
     branch_id UUID NOT NULL REFERENCES branches(id) ON DELETE RESTRICT,
     project_manager_user_id UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
     billing_type VARCHAR(50) NOT NULL, -- 'FIXED_COST', 'TIME_AND_MATERIAL', 'RETAINER'
@@ -288,6 +290,8 @@ CREATE TABLE IF NOT EXISTS projects (
     actual_end_date DATE,
     project_status VARCHAR(50) NOT NULL DEFAULT 'PLANNING', -- 'PLANNING', 'ACTIVE', 'ON_HOLD', 'COMPLETED', 'CANCELLED'
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    tech_stack TEXT,
+    invoicing_milestones TEXT,
     created_by UUID NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_by UUID,
@@ -351,6 +355,8 @@ CREATE TABLE IF NOT EXISTS task_types (
     icon_name VARCHAR(50) DEFAULT 'check-square',
     is_chargeable_default BOOLEAN NOT NULL DEFAULT FALSE,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    default_severity VARCHAR(100),
+    custom_fields JSONB NOT NULL DEFAULT '{}'::jsonb,
     created_by UUID NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_by UUID,
@@ -416,6 +422,7 @@ CREATE TABLE IF NOT EXISTS tasks (
     charge_amount NUMERIC(12, 2) NOT NULL DEFAULT 0.00,
     currency VARCHAR(10) NOT NULL DEFAULT 'INR',
     branch_id UUID REFERENCES branches(id) ON DELETE RESTRICT,
+    severity VARCHAR(100),
     created_by UUID NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_by UUID,
@@ -458,6 +465,12 @@ CREATE TABLE IF NOT EXISTS task_time_logs (
     description TEXT NOT NULL,
     timer_start_time TIMESTAMP WITH TIME ZONE,
     timer_end_time TIMESTAMP WITH TIME ZONE,
+    is_overtime BOOLEAN NOT NULL DEFAULT FALSE,
+    is_weekend BOOLEAN NOT NULL DEFAULT FALSE,
+    approval_status VARCHAR(20) NOT NULL DEFAULT 'DRAFT' CHECK (approval_status IN ('DRAFT','SUBMITTED','APPROVED','REJECTED')),
+    reviewed_by UUID REFERENCES users(id),
+    reviewed_at TIMESTAMP WITH TIME ZONE,
+    review_remarks TEXT,
     created_by UUID NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_by UUID,
@@ -600,5 +613,20 @@ CREATE TABLE IF NOT EXISTS user_sessions (
     created_by UUID NOT NULL REFERENCES users(id),
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_by UUID REFERENCES users(id),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ========================================================
+-- Date & Time: 2026-09-27 07:22:54 (UTC)
+-- Description: Department head relationship without circular table dependencies
+-- ========================================================
+-- At most one head per department. No row means no assigned head.
+-- Removing a user removes the assignment, leaving the department intact.
+CREATE TABLE department_heads (
+    department_id UUID PRIMARY KEY REFERENCES departments(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

@@ -17,6 +17,7 @@ import { LoginPage } from './components/auth/LoginPage';
 import { BentoGridDashboard } from './components/dashboard/BentoGridDashboard';
 import { TasksView } from './components/tasks/TasksView';
 import { AuditLogsView } from './components/audit/AuditLogsView';
+import { adminScreens, portfolioScreens } from './components/management/screens';
 
 // Protected Route Wrapper
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
@@ -61,10 +62,15 @@ export const App: React.FC = () => {
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="dashboard" element={<BentoGridDashboard />} />
         <Route path="tasks" element={<TasksView />} />
-        <Route path="projects" element={<PortfolioPage />} />
+        {portfolioScreens.map(screen => (
+          <Route key={screen.path} path={screen.path} element={<PortfolioPage key={screen.path} screen={screen} />} />
+        ))}
         <Route path="clients" element={<ClientsPage />} />
         <Route path="timesheets" element={<TimesheetsPage />} />
-        <Route path="admin" element={<AdminPage />} />
+        <Route path="admin" element={<Navigate to="/admin/branches" replace />} />
+        {adminScreens.map(screen => (
+          <Route key={screen.path} path={screen.path} element={<AdminPage key={screen.path} screen={screen} />} />
+        ))}
         <Route path="profile" element={<ProfilePage />} />
         <Route path="notifications" element={<NotificationsPage />} />
         <Route path="releases" element={<ReleaseCalendar />} />

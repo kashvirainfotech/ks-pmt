@@ -157,7 +157,12 @@ export class AssignmentService {
       rule.target_assignment_type === 'DEPARTMENT_HOD' &&
       rule.target_department_id
     ) {
-      const hodQuery = `SELECT hod_user_id FROM departments WHERE id = $1 AND is_active = TRUE;`;
+      const hodQuery = `
+        SELECT h.user_id AS hod_user_id
+        FROM departments d
+        JOIN department_heads h ON h.department_id = d.id
+        WHERE d.id = $1 AND d.is_active = TRUE;
+      `;
       const hodResult = await this.db.query(hodQuery, [
         rule.target_department_id,
       ]);

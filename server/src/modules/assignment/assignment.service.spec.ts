@@ -58,6 +58,10 @@ describe('AssignmentService', () => {
 
       const result = await service.evaluateAutoAssignment('ON_STATUS_CHANGE', 'task-type-dev', undefined, undefined, 'status-open', 'status-qa');
       expect(result).toBe('user-qa-hod-uuid');
+      expect(mockDb.query).toHaveBeenLastCalledWith(
+        expect.stringContaining('JOIN department_heads'),
+        ['dept-qa-uuid'],
+      );
     });
 
     it('should return null when no matching rule is configured', async () => {

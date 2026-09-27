@@ -6,6 +6,15 @@ This file defines the mandatory operational guidelines and constraints for AI ag
 
 ## 1. Database Script Generation & Management Rules
 
+### Current lifecycle: Under development
+
+- After every major change, the human developer / DBA will build and test the application against a **blank database**.
+- During development, maintain the current schema directly in its canonical `CREATE` definitions. Do not accumulate migration history or add standalone `ALTER`, `UPDATE`, `DROP`, or `DELETE` statements to evolve an existing database. Schema scripts should contain `CREATE` statements, with constraints included in table definitions.
+- Required seed `INSERT` statements remain in `dbscripts/inserts/inserts.sql`; SQL inside function/procedure bodies remains necessary for application behavior. These are not schema migrations.
+- This development policy takes precedence over the replacement and cumulative append policies below when changing existing definitions. Update those definitions in place, and do not add changes to `alter_tables.sql` during development.
+- Once the project is explicitly declared **live**, use reviewed incremental migration scripts (including `ALTER` / `DROP` where appropriate) to preserve existing data. Until then, use the blank-database workflow.
+- Agents must still never execute database scripts or migrations; database creation and testing remain manual developer / DBA responsibilities.
+
 1. **Folder Organization for SQL Scripts**:
    - All database scripts must strictly reside inside the `dbscripts/` directory under their dedicated object folders:
      - `dbscripts/tables/`
@@ -16,6 +25,7 @@ This file defines the mandatory operational guidelines and constraints for AI ag
      - `dbscripts/triggers/`
      - `dbscripts/indexes/`
      - `dbscripts/inserts/`
+   - Installer exception: `dbscripts/install.psql` is the ordered execution manifest; `dbscripts/install.sql` is a generated, ignored pgAdmin bundle. Keep object definitions in their dedicated folders and regenerate the bundle using `node dbscripts/build-install.mjs`.
 
 2. **File Maintenance Policy for Triggers, Views, Functions, Procedures**:
    - Each trigger, view, function, and procedure must be maintained in its own dedicated, individual `.sql` file named after the object (e.g., `dbscripts/functions/fn_calculate_task_effort.sql`).
@@ -24,7 +34,7 @@ This file defines the mandatory operational guidelines and constraints for AI ag
 3. **Cumulative Single File Policy for Tables, Alters, Indexes, Inserts**:
    - The following categories must be maintained as single cumulative files (or categorized master files):
      - Tables: `dbscripts/tables/tables.sql` (or table definitions)
-     - Alter statements: `dbscripts/tables/alter_tables.sql`
+     - Alter statements after go-live only: `dbscripts/tables/alter_tables.sql` (not maintained during development)
      - Indexes: `dbscripts/indexes/indexes.sql`
      - Inserts / Seed Data: `dbscripts/inserts/inserts.sql`
    - When adding new DDL/DML for these categories, **new SQL statements must be appended at the end of the file** preceded by a standardized datetime comment header:

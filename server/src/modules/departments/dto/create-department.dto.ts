@@ -25,9 +25,10 @@ export class CreateDepartmentDto {
 
   @ApiPropertyOptional({
     example: 'c1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c',
-    description: 'Head of Department User UUID',
+    description: 'Head of Department User UUID; null clears the assignment on update',
+    nullable: true,
   })
   @IsUUID()
   @IsOptional()
-  hodUserId?: string;
+  hodUserId?: string | null;
 }

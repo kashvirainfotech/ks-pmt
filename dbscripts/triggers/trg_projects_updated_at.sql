@@ -5,8 +5,6 @@
 -- Note: Modify this existing file directly for any future changes.
 -- ========================================================
 
-DROP TRIGGER IF EXISTS trg_projects_updated_at ON projects;
-
 CREATE TRIGGER trg_projects_updated_at
 BEFORE UPDATE ON projects
 FOR EACH ROW

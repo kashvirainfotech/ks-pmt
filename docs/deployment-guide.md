@@ -60,39 +60,17 @@ CREATE DATABASE kspmt_prod WITH ENCODING 'UTF8';
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 ```
 
-### 2.2 Ordered Execution of Static SQL Scripts
-Run the scripts in strict sequential order from the project root:
+### 2.2 Blank-Database Installation
+
+The project is under development. These scripts are for a blank database, including when rehearsing deployment. Once the project is declared live, use reviewed incremental migrations for existing databases.
+
+From the project root, run the ordered installer manually:
 
 ```bash
-# Step 1: Base Tables (Audit columns & masters)
-psql -U postgres -d kspmt_prod -f dbscripts/tables/tables.sql
-
-# Step 2: Cumulative Alter Statements (if any)
-psql -U postgres -d kspmt_prod -f dbscripts/tables/alter_tables.sql
-
-# Step 3: Stored Functions
-psql -U postgres -d kspmt_prod -f dbscripts/functions/fn_set_updated_at.sql
-psql -U postgres -d kspmt_prod -f dbscripts/functions/fn_calculate_task_effort.sql
-psql -U postgres -d kspmt_prod -f dbscripts/functions/fn_log_task_audit.sql
-
-# Step 4: Triggers
-psql -U postgres -d kspmt_prod -f dbscripts/triggers/trg_users_updated_at.sql
-psql -U postgres -d kspmt_prod -f dbscripts/triggers/trg_projects_updated_at.sql
-psql -U postgres -d kspmt_prod -f dbscripts/triggers/trg_tasks_updated_at.sql
-psql -U postgres -d kspmt_prod -f dbscripts/triggers/trg_tasks_audit.sql
-
-# Step 5: Analytical Views
-psql -U postgres -d kspmt_prod -f dbscripts/views/vw_project_financial_summary.sql
-psql -U postgres -d kspmt_prod -f dbscripts/views/vw_product_license_summary.sql
-psql -U postgres -d kspmt_prod -f dbscripts/views/vw_employee_workload.sql
-psql -U postgres -d kspmt_prod -f dbscripts/views/vw_task_hierarchy.sql
-
-# Step 6: Optimized Composite Indexes
-psql -U postgres -d kspmt_prod -f dbscripts/indexes/indexes.sql
-
-# Step 7: System Seed Data & Super Admin
-psql -U postgres -d kspmt_prod -f dbscripts/inserts/inserts.sql
+psql -X -v ON_ERROR_STOP=1 -U postgres -d kspmt_prod -f dbscripts/install.psql
 ```
+
+For pgAdmin's Query Tool, run `node dbscripts/build-install.mjs`, then open the generated `dbscripts/install.sql` and execute the entire file against the blank database. Generation only combines files; it does not connect to PostgreSQL. See [database instructions](../dbscripts/README.md) for prerequisites and error handling.
 
 ---
 

@@ -219,17 +219,6 @@ BEGIN
 END $$;
 
 -- ========================================================
--- Date & Time: 2026-09-25 19:48:00 (IST)
--- Description: Update Super Admin password hash to valid bcrypt for 'Admin@123456'
--- ========================================================
-UPDATE users 
-SET password_hash = '$2a$10$vEVL52lkxWGMGBRk/VloLOGYV1xW7FNQ49ODuTSHO6lAZ5V9H7ZRO',
-    is_email_login_allowed = TRUE,
-    is_active = TRUE,
-    updated_at = CURRENT_TIMESTAMP
-WHERE email = 'admin@kashvirainfotech.com';
-
--- ========================================================
 -- Date & Time: 2026-09-25 20:10:00 (IST)
 -- Description: Master Seed Data for Default Clients
 -- ========================================================

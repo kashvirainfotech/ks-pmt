@@ -69,7 +69,8 @@ KS-PMT is architected following the **Clean Architecture / Modular Monolith** pa
 - **Database Management & Script Policy**:
   - All database objects are managed via raw SQL scripts inside the `dbscripts/` directory:
     - Tables: `dbscripts/tables/tables.sql`
-    - Alters: `dbscripts/tables/alter_tables.sql`
+    - Development schema changes: edit canonical `CREATE` definitions for blank-database installs; incremental migrations begin after go-live.
+    - Installer: `dbscripts/install.psql`; pgAdmin bundle generated with `node dbscripts/build-install.mjs`.
     - Views: Individual files in `dbscripts/views/`
     - Functions: Individual files in `dbscripts/functions/`
     - Procedures: Individual files in `dbscripts/procedures/`
@@ -146,9 +147,10 @@ ks-pmt/
 |   |-- tasks-checklist.md
 |   `-- walkthrough.md
 |-- dbscripts/
+|   |-- install.psql          # Ordered psql installer
+|   |-- build-install.mjs     # Generate ignored install.sql for pgAdmin
 |   |-- tables/
-|   |   |-- tables.sql
-|   |   `-- alter_tables.sql
+|   |   `-- tables.sql
 |   |-- views/
 |   |-- sequences/
 |   |-- functions/

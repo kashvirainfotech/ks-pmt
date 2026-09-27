@@ -52,8 +52,11 @@ Evidence: [completion review](walkthrough/completion-status-review-2026-09-26.md
 - [x] `user_push_tokens`: FCM registration tokens for Android and iOS devices
 - [x] `audit_logs`: Detailed activity tracking (entity, action, old/new values, IP, user-agent, location)
 
-### 2.2 Alter Statements (`dbscripts/tables/alter_tables.sql`)
-- [x] Add cumulative alter statements with datetime comment blocks when modifying tables (Template initialized)
+### 2.2 Blank-Database Development Schema
+- [x] Fold development schema changes into canonical `CREATE TABLE` definitions.
+- [x] Use `department_heads` to avoid circular table dependencies while enforcing head assignments with foreign keys.
+- [x] Provide an ordered terminal installer and generated plain SQL bundle for pgAdmin.
+- Incremental migrations apply only after the project is declared live.
 
 ### 2.3 Indexes (`dbscripts/indexes/indexes.sql`)
 - [x] Foreign key indexes on all relation columns
