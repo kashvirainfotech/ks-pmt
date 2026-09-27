@@ -176,6 +176,9 @@ Built with a **NestJS REST API backend**, a modern **React 18 + Tailwind CSS web
 ```
 ks-pmt/
 ├── dbscripts/                        # Static PostgreSQL DDL/DML scripts (Static review only)
+│   ├── install.psql                  # Run all object scripts and seeds with psql
+│   ├── build-install.mjs             # Generate install.sql for pgAdmin (no DB connection)
+│   ├── install.sql                   # Generated, Git-ignored bundle; regenerate after SQL changes
 │   ├── tables/                       # tables.sql (current blank-database schema)
 │   ├── views/                        # vw_project_financial_summary.sql, etc.
 │   ├── functions/                    # fn_calculate_task_effort.sql, fn_set_updated_at.sql, etc.
@@ -233,19 +236,39 @@ ks-pmt/
 > [!IMPORTANT]
 > **This project is under development.** After every major change, the developer / DBA will run and test it against a blank database. Maintain schema changes directly in the canonical `CREATE` definitions instead of adding `ALTER`, `DROP`, `UPDATE`, or `DELETE` migration statements. Required seed inserts and application logic inside SQL functions/procedures are retained. Incremental migrations will be used once the project is declared live. See [database script guidelines](AGENTS.md#1-database-script-generation--management-rules).
 
-Create a blank database manually, then run all object scripts and seed data from the project root with one command:
+**1. Prepare a blank database.** The developer / DBA performs these steps manually. Install the `psql` client for the terminal option, and ensure the database user can create objects in `public` and install the `uuid-ossp` and `pgcrypto` extensions. The installer creates these extensions; their packages must be available on the PostgreSQL server.
+
+Create a new database in pgAdmin, or use the PostgreSQL `createdb` command:
+
+```bash
+createdb -U postgres kspmt_db
+```
+
+Use the same database name in the installation command and `DB_NAME` in `server/.env`. The commands below assume `kspmt_db`; change it if your blank database has a different name. Existing development databases must be rebuilt by the developer / DBA before using the redesigned schema.
+
+**2. Choose one installation option.** Run commands from the project root.
+
+**Option A — Terminal:** run all separate object scripts and seed data with one command:
 
 ```bash
 psql -X -v ON_ERROR_STOP=1 -U postgres -d kspmt_db -f dbscripts/install.psql
 ```
 
-For pgAdmin's Query Tool, generate the combined plain SQL file first (this does not execute SQL):
+The installer runs tables/extensions, functions, triggers, views, indexes, and seed data in dependency order within one transaction, stopping on errors. It is for a blank database, not an upgrade of an existing installation.
+
+**Option B — pgAdmin Query Tool:** generate the combined plain SQL file first (Node.js 20+; generation does not connect to a database or execute SQL):
 
 ```bash
 node dbscripts/build-install.mjs
 ```
 
-Open `dbscripts/install.sql` in the Query Tool connected to the blank database and execute the entire script. Object files remain separate; regenerate this ignored bundle after SQL changes. See [database installation instructions](dbscripts/README.md) for prerequisites, execution order, and error handling.
+On Windows, you can instead double-click **`build-db-install.bat`** in the project root. It generates the same file and keeps the window open to display the result. From a terminal, use `build-db-install.bat --no-pause` to exit immediately after generation.
+
+Open **Query Tool** on the blank database, open `dbscripts/install.sql`, clear any text selection, and choose **Execute script** to run the entire file. Use this generated file in Query Tool; `install.psql` contains commands intended for the `psql` client. Check the Messages panel for completion. If an error leaves the transaction aborted, run `ROLLBACK;` before retrying the corrected script.
+
+**3. Keep the source files separate.** Edit object definitions in their dedicated folders. Add new object files to `dbscripts/install.psql` in dependency order, and regenerate the Git-ignored `install.sql` after every SQL change. The former `alter_tables.sql` is no longer required: its changes are part of the table definitions, and `department_heads` replaces the circular department/user relationship.
+
+Both options include the seed data and [default Super Admin account](#-default-super-admin-credentials); do not run the seed file again separately. See [database installation instructions](dbscripts/README.md) for more details.
 
 ---
 
@@ -269,11 +292,11 @@ Open `dbscripts/install.sql` in the Query Tool connected to the blank database a
    Configure your database and AWS credentials in `.env`:
    ```env
    PORT=4000
-   DATABASE_HOST=localhost
-   DATABASE_PORT=5432
-   DATABASE_USER=postgres
-   DATABASE_PASSWORD=your_postgres_password
-   DATABASE_NAME=kspmt_db
+   DB_HOST=localhost
+   DB_PORT=5432
+   DB_USER=postgres
+   DB_PASSWORD=your_postgres_password
+   DB_NAME=kspmt_db
 
    JWT_ACCESS_SECRET=super_secret_access_key_change_in_production_32_chars
    JWT_ACCESS_EXPIRATION=900s
@@ -351,7 +374,7 @@ Open `dbscripts/install.sql` in the Query Tool connected to the blank database a
 
 ## 🔑 Default Super Admin Credentials
 
-Upon executing `dbscripts/inserts/inserts.sql`, the root Super Admin account is provisioned:
+The database installer includes `dbscripts/inserts/inserts.sql` and provisions the root Super Admin account:
 
 | Parameter | Default Value | Notes |
 | :--- | :--- | :--- |
