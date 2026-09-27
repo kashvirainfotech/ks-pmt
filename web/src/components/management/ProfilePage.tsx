@@ -4,6 +4,9 @@ import api from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import { RecordForm, Row, errorText } from './EntityManager';
 import { f } from './config';
+import { DataGrid, ActionButton } from '../common/DataGrid';
+import { useListing } from '../../hooks/useListing';
+import { CheckCheck, Eye, LogOut } from 'lucide-react';
 const preferenceFields = [
   f('inApp', 'In-app alerts', { type: 'checkbox' }),
   f('email', 'Email alerts', { type: 'checkbox' }),
@@ -12,26 +15,20 @@ const preferenceFields = [
 export function ProfilePage() {
   const { user, logout } = useAuth();
   const [preferences, setPreferences] = useState<Row | null>(null);
-  const [sessions, setSessions] = useState<Row[]>([]);
+  const {
+    rows: sessions,
+    loading: sessionsLoading,
+    error: sessionError,
+    reload: loadSessions,
+  } = useListing<Row>('/auth/sessions');
   const [error, setError] = useState('');
-  const [sessionError, setSessionError] = useState('');
   const [message, setMessage] = useState('');
   const [uploading, setUploading] = useState(false);
-  const loadSessions = async () => {
-    try {
-      const res: any = await api.get('/auth/sessions');
-      setSessions(res.data);
-      setSessionError('');
-    } catch (e) {
-      setSessionError(errorText(e));
-    }
-  };
   useEffect(() => {
     api
       .get('/auth/preferences')
       .then((res: any) => setPreferences(res.data))
       .catch((e) => setError(errorText(e)));
-    loadSessions();
   }, []);
   return (
     <div className="max-w-3xl space-y-6">
@@ -98,31 +95,35 @@ export function ProfilePage() {
           />
         )}
       </section>
-      <section className="entity-panel">
-        <h2 className="mb-3 font-bold">Device sessions</h2>
-        {sessionError && <p role="status">{sessionError}</p>}
-        {sessions.map((s) => (
-          <div className="flex justify-between gap-4 border-b py-3" key={s.id}>
-            <span>
-              {s.device_platform} · {new Date(s.created_at).toLocaleString()}
-              {s.is_current && ' · Current session'}
-            </span>
-            <button
-              onClick={async () => {
-                try {
-                  await api.delete(`/auth/sessions/${s.id}`);
-                  if (s.is_current) await logout();
-                  else await loadSessions();
-                } catch (e) {
-                  setError(errorText(e));
-                }
-              }}
-            >
-              Revoke
-            </button>
-          </div>
-        ))}
-      </section>
+      <DataGrid
+        title="Device sessions"
+        data={sessions}
+        loading={sessionsLoading}
+        error={sessionError}
+        onRetry={loadSessions}
+        columns={[
+          { id: 'device_platform', label: 'Platform' },
+          {
+            id: 'created_at',
+            label: 'Signed in',
+            render: (s) => new Date(s.created_at).toLocaleString(),
+          },
+          { id: 'is_current', label: 'Current session' },
+        ]}
+        actions={[
+          {
+            label: 'Revoke',
+            icon: LogOut,
+            danger: true,
+            onClick: async (s) => {
+              if (!window.confirm('Revoke this device session?')) return;
+              await api.delete(`/auth/sessions/${s.id}`);
+              if (s.is_current) await logout();
+              else await loadSessions();
+            },
+          },
+        ]}
+      />
       <section className="entity-panel">
         <h2 className="mb-3 font-bold">Change password</h2>
         <RecordForm
@@ -147,81 +148,74 @@ export function ProfilePage() {
   );
 }
 export function NotificationsPage() {
-  const [rows, setRows] = useState<Row[]>([]);
-  const [error, setError] = useState('');
-  const [page, setPage] = useState(1);
-  const [pages, setPages] = useState(1);
-  const load = async () => {
-    try {
-      const res: any = await api.get('/notifications', {
-        params: { page, limit: 20 },
-      });
-      setRows(res.data.notifications);
-      setPages(res.data.totalPages);
-    } catch (e) {
-      setError(errorText(e));
-    }
-  };
-  useEffect(() => {
-    load();
-  }, [page]);
+  const { rows, loading, error, reload } = useListing<Row>('/notifications');
+  const [actionError, setActionError] = useState('');
   return (
-    <div className="space-y-4">
-      <h1 className="text-xl font-bold">Notifications</h1>
-      {error && <p role="alert">{error}</p>}
-      <button
-        onClick={async () => {
-          try {
-            await api.patch('/notifications/read-all');
-            await load();
-          } catch (e) {
-            setError(errorText(e));
-          }
-        }}
-      >
-        Mark all as read
-      </button>
-      {rows.map((r) => (
-        <article
-          key={r.id}
-          className={`entity-panel ${r.is_read ? '' : 'border-blue-500'}`}
-        >
-          <h2 className="font-bold">{r.title}</h2>
-          <p>{r.body}</p>
-          {r.entity_type === 'TASK' && (
-            <a className="text-blue-600 dark:text-blue-400" href={`/tasks?taskId=${r.entity_id}`}>
-              Open task
-            </a>
-          )}
-          {!r.is_read && (
-            <button
-              className="ml-4"
-              onClick={async () => {
-                try {
-                  await api.patch(`/notifications/${r.id}/read`);
-                  await load();
-                } catch (e) {
-                  setError(errorText(e));
-                }
-              }}
-            >
-              Mark read
-            </button>
-          )}
-        </article>
-      ))}
-      {!rows.length && <div className="entity-panel py-12 text-center"><h2 className="font-semibold">You are all caught up</h2><p className="page-description">Task updates and team activity will appear here.</p></div>}
-      <div className="flex gap-4">
-        <button disabled={page === 1} onClick={() => setPage((p) => p - 1)}>
-          Previous
-        </button>
-        <span>
-          Page {page} of {pages || 1}
-        </span>
-        <button disabled={page >= pages} onClick={() => setPage((p) => p + 1)}>
-          Next
-        </button>
+    <div className="space-y-5">
+      <div className="page-intro">
+        <div>
+          <p className="page-eyebrow mb-2">Personal</p>
+          <h1>Notifications</h1>
+          <p className="page-description">
+            Task updates and team activity, in one place.
+          </p>
+        </div>
       </div>
+      <DataGrid
+        title="Notifications"
+        data={rows}
+        loading={loading}
+        error={error || actionError}
+        onRetry={() => {
+          setActionError('');
+          void reload();
+        }}
+        columns={[
+          { id: 'title', label: 'Title' },
+          { id: 'body', label: 'Message' },
+          { id: 'notification_type', label: 'Type' },
+          { id: 'is_read', label: 'Read' },
+          {
+            id: 'created_at',
+            label: 'Received',
+            render: (r) => new Date(r.created_at).toLocaleString(),
+          },
+        ]}
+        toolbar={
+          <ActionButton
+            icon={CheckCheck}
+            onClick={async () => {
+              try {
+                await api.patch('/notifications/read-all');
+                await reload();
+              } catch (e) {
+                setActionError(errorText(e));
+              }
+            }}
+          >
+            Mark all as read
+          </ActionButton>
+        }
+        actions={[
+          {
+            label: 'View task',
+            icon: Eye,
+            hidden: (r) => r.entity_type !== 'TASK',
+            onClick: (r) => {
+              window.location.href = `/tasks?taskId=${encodeURIComponent(r.entity_id)}`;
+            },
+          },
+          {
+            label: 'Mark read',
+            icon: CheckCheck,
+            hidden: (r) => r.is_read,
+            onClick: async (r) => {
+              await api.patch(`/notifications/${r.id}/read`);
+              await reload();
+            },
+          },
+        ]}
+      />
     </div>
   );
 }

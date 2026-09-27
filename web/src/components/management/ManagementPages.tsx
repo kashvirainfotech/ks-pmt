@@ -7,7 +7,6 @@ import {
   Row,
   allRows,
   errorText,
-  rowsOf,
 } from './EntityManager';
 import {
   branchConfig,
@@ -28,6 +27,9 @@ import {
 } from './config';
 import { useAuth } from '../../context/AuthContext';
 import type { AdminScreen, PortfolioScreen } from './screens';
+import { DataGrid } from '../common/DataGrid';
+import { useListing } from '../../hooks/useListing';
+import { Pencil, Trash2, Power, UserCheck } from 'lucide-react';
 
 function RelatedRecords({
   row,
@@ -36,22 +38,17 @@ function RelatedRecords({
   row: Row;
   kind: 'projects' | 'products';
 }) {
-  const [records, setRecords] = useState<Row[]>([]);
   const [form, setForm] = useState<Row | null>(null);
   const [error, setError] = useState('');
   const [financial, setFinancial] = useState<Row | null>(null);
   const { hasPermission } = useAuth();
   const endpoint = `/${kind}/${row.id}/${kind === 'projects' ? 'members' : 'clients'}`;
-  const load = async () => {
-    try {
-      setRecords(rowsOf(await api.get(endpoint)));
-    } catch (e) {
-      setError(errorText(e));
-    }
-  };
-  useEffect(() => {
-    load();
-  }, [endpoint]);
+  const {
+    rows: records,
+    loading,
+    error: loadError,
+    reload: load,
+  } = useListing<Row>(endpoint);
   const canEdit = hasPermission(
     kind === 'projects' ? 'PROJECTS:UPDATE' : 'PRODUCTS:MANAGE',
   );
@@ -66,48 +63,68 @@ function RelatedRecords({
           {error}
         </p>
       )}
-      {canEdit && (
-        <button className="text-blue-600 dark:text-blue-400" onClick={() => setForm({})}>
-          Add {kind === 'projects' ? 'team member' : 'license'}
-        </button>
-      )}
-      {records.map((r) => (
-        <div
-          key={r.id || r.allocation_id}
-          className="flex flex-wrap justify-between gap-3 border-b py-3"
-        >
-          <span>
-            {r.full_name || r.company_name} — {r.project_role || r.license_type}{' '}
-            —{' '}
-            {r.allocation_percentage
-              ? `${r.allocation_percentage}%`
-              : `${r.currency} ${r.contract_value}`}{' '}
-            {r.license_end_date &&
-              ` · Ends ${String(r.license_end_date).slice(0, 10)}`}
-          </span>
-          {canEdit && (
-            <div className="flex gap-4">
-              <button onClick={() => setForm(r)}>Edit</button>
-              <button
-                onClick={async () => {
-                  try {
+      <DataGrid
+        title={kind === 'projects' ? 'Team allocation' : 'Client licenses'}
+        data={records}
+        loading={loading}
+        error={loadError}
+        onRetry={load}
+        columns={
+          kind === 'projects'
+            ? [
+                { id: 'full_name', label: 'Employee' },
+                { id: 'project_role', label: 'Project role' },
+                {
+                  id: 'allocation_percentage',
+                  label: 'Allocation %',
+                  type: 'number',
+                },
+              ]
+            : [
+                { id: 'company_name', label: 'Client' },
+                { id: 'license_type', label: 'License' },
+                {
+                  id: 'contract_value',
+                  label: 'Contract value',
+                  type: 'number',
+                },
+                { id: 'currency', label: 'Currency' },
+                {
+                  id: 'license_end_date',
+                  label: 'Ends',
+                  value: (r) => r.license_end_date?.slice(0, 10),
+                },
+              ]
+        }
+        onAdd={canEdit ? () => setForm({}) : undefined}
+        addLabel={`Add ${kind === 'projects' ? 'team member' : 'license'}`}
+        actions={
+          canEdit
+            ? [
+                { label: 'Edit', icon: Pencil, onClick: (r) => setForm(r) },
+                {
+                  label: 'Remove',
+                  icon: Trash2,
+                  danger: true,
+                  onClick: async (r) => {
+                    if (
+                      !window.confirm(
+                        `Remove this ${kind === 'projects' ? 'team member' : 'license'}?`,
+                      )
+                    )
+                      return;
                     await api.delete(
                       kind === 'projects'
                         ? `${endpoint}/${r.user_id}`
                         : `/products/clients/${r.id}`,
                     );
                     await load();
-                  } catch (e) {
-                    setError(errorText(e));
-                  }
-                }}
-              >
-                Remove
-              </button>
-            </div>
-          )}
-        </div>
-      ))}
+                  },
+                },
+              ]
+            : []
+        }
+      />
       {form && (
         <RecordForm
           fields={kind === 'projects' ? memberFields : licenseFields}
@@ -172,7 +189,13 @@ export function PortfolioPage({ screen }: { screen: PortfolioScreen }) {
         : versionConfig;
   return (
     <div className="space-y-6">
-      <div className="page-intro"><div><p className="page-eyebrow mb-2">Portfolio</p><h1>{screen.title}</h1><p className="page-description">{screen.description}</p></div></div>
+      <div className="page-intro">
+        <div>
+          <p className="page-eyebrow mb-2">Portfolio</p>
+          <h1>{screen.title}</h1>
+          <p className="page-description">{screen.description}</p>
+        </div>
+      </div>
       <EntityManager key={screen.path} config={config} />
     </div>
   );
@@ -185,7 +208,7 @@ export function ClientsPage() {
         actions: (r, reload) =>
           r.client_type === 'PROSPECT' && (
             <button
-              className="text-blue-600 dark:text-blue-400"
+              className="grid-action"
               onClick={async () => {
                 try {
                   await api.post(`/clients/${r.id}/convert-to-active`);
@@ -195,7 +218,7 @@ export function ClientsPage() {
                 }
               }}
             >
-              Convert to active
+              <UserCheck size={15} aria-hidden="true" /> Convert to active
             </button>
           ),
       }}
@@ -230,7 +253,6 @@ function Tabs({
 function Transitions() {
   const [types, setTypes] = useState<Row[]>([]);
   const [type, setType] = useState('');
-  const [rows, setRows] = useState<Row[]>([]);
   const [error, setError] = useState('');
   const [adding, setAdding] = useState(false);
   const { hasPermission } = useAuth();
@@ -239,17 +261,12 @@ function Transitions() {
       .then(setTypes)
       .catch((e) => setError(errorText(e)));
   }, []);
-  const load = async () => {
-    if (!type) return;
-    try {
-      setRows(rowsOf(await api.get(`/task-workflows/transitions/${type}`)));
-    } catch (e) {
-      setError(errorText(e));
-    }
-  };
-  useEffect(() => {
-    load();
-  }, [type]);
+  const {
+    rows,
+    loading,
+    error: loadError,
+    reload: load,
+  } = useListing<Row>(type ? `/task-workflows/transitions/${type}` : null);
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-bold">Workflow transitions</h2>
@@ -267,30 +284,39 @@ function Transitions() {
           </option>
         ))}
       </select>
-      {hasPermission('TASKS:UPDATE') && (
-        <button className="ml-4 text-blue-600 dark:text-blue-400" onClick={() => setAdding(true)}>
-          Add transition
-        </button>
-      )}
-      {rows.map((r) => (
-        <div key={r.id} className="flex gap-5 border-b py-2">
-          {r.from_status_name} → {r.to_status_name}
-          {hasPermission('TASKS:UPDATE') && (
-            <button
-              onClick={async () => {
-                try {
-                  await api.delete(`/task-workflows/transitions/${r.id}`);
-                  load();
-                } catch (e) {
-                  setError(errorText(e));
-                }
-              }}
-            >
-              Remove
-            </button>
-          )}
-        </div>
-      ))}
+      <DataGrid
+        key={type}
+        title="Workflow transitions"
+        data={rows}
+        loading={loading}
+        error={loadError}
+        onRetry={load}
+        columns={[
+          { id: 'from_status_name', label: 'From status' },
+          { id: 'to_status_name', label: 'To status' },
+        ]}
+        onAdd={
+          hasPermission('TASKS:UPDATE') ? () => setAdding(true) : undefined
+        }
+        addLabel="Add transition"
+        actions={
+          hasPermission('TASKS:UPDATE')
+            ? [
+                {
+                  label: 'Delete',
+                  icon: Trash2,
+                  danger: true,
+                  onClick: async (r) => {
+                    if (!window.confirm('Delete this workflow transition?'))
+                      return;
+                    await api.delete(`/task-workflows/transitions/${r.id}`);
+                    await load();
+                  },
+                },
+              ]
+            : []
+        }
+      />
       {adding && (
         <RecordForm
           fields={transitionFields}
@@ -309,35 +335,23 @@ function Transitions() {
 }
 function PermissionMatrix() {
   const [mode, setMode] = useState('roles');
-  const [subjects, setSubjects] = useState<Row[]>([]);
-  const [permissions, setPermissions] = useState<Row[]>([]);
+  const { hasPermission } = useAuth();
   const [id, setId] = useState('');
-  const [grants, setGrants] = useState<Row[]>([]);
   const [error, setError] = useState('');
-  useEffect(() => {
-    setId('');
-    setGrants([]);
-    Promise.all([
-      allRows(mode === 'roles' ? '/rbac/roles' : `/${mode}`),
-      allRows('/rbac/permissions'),
-    ])
-      .then(([s, p]) => {
-        setSubjects(s);
-        setPermissions(p);
-      })
-      .catch((e) => setError(errorText(e)));
-  }, [mode]);
-  const load = async () => {
-    if (!id) return;
-    try {
-      setGrants(rowsOf(await api.get(`/rbac/${mode}/${id}/permissions`)));
-    } catch (e) {
-      setError(errorText(e));
-    }
-  };
-  useEffect(() => {
-    load();
-  }, [id, mode]);
+  const { rows: subjects, error: subjectError } = useListing<Row>(
+    mode === 'roles' ? '/rbac/roles' : `/${mode}`,
+  );
+  const {
+    rows: permissions,
+    loading: permissionsLoading,
+    error: permissionError,
+  } = useListing<Row>('/rbac/permissions');
+  const {
+    rows: grants,
+    loading,
+    error: grantError,
+    reload: load,
+  } = useListing<Row>(id ? `/rbac/${mode}/${id}/permissions` : null);
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-bold">Role permissions and overrides</h2>
@@ -346,7 +360,15 @@ function PermissionMatrix() {
           {error}
         </p>
       )}
-      <Tabs tabs={['roles', 'branches', 'users']} active={mode} set={setMode} />
+      <Tabs
+        tabs={['roles', 'branches', 'users']}
+        active={mode}
+        set={(next) => {
+          setMode(next);
+          setId('');
+          setError('');
+        }}
+      />
       <select
         aria-label="Permission subject"
         className="rounded border p-2 dark:bg-slate-800"
@@ -361,24 +383,36 @@ function PermissionMatrix() {
         ))}
       </select>
       {id && (
-        <div className="grid gap-3 md:grid-cols-2">
-          {permissions.map((p) => {
+        <DataGrid<Row>
+          key={`${mode}/${id}`}
+          title="Permissions"
+          loading={loading || permissionsLoading}
+          error={subjectError || permissionError || grantError}
+          onRetry={load}
+          data={permissions.map((p) => {
             const grant = grants.find((g) => g.permission_id === p.id);
-            const value = !grant
-              ? 'inherit'
-              : (grant.is_granted ?? grant.is_allowed ?? true)
-                ? 'grant'
-                : 'deny';
-            return (
-              <label
-                className="flex items-center justify-between gap-2 rounded border p-3 text-sm"
-                key={p.id}
-              >
-                {p.permission_code}
+            return {
+              ...p,
+              effect: !grant
+                ? 'inherit'
+                : (grant.is_granted ?? grant.is_allowed ?? true)
+                  ? 'grant'
+                  : 'deny',
+            };
+          })}
+          columns={[
+            { id: 'permission_code', label: 'Permission' },
+            { id: 'module', label: 'Module' },
+            { id: 'description', label: 'Description' },
+            {
+              id: 'effect',
+              label: 'Access',
+              render: (p) => (
                 <select
+                  disabled={!hasPermission('USERS:MANAGE')}
                   aria-label={p.permission_code}
-                  className="rounded border p-1 dark:bg-slate-800"
-                  value={value}
+                  className="form-control"
+                  value={p.effect}
                   onChange={async (e) => {
                     try {
                       await api.put(`/rbac/${mode}/${id}/permissions/${p.id}`, {
@@ -398,10 +432,10 @@ function PermissionMatrix() {
                   </option>
                   {mode !== 'roles' && <option value="deny">Deny</option>}
                 </select>
-              </label>
-            );
-          })}
-        </div>
+              ),
+            },
+          ]}
+        />
       )}
     </div>
   );
@@ -424,7 +458,11 @@ const roleConfig = {
   ],
 };
 export function AdminPage({ screen }: { screen: AdminScreen }) {
-  const configs: Record<Exclude<AdminScreen['title'], 'Transitions' | 'Permissions'>, Entity> = {
+  const { hasPermission } = useAuth();
+  const configs: Record<
+    Exclude<AdminScreen['title'], 'Transitions' | 'Permissions'>,
+    Entity
+  > = {
     Branches: branchConfig,
     Departments: departmentConfig,
     Designations: designationConfig,
@@ -434,25 +472,35 @@ export function AdminPage({ screen }: { screen: AdminScreen }) {
     Roles: roleConfig,
     'Assignment rules': {
       ...assignmentConfig,
-      actions: (r: Row, reload: () => void) => (
-        <button
-          onClick={async () => {
-            try {
-              await api.delete(`/auto-assignment/rules/${r.id}`);
-              reload();
-            } catch (e) {
-              alert(errorText(e));
-            }
-          }}
-        >
-          Deactivate
-        </button>
-      ),
+      detail: false,
+      actions: (r: Row, reload: () => void) =>
+        hasPermission('TASKS:ASSIGN') && (
+          <button
+            className="grid-action"
+            onClick={async () => {
+              try {
+                if (!window.confirm('Deactivate this assignment rule?')) return;
+                await api.delete(`/auto-assignment/rules/${r.id}`);
+                reload();
+              } catch (e) {
+                alert(errorText(e));
+              }
+            }}
+          >
+            <Power size={15} aria-hidden="true" /> Deactivate
+          </button>
+        ),
     },
   };
   return (
     <div className="space-y-6">
-      <div className="page-intro"><div><p className="page-eyebrow mb-2">Organization</p><h1>{screen.title}</h1><p className="page-description">{screen.description}</p></div></div>
+      <div className="page-intro">
+        <div>
+          <p className="page-eyebrow mb-2">Organization</p>
+          <h1>{screen.title}</h1>
+          <p className="page-description">{screen.description}</p>
+        </div>
+      </div>
       {screen.title === 'Transitions' ? (
         <Transitions />
       ) : screen.title === 'Permissions' ? (
@@ -464,42 +512,42 @@ export function AdminPage({ screen }: { screen: AdminScreen }) {
   );
 }
 export function ReleaseCalendar() {
-  const [rows, setRows] = useState<Row[]>([]);
-  const [error, setError] = useState('');
-  useEffect(() => {
-    allRows('/versions')
-      .then(setRows)
-      .catch((e) => setError(errorText(e)));
-  }, []);
+  const { rows, loading, error, reload } = useListing<Row>('/versions');
   return (
-    <div className="space-y-4">
-      <h1 className="text-xl font-bold">Release timeline</h1>
-      {error && <p role="alert">{error}</p>}
-      {rows
-        .sort((a, b) =>
-          String(a.target_release_date || '9999').localeCompare(
-            String(b.target_release_date || '9999'),
-          ),
-        )
-        .map((v) => (
-          <article
-            key={v.id}
-            className="rounded-lg border-l-4 border-blue-500 bg-white p-4 dark:bg-slate-900"
-          >
-            <time>
-              {v.target_release_date
-                ? String(v.target_release_date).slice(0, 10)
-                : 'Unscheduled'}
-            </time>
-            <h2 className="font-bold">
-              {v.version_code} · {v.version_name}
-            </h2>
-            <p>
-              {v.project_name || v.product_name} · {v.status}
-            </p>
-            <p>{v.description}</p>
-          </article>
-        ))}
+    <div className="space-y-5">
+      <div className="page-intro">
+        <div>
+          <p className="page-eyebrow mb-2">Portfolio</p>
+          <h1>Release timeline</h1>
+          <p className="page-description">
+            Plan upcoming versions and keep release dates in sight.
+          </p>
+        </div>
+      </div>
+      <DataGrid
+        title="Release timeline"
+        data={rows}
+        loading={loading}
+        error={error}
+        onRetry={reload}
+        initialSorting={[{ id: 'target_release_date', desc: false }]}
+        columns={[
+          {
+            id: 'target_release_date',
+            label: 'Target release',
+            value: (r) => r.target_release_date?.slice(0, 10) || 'Unscheduled',
+          },
+          { id: 'version_code', label: 'Version' },
+          { id: 'version_name', label: 'Name' },
+          {
+            id: 'scope',
+            label: 'Project / product',
+            value: (r) => r.project_name || r.product_name,
+          },
+          { id: 'status', label: 'Status' },
+          { id: 'description', label: 'Description' },
+        ]}
+      />
     </div>
   );
 }

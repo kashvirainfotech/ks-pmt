@@ -78,6 +78,49 @@
 }
 
 /* Custom Scrollbars */
+@layer components {
+  .listing-grid { overflow: hidden; min-width: 0; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); box-shadow: 0 3px 16px #17203304; }
+  .grid-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 22px; }
+  .grid-count { display: inline-flex; align-items: center; border-radius: 6px; padding: 2px 7px; background: var(--canvas); color: var(--muted); font-size: 11px; font-weight: 600; white-space: nowrap; }
+  .grid-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 0 22px 18px; }
+  .grid-search { display: flex; align-items: center; gap: 10px; flex: 1 1 230px; min-width: 0; border: 1px solid var(--line); border-radius: 9px; padding: 10px 12px; color: var(--muted); background: var(--canvas); }
+  .grid-search input { min-width: 0; width: 100%; outline: none; background: transparent; color: inherit; font-size: 13px; }
+  .grid-search:focus-within { outline: 2px solid #6484ff; outline-offset: 2px; }
+  .grid-action, .grid-add { display: inline-flex; align-items: center; justify-content: center; gap: 7px; border: 1px solid var(--line); border-radius: 8px; padding: 8px 11px; font-size: 12px; font-weight: 600; white-space: nowrap; transition: background .15s; }
+  .grid-action { color: var(--muted); background: var(--surface); }
+  .grid-action:hover:not(:disabled) { background: var(--canvas); color: #3659df; }
+  .grid-action-selected { color: #3659df; border-color: #3659df80; background: #3659df0a; }
+  .dark .grid-action-selected, .dark .grid-action:hover:not(:disabled) { color: #9cafff; }
+  .grid-action-danger { color: #c5374c; }
+  .dark .grid-action-danger { color: #ff97a8; }
+  .grid-add { color: white; background: #3659df; border-color: #3659df; box-shadow: 0 3px 6px #3659df20; }
+  .grid-add:hover { background: #2945b8; }
+  .grid-config { display: grid; gap: 12px; padding: 16px 22px; background: var(--canvas); border-top: 1px solid var(--line); }
+  .grid-rule { display: inline-flex; align-items: center; gap: 8px; padding: 7px 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; font-size: 12px; }
+  .grid-table-scroll { overflow: auto; max-height: 650px; border-block: 1px solid var(--line); }
+  .listing-table { width: 100%; min-width: 720px; border-collapse: separate; border-spacing: 0; text-align: left; font-size: 13px; }
+  .listing-table thead { position: sticky; top: 0; z-index: 1; }
+  .listing-table th { background: var(--canvas); padding: 13px 18px; font-size: 11px; font-weight: 600; color: var(--muted); border-bottom: 1px solid var(--line); white-space: nowrap; }
+  .listing-table th button { display: flex; gap: 7px; align-items: center; }
+  .listing-table td { padding: 15px 18px; border-bottom: 1px solid var(--line); max-width: 380px; overflow-wrap: anywhere; }
+  .listing-table tbody tr:last-child td { border-bottom: 0; }
+  .listing-table tbody tr:hover { background: color-mix(in srgb, var(--canvas) 65%, var(--surface)); }
+  .grid-row-actions { display: flex; align-items: center; gap: 6px; }
+  .grid-row-actions .grid-action { border-color: transparent; padding: 5px 7px; }
+  .grid-group-row { background: var(--canvas); font-weight: 600; }
+  .grid-group-row button { display: flex; gap: 9px; align-items: center; }
+  .grid-empty { display: flex; flex-direction: column; gap: 10px; align-items: center; justify-content: center; min-height: 200px; color: var(--muted); font-size: 13px; }
+  .grid-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; padding: 14px 22px; color: var(--muted); font-size: 12px; }
+  .grid-footer .form-control { padding: 5px 8px; }
+  .grid-page-button { display: inline-flex; padding: 6px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); }
+  .grid-page-button:hover:not(:disabled) { color: #3659df; background: var(--canvas); }
+  .grid-status { display: inline-flex; gap: 6px; align-items: center; border-radius: 20px; padding: 4px 9px; font-size: 11px; font-weight: 600; background: #169b7020; color: #117b59; }
+  .grid-status::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+  .grid-status-inactive { color: var(--muted); background: var(--canvas); }
+  .dark .grid-status:not(.grid-status-inactive) { color: #72dcb4; }
+  @media (max-width: 640px) { .grid-heading, .grid-config, .grid-footer { padding: 14px; } .grid-toolbar { padding: 0 14px 14px; } }
+}
+
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;

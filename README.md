@@ -141,7 +141,7 @@ Built with a **NestJS REST API backend**, a modern **React 18 + Tailwind CSS web
 ### 9. Responsive Web Application (`web/`)
 - Built with **React 18**, **Vite**, **Tailwind CSS**, and **Lucide Icons**.
 - **Interactive Kanban Board**: Dynamic status columns with quick status movement.
-- **Filterable Table View**: Multi-column sorting, priority filters, and branch filters.
+- **Shared Listing Grid**: Built with MIT-licensed [TanStack Table](https://github.com/TanStack/table), with search, column filters, pagination, multi-column sorting and grouping, and expandable groups. Icon actions support adding, viewing, editing, deleting or deactivating records where applicable, plus printing and CSV export of all filtered records. Includes light/dark styling and horizontal scrolling on smaller screens. See the [shared grid guide](docs/shared-listing-grid.md) for reuse.
 - **Comprehensive Task Drawer**: Slide-over drawer with subtasks, live timer, AWS S3 upload progress bar, and threaded comments.
 - **Command Palette (`Ctrl+K`)**: Instant debounced search across all tasks, projects, and clients.
 - **Bento-Grid Dashboard**: Executive metrics for active tasks, billable rupee values, sprint velocity, and branch status.

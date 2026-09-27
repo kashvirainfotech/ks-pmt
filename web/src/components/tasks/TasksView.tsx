@@ -1,4 +1,7 @@
 import { allRows, Row } from '../management/EntityManager';
+import { useListing } from '../../hooks/useListing';
+import { DataGrid } from '../common/DataGrid';
+import { Eye, Pencil } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -7,29 +10,16 @@ import { Task, TaskWorkflowStatus, TaskType } from '../../types';
 import { KanbanBoard } from './KanbanBoard';
 import { TaskDrawer } from './TaskDrawer';
 import { CreateTaskModal } from './CreateTaskModal';
-import {
-  Kanban,
-  List,
-  Plus,
-  Filter,
-  Search,
-  Clock,
-  CheckCircle2,
-  DollarSign,
-} from 'lucide-react';
+import { Kanban, List, Plus, Search } from 'lucide-react';
 
 export const TasksView: React.FC = () => {
-  const { selectedBranchId } = useAuth();
+  const { selectedBranchId, hasPermission } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
-  const [tasks, setTasks] = useState<Task[]>([]);
   const [statuses, setStatuses] = useState<TaskWorkflowStatus[]>([]);
   const [taskTypes, setTaskTypes] = useState<TaskType[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  const [page, setPage] = useState(1);
-  const [pages, setPages] = useState(1);
   const [facets, setFacets] = useState<Record<string, string>>({});
   const [choices, setChoices] = useState<Record<string, Row[]>>({});
   useEffect(() => {
@@ -49,6 +39,7 @@ export const TasksView: React.FC = () => {
 
   // Modals & Drawer
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [startEditing, setStartEditing] = useState(false);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [createModalInitialStatus, setCreateModalInitialStatus] = useState<
     string | undefined
@@ -69,55 +60,37 @@ export const TasksView: React.FC = () => {
     fetchMetadata();
   }, []);
 
-  // Fetch Tasks with filters
-  const fetchTasks = async () => {
-    setLoading(true);
-    try {
-      const res: any = await tasksApi.getTasks({
-        branchId: selectedBranchId || undefined,
-        taskTypeId: selectedTaskTypeId || undefined,
-        priority: selectedPriority || undefined,
-        search: searchQuery || undefined,
-        ...facets,
-        page,
-        limit: 30,
-      });
-
-      setPages(res.meta?.total_pages || res.meta?.totalPages || 1);
-      const list = res?.data?.tasks || res?.tasks || res?.data || [];
-      setTasks(Array.isArray(list) ? list : []);
-
-      // If URL param taskId is present, open that task drawer
-      const urlTaskId = searchParams.get('taskId');
-      if (urlTaskId) {
-        const found = list.find((t: any) => t.id === urlTaskId);
-        if (found) {
-          const detail: any = await tasksApi.getTaskById(urlTaskId);
-          setSelectedTask(detail.data);
-        }
-      }
-    } catch (err) {
-      console.error('Failed to load tasks:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  const {
+    rows: tasks,
+    loading,
+    error,
+    reload: fetchTasks,
+  } = useListing<Task>('/tasks', {
+    branchId: selectedBranchId || undefined,
+    taskTypeId: selectedTaskTypeId || undefined,
+    priority: selectedPriority || undefined,
+    ...facets,
+    ...(viewMode === 'kanban' ? { search: searchQuery || undefined } : {}),
+  });
   useEffect(() => {
-    fetchTasks();
-  }, [
-    selectedBranchId,
-    selectedTaskTypeId,
-    selectedPriority,
-    searchQuery,
-    facets,
-    page,
-  ]);
-
+    const id = searchParams.get('taskId');
+    if (!id) return;
+    let active = true;
+    tasksApi
+      .getTaskById(id)
+      .then((res: any) => {
+        if (active) setSelectedTask(res.data);
+      })
+      .catch(console.error);
+    return () => {
+      active = false;
+    };
+  }, [searchParams]);
   // Open drawer for a task and sync URL
-  const handleOpenDetail = async (task: Task) => {
+  const handleOpenDetail = async (task: Task, edit = false) => {
     try {
       const detail: any = await tasksApi.getTaskById(task.id);
+      setStartEditing(edit);
       setSelectedTask(detail.data);
     } catch (e: any) {
       alert(e.response?.data?.message || 'Unable to load task');
@@ -174,15 +147,17 @@ export const TasksView: React.FC = () => {
             </button>
           </div>
 
-          <button
-            onClick={() => {
-              setCreateModalInitialStatus(undefined);
-              setCreateModalOpen(true);
-            }}
-            className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-md shadow-blue-500/20 hover:bg-blue-700 transition"
-          >
-            <Plus className="h-4 w-4" /> New Task
-          </button>
+          {hasPermission('TASKS:CREATE') && (
+            <button
+              onClick={() => {
+                setCreateModalInitialStatus(undefined);
+                setCreateModalOpen(true);
+              }}
+              className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-md shadow-blue-500/20 hover:bg-blue-700 transition"
+            >
+              <Plus className="h-4 w-4" /> New Task
+            </button>
+          )}
         </div>
       </div>
 
@@ -198,7 +173,6 @@ export const TasksView: React.FC = () => {
             className="form-control max-w-full text-xs"
             value={facets[key] || ''}
             onChange={(e) => {
-              setPage(1);
               setFacets((prev) => {
                 const next = { ...prev };
                 if (e.target.value) next[key] = e.target.value;
@@ -220,7 +194,6 @@ export const TasksView: React.FC = () => {
           className="form-control max-w-full text-xs"
           value={facets.statusId || ''}
           onChange={(e) => {
-            setPage(1);
             setFacets((prev) => {
               const next = { ...prev };
               if (e.target.value) next.statusId = e.target.value;
@@ -239,7 +212,9 @@ export const TasksView: React.FC = () => {
       </div>
       {/* Filter Toolbar */}
       <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
-        <div className="relative flex-1 min-w-[200px]">
+        <div
+          className={`relative flex-1 min-w-[200px] ${viewMode === 'list' ? 'hidden' : ''}`}
+        >
           <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
           <input
             type="text"
@@ -291,133 +266,60 @@ export const TasksView: React.FC = () => {
             tasks={tasks}
             statuses={statuses}
             onOpenDetail={handleOpenDetail}
-            onQuickCreate={handleQuickCreate}
+            onQuickCreate={
+              hasPermission('TASKS:CREATE') ? handleQuickCreate : undefined
+            }
           />
         ) : (
-          /* Table / List View */
-          <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
-            <table className="w-full text-left text-xs">
-              <thead className="border-b border-slate-200 bg-slate-50/70 font-semibold text-slate-600 dark:border-slate-800 dark:bg-slate-800/40 dark:text-slate-300">
-                <tr>
-                  <th className="px-4 py-3">Code</th>
-                  <th className="px-4 py-3">Task Title</th>
-                  <th className="px-4 py-3">Type</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">Priority</th>
-                  <th className="px-4 py-3">Effort</th>
-                  <th className="px-4 py-3">Chargeable</th>
-                  <th className="px-4 py-3">Assignees</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {tasks.length === 0 ? (
-                  <tr>
-                    <td colSpan={8} className="py-8 text-center text-slate-400">
-                      No tasks found
-                    </td>
-                  </tr>
-                ) : (
-                  tasks.map((task) => (
-                    <tr
-                      key={task.id}
-                      onClick={() => handleOpenDetail(task)}
-                      className="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 transition"
-                    >
-                      <td className="px-4 py-3 font-mono font-bold text-blue-600 dark:text-blue-400">
-                        {task.task_code}
-                      </td>
-                      <td className="px-4 py-3 font-semibold text-slate-800 dark:text-slate-200">
-                        {task.title}
-                        {task.project_name && (
-                          <span className="block text-[10px] text-slate-400">
-                            📁 {task.project_name}
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span
-                          className="rounded px-2 py-0.5 text-[10px] font-semibold"
-                          style={{
-                            backgroundColor: `${task.task_type_color || '#3b82f6'}20`,
-                            color: task.task_type_color || '#3b82f6',
-                          }}
-                        >
-                          {task.task_type_name || 'Task'}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span
-                          className="rounded-lg px-2 py-0.5 text-[10px] font-semibold"
-                          style={{
-                            backgroundColor: `${task.status_color || '#3b82f6'}20`,
-                            color: task.status_color || '#3b82f6',
-                          }}
-                        >
-                          {task.status_name}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 font-bold text-[10px]">
-                        {task.priority}
-                      </td>
-                      <td className="px-4 py-3 font-mono text-[11px] text-slate-500">
-                        {task.spent_hours || 0}/{task.estimated_hours || 0}h
-                      </td>
-                      <td className="px-4 py-3">
-                        {task.is_chargeable ? (
-                          <span className="font-semibold text-emerald-600 dark:text-emerald-400">
-                            ₹
-                            {parseFloat(
-                              (task.charge_amount as any) || 0,
-                            ).toLocaleString('en-IN')}
-                          </span>
-                        ) : (
-                          <span className="text-slate-400">No</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex -space-x-1">
-                          {task.assignees && task.assignees.length > 0 ? (
-                            task.assignees.map((a) => (
-                              <div
-                                key={a.id || a.user_id}
-                                title={`${a.first_name} ${a.last_name}`}
-                                className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-[9px] font-bold text-white ring-1 ring-white"
-                              >
-                                {a.first_name ? a.first_name[0] : 'U'}
-                              </div>
-                            ))
-                          ) : (
-                            <span className="text-[10px] text-slate-400">
-                              —
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+          <DataGrid
+            title="Tasks"
+            data={tasks}
+            loading={loading}
+            error={error}
+            onRetry={fetchTasks}
+            columns={[
+              { id: 'task_code', label: 'Code' },
+              { id: 'title', label: 'Task title' },
+              { id: 'project_name', label: 'Project' },
+              { id: 'task_type_name', label: 'Type' },
+              { id: 'status_name', label: 'Status' },
+              { id: 'priority', label: 'Priority' },
+              {
+                id: 'estimated_hours',
+                label: 'Estimated hours',
+                type: 'number',
+              },
+              { id: 'spent_hours', label: 'Logged hours', type: 'number' },
+              { id: 'is_chargeable', label: 'Chargeable' },
+              {
+                id: 'assignees',
+                label: 'Assignees',
+                value: (t) =>
+                  (t.assignees || [])
+                    .map((a) =>
+                      [a.first_name, a.last_name].filter(Boolean).join(' '),
+                    )
+                    .join(', '),
+              },
+            ]}
+            actions={[
+              { label: 'View', icon: Eye, onClick: task => handleOpenDetail(task) },
+              { label: 'Edit', icon: Pencil, hidden: () => !hasPermission('TASKS:UPDATE'), onClick: task => handleOpenDetail(task, true) },
+            ]}
+          />
         )}
       </div>
-
-      <div className="flex gap-4 text-sm">
-        <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
-          Previous
-        </button>
-        <span>
-          Page {page} of {pages}
-        </span>
-        <button disabled={page >= pages} onClick={() => setPage((p) => p + 1)}>
-          Next
-        </button>
-      </div>
+      {error && viewMode === 'kanban' && (
+        <p role="alert">
+          {error} <button onClick={fetchTasks}>Retry</button>
+        </p>
+      )}
       {/* Task Detail Drawer */}
       {selectedTask && (
         <TaskDrawer
           key={selectedTask?.id}
           task={selectedTask}
+          startEditing={startEditing}
           onClose={handleCloseDetail}
           onTaskUpdated={() => {
             fetchTasks();

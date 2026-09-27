@@ -1,8 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import api from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
-import { RecordForm, Row, errorText, rowsOf } from './EntityManager';
+import { RecordForm, Row, errorText } from './EntityManager';
 import { f, ref } from './config';
+import { useListing } from '../../hooks/useListing';
+import { DataGrid } from '../common/DataGrid';
+import { Send, ClipboardCheck } from 'lucide-react';
 const fields = [
   ref('taskId', 'Task', '/tasks', 'title', true),
   f('logDate', 'Work date', { type: 'date', required: true }),
@@ -19,36 +22,22 @@ const fields = [
 ];
 export function TimesheetsPage() {
   const { user, hasPermission } = useAuth();
-  const [rows, setRows] = useState<Row[]>([]);
   const [error, setError] = useState('');
   const [adding, setAdding] = useState(false);
   const [startDate, setStart] = useState('');
   const [endDate, setEnd] = useState('');
-  const [page, setPage] = useState(1);
-  const [pages, setPages] = useState(1);
   const [reviewing, setReviewing] = useState<Row | null>(null);
-  const load = async () => {
-    try {
-      const res: any = await api.get('/time-logs', {
-        params: {
-          page,
-          limit: 20,
-          startDate: startDate || undefined,
-          endDate: endDate || undefined,
-        },
-      });
-      setRows(rowsOf(res));
-      setPages(res.data.totalPages);
-      setError('');
-    } catch (e) {
-      setError(errorText(e));
-    }
-  };
-  useEffect(() => {
-    load();
-  }, [page, startDate, endDate]);
+  const {
+    rows,
+    loading,
+    error: loadError,
+    reload: load,
+  } = useListing<Row>('/time-logs', {
+    startDate: startDate || undefined,
+    endDate: endDate || undefined,
+  });
   return (
-    <section className="entity-panel space-y-5">
+    <section className="space-y-5">
       <h1 className="text-xl font-bold">Timesheets and approvals</h1>
       <div className="flex flex-wrap gap-4">
         <label>
@@ -60,7 +49,6 @@ export function TimesheetsPage() {
             value={startDate}
             onChange={(e) => {
               setStart(e.target.value);
-              setPage(1);
             }}
           />
         </label>
@@ -73,97 +61,64 @@ export function TimesheetsPage() {
             value={endDate}
             onChange={(e) => {
               setEnd(e.target.value);
-              setPage(1);
             }}
           />
         </label>
-        {hasPermission('TIMELOGS:LOG_OWN') && (
-          <button
-            className="rounded bg-blue-600 px-3 py-2 text-white"
-            onClick={() => setAdding(true)}
-          >
-            Log work
-          </button>
-        )}
       </div>
-      {error && (
-        <p role="alert" className="text-red-600 dark:text-red-400">
-          {error}
-        </p>
-      )}
-      <div className="overflow-x-auto">
-        <table className="data-table w-full text-left text-sm">
-          <thead>
-            <tr>
-              {[
-                'Date',
-                'Employee',
-                'Task',
-                'Summary',
-                'Hours',
-                'Billable',
-                'Status',
-                'Actions',
-              ].map((h) => (
-                <th className="p-3" key={h}>
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((r) => (
-              <tr key={r.id} className="border-t border-slate-200 dark:border-slate-700">
-                <td className="p-3">{String(r.log_date).slice(0, 10)}</td>
-                <td className="p-3">{r.user_name}</td>
-                <td className="p-3">{r.task_title}</td>
-                <td className="p-3">{r.description}</td>
-                <td className="p-3">{r.hours_spent}</td>
-                <td className="p-3">{r.is_billable ? 'Yes' : 'No'}</td>
-                <td className="p-3">
-                  {r.approval_status || 'DRAFT'}
-                  {r.review_remarks && <p>{r.review_remarks}</p>}
-                </td>
-                <td className="p-3">
-                  {r.user_id === user?.id &&
-                    ['DRAFT', 'REJECTED'].includes(
-                      r.approval_status || 'DRAFT',
-                    ) && (
-                      <button
-                        onClick={async () => {
-                          try {
-                            await api.patch(`/time-logs/${r.id}/submit`);
-                            await load();
-                          } catch (e) {
-                            setError(errorText(e));
-                          }
-                        }}
-                      >
-                        Submit
-                      </button>
-                    )}
-                  {hasPermission('TIMELOGS:APPROVE') &&
-                    r.user_id !== user?.id &&
-                    r.approval_status === 'SUBMITTED' && (
-                      <button onClick={() => setReviewing(r)}>Review</button>
-                    )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <div className="flex gap-4">
-        <button disabled={page === 1} onClick={() => setPage((p) => p - 1)}>
-          Previous
-        </button>
-        <span>
-          Page {page} of {pages || 1}
-        </span>
-        <button disabled={page >= pages} onClick={() => setPage((p) => p + 1)}>
-          Next
-        </button>
-      </div>
+      <DataGrid
+        title="Timesheets"
+        data={rows}
+        loading={loading}
+        error={loadError || error}
+        onRetry={() => {
+          setError('');
+          void load();
+        }}
+        columns={[
+          {
+            id: 'log_date',
+            label: 'Date',
+            value: (r) => String(r.log_date).slice(0, 10),
+          },
+          { id: 'user_name', label: 'Employee' },
+          { id: 'task_title', label: 'Task' },
+          { id: 'description', label: 'Summary' },
+          { id: 'hours_spent', label: 'Hours', type: 'number' },
+          { id: 'is_billable', label: 'Billable' },
+          {
+            id: 'approval_status',
+            label: 'Status',
+            value: (r) => r.approval_status || 'DRAFT',
+          },
+          { id: 'review_remarks', label: 'Review remarks' },
+        ]}
+        onAdd={
+          hasPermission('TIMELOGS:LOG_OWN') ? () => setAdding(true) : undefined
+        }
+        addLabel="Log work"
+        actions={[
+          {
+            label: 'Submit',
+            icon: Send,
+            hidden: (r) =>
+              r.user_id !== user?.id ||
+              !['DRAFT', 'REJECTED'].includes(r.approval_status || 'DRAFT'),
+            onClick: async (r) => {
+              await api.patch(`/time-logs/${r.id}/submit`);
+              await load();
+            },
+          },
+          {
+            label: 'Review',
+            icon: ClipboardCheck,
+            hidden: (r) =>
+              !hasPermission('TIMELOGS:APPROVE') ||
+              r.user_id === user?.id ||
+              r.approval_status !== 'SUBMITTED',
+            onClick: (r) => setReviewing(r),
+          },
+        ]}
+      />
       {adding && (
         <div className="entity-panel">
           <RecordForm

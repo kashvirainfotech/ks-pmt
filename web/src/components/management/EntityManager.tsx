@@ -1,6 +1,11 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useDialogFocus } from '../../hooks/useDialogFocus';
 import api from '../../api/client';
+import { fetchListing } from '../../api/listings';
+import { useListing } from '../../hooks/useListing';
+import { DataGrid, type GridAction } from '../common/DataGrid';
+import { Eye, Pencil, Power, X } from 'lucide-react';
+import { displayValue } from '../common/gridExport';
 import { useAuth } from '../../context/AuthContext';
 
 export type Row = Record<string, any>;
@@ -26,7 +31,6 @@ export type Entity = {
   columns: string[];
   permission?: string;
   updatePermission?: string;
-  paginated?: boolean;
   status?: boolean;
   noEdit?: boolean;
   detail?: boolean;
@@ -47,17 +51,9 @@ export function rowsOf(res: any): Row[] {
     : d?.data || d?.users || d?.tasks || d?.timeLogs || [];
 }
 export async function allRows(path: string): Promise<Row[]> {
-  const output: Row[] = [];
-  for (let page = 1; ; page++) {
-    const res: any = await api.get(path, { params: { page, limit: 100 } });
-    output.push(...rowsOf(res));
-    const meta = res.meta || res.data?.meta || res.data;
-    if (page >= Number(meta?.total_pages ?? meta?.totalPages ?? 1))
-      return output;
-  }
+  return fetchListing(path);
 }
-const inputClass =
-  'form-control mt-1.5 w-full text-slate-900 dark:text-white';
+const inputClass = 'form-control mt-1.5 w-full text-slate-900 dark:text-white';
 export function RecordForm({
   fields,
   initial = {},
@@ -146,7 +142,10 @@ export function RecordForm({
       }}
     >
       {error && (
-        <p role="alert" className="rounded bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950/40 dark:text-red-300">
+        <p
+          role="alert"
+          className="rounded bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950/40 dark:text-red-300"
+        >
           {error}
         </p>
       )}
@@ -255,215 +254,165 @@ export function RecordForm({
 }
 export function EntityManager({ config }: { config: Entity }) {
   const { hasPermission } = useAuth();
-  const [rows, setRows] = useState<Row[]>([]);
-  const [page, setPage] = useState(1);
-  const [pages, setPages] = useState(1);
-  const [search, setSearch] = useState('');
+  const {
+    rows,
+    loading,
+    error: loadError,
+    reload: load,
+  } = useListing<Row>(config.endpoint, { includeInactive: true });
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(true);
   const [form, setForm] = useState<Row | null>(null);
   const closeForm = useCallback(() => setForm(null), []);
   useDialogFocus(!!form, '[data-record-dialog]', closeForm);
   const [selected, setSelected] = useState<Row | null>(null);
-  const load = async () => {
-    setLoading(true);
-    setError('');
-    try {
-      const res: any = await api.get(config.endpoint, {
-        params: config.paginated
-          ? {
-              page,
-              limit: 20,
-              search: search || undefined,
-              includeInactive: true,
-            }
-          : { includeInactive: true },
-      });
-      setRows(rowsOf(res));
-      setPages(res.meta?.total_pages ?? res.meta?.totalPages ?? 1);
-    } catch (e) {
-      setError(errorText(e));
-    } finally {
-      setLoading(false);
-    }
-  };
-  useEffect(() => {
-    load();
-  }, [config.endpoint, page, search]);
+  const closeDetails = useCallback(() => setSelected(null), []);
+  useDialogFocus(!!selected, '[data-detail-dialog]', closeDetails);
   const canCreate = !config.permission || hasPermission(config.permission);
   const canEdit =
     !config.noEdit &&
     (!config.updatePermission
       ? canCreate
       : hasPermission(config.updatePermission));
-  return (
-    <section className="entity-panel space-y-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-xl font-bold">{config.title}</h2>
-        {canCreate && (
-          <button
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white"
-            onClick={() => setForm(config.defaults || {})}
-          >
-            Add{' '}
-            {config.title === 'Branches'
-              ? 'Branch'
-              : config.title.endsWith('statuses')
-                ? config.title.replace(/statuses$/, 'status')
-                : config.title.replace(/s$/, '')}
-          </button>
-        )}
-      </div>
-      <input
-        aria-label={`Search ${config.title}`}
-        placeholder="Search…"
-        className={inputClass}
-        value={search}
-        onChange={(e) => {
-          setPage(1);
-          setSearch(e.target.value);
-        }}
-      />
-      {error && (
-        <p role="alert" className="text-red-600 dark:text-red-400">
-          {error} <button onClick={load}>Retry</button>
-        </p>
-      )}
-      {loading ? (
-        <p role="status">Loading…</p>
-      ) : (
-        <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-700">
-          <table className="data-table w-full text-left text-sm">
-            <thead>
-              <tr>
-                {config.columns.map((c) => (
-                  <th className="p-3 capitalize" key={c}>
-                    {c.replace(/_/g, ' ')}
-                  </th>
-                ))}
-                <th className="p-3">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows
-                .filter(
-                  (r) =>
-                    config.paginated ||
-                    !search ||
-                    JSON.stringify(r)
-                      .toLowerCase()
-                      .includes(search.toLowerCase()),
+  const detail = async (row: Row) =>
+    config.detail === false
+      ? row
+      : ((await api.get(`${config.endpoint}/${row.id}`)) as any).data;
+  const actions: GridAction<Row>[] = [
+    {
+      label: 'View',
+      icon: Eye,
+      onClick: async (row) => setSelected(await detail(row)),
+    },
+    ...(canEdit
+      ? [
+          {
+            label: 'Edit',
+            icon: Pencil,
+            onClick: async (r: Row) => {
+              const row = await detail(r);
+              setForm({
+                ...row,
+                secondaryBranchIds: row.secondaryBranches?.map(
+                  (b: Row) => b.id,
+                ),
+                assigneeIds: row.assignees?.map(
+                  (a: Row) => a.user_id || a.userId,
+                ),
+                primaryAssigneeId: row.assignees?.find(
+                  (a: Row) => a.is_primary_assignee || a.isPrimary,
+                )?.user_id,
+              });
+            },
+          },
+        ]
+      : []),
+    ...(config.status && canEdit
+      ? [
+          {
+            label: 'Deactivate',
+            icon: Power,
+            hidden: (r: Row) => !r.is_active,
+            onClick: async (r: Row) => {
+              if (
+                !window.confirm(
+                  `Deactivate this ${config.title.toLowerCase()} record?`,
                 )
-                .map((r) => (
-                  <tr
-                    key={r.id || r.allocation_id}
-                    className="border-t border-slate-200 dark:border-slate-700"
+              )
+                return;
+              await api.patch(`${config.endpoint}/${r.id}/status`, {
+                isActive: false,
+              });
+              await load();
+            },
+          },
+          {
+            label: 'Activate',
+            icon: Power,
+            hidden: (r: Row) => !!r.is_active,
+            onClick: async (r: Row) => {
+              await api.patch(`${config.endpoint}/${r.id}/status`, {
+                isActive: true,
+              });
+              await load();
+            },
+          },
+        ]
+      : []),
+  ];
+  const singular =
+    config.title === 'Branches'
+      ? 'Branch'
+      : config.title.endsWith('statuses')
+        ? config.title.replace(/statuses$/, 'status')
+        : config.title.replace(/s$/, '');
+  return (
+    <section className="space-y-5">
+      <DataGrid
+        title={config.title}
+        data={rows}
+        loading={loading}
+        error={loadError || error}
+        onRetry={() => {
+          setError('');
+          void load();
+        }}
+        columns={config.columns.map((id) => ({
+          id,
+          label: id.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
+          ...(id === 'is_active'
+            ? {
+                value: (r: Row) => (r.is_active ? 'Active' : 'Inactive'),
+                render: (r: Row) => (
+                  <span
+                    className={`grid-status ${r.is_active ? '' : 'grid-status-inactive'}`}
                   >
-                    {config.columns.map((c) => (
-                      <td className="p-3" key={c}>
-                        {typeof r[c] === 'boolean'
-                          ? r[c]
-                            ? 'Yes'
-                            : 'No'
-                          : String(r[c] ?? '—')}
-                      </td>
-                    ))}
-                    <td className="p-3">
-                      <div className="flex flex-wrap gap-3">
-                        {canEdit && (
-                          <button
-                            className="text-blue-600 dark:text-blue-400"
-                            onClick={async () => {
-                              try {
-                                const detail: any =
-                                  config.detail === false
-                                    ? { data: r }
-                                    : await api.get(
-                                        `${config.endpoint}/${r.id}`,
-                                      );
-                                const row = detail.data;
-                                setForm({
-                                  ...row,
-                                  secondaryBranchIds:
-                                    row.secondaryBranches?.map(
-                                      (b: Row) => b.id,
-                                    ),
-                                  assigneeIds: row.assignees?.map(
-                                    (a: Row) => a.user_id || a.userId,
-                                  ),
-                                  primaryAssigneeId: row.assignees?.find(
-                                    (a: Row) =>
-                                      a.is_primary_assignee || a.isPrimary,
-                                  )?.user_id,
-                                });
-                              } catch (e) {
-                                setError(errorText(e));
-                              }
-                            }}
-                          >
-                            Edit
-                          </button>
-                        )}
-                        {config.status && canEdit && (
-                          <button
-                            onClick={async () => {
-                              try {
-                                await api.patch(
-                                  `${config.endpoint}/${r.id}/status`,
-                                  { isActive: !r.is_active },
-                                );
-                                await load();
-                              } catch (e) {
-                                setError(errorText(e));
-                              }
-                            }}
-                          >
-                            {r.is_active ? 'Deactivate' : 'Activate'}
-                          </button>
-                        )}
-                        {config.children && (
-                          <button
-                            className="text-blue-600 dark:text-blue-400"
-                            onClick={() => setSelected(r)}
-                          >
-                            Details
-                          </button>
-                        )}
-                        {config.actions?.(r, load)}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-            </tbody>
-          </table>
-          {!rows.length && <p className="p-4">No records found.</p>}
-        </div>
-      )}
-      {config.paginated && (
-        <div className="flex items-center justify-end gap-4 text-sm text-slate-500 dark:text-slate-400">
-          <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
-            Previous
-          </button>
-          <span>
-            Page {page} of {Math.max(1, pages)}
-          </span>
-          <button
-            disabled={page >= pages}
-            onClick={() => setPage((p) => p + 1)}
-          >
-            Next
-          </button>
-        </div>
-      )}
+                    {r.is_active ? 'Active' : 'Inactive'}
+                  </span>
+                ),
+              }
+            : {}),
+          ...(config.fields.find((f) => (f.key || snake(f.name)) === id)
+            ?.type === 'number'
+            ? { type: 'number' as const }
+            : {}),
+        }))}
+        onAdd={canCreate ? () => setForm(config.defaults || {}) : undefined}
+        addLabel={`Add ${singular}`}
+        actions={actions}
+        extraActions={
+          config.actions ? (r) => config.actions?.(r, load) : undefined
+        }
+      />
       {selected && (
-        <div className="entity-panel">
-          <button
-            className="mb-4 text-blue-600"
-            onClick={() => setSelected(null)}
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/50 p-4">
+          <div
+            data-detail-dialog
+            role="dialog"
+            aria-modal="true"
+            aria-label={`View ${config.title}`}
+            className="entity-panel max-h-[90vh] w-full max-w-5xl overflow-y-auto"
           >
-            Close details
-          </button>
-          {config.children?.(selected)}
+            <button
+              className="grid-action mb-4"
+              onClick={() => setSelected(null)}
+            >
+              <X size={15} aria-hidden="true" /> Close details
+            </button>
+            <h3 className="mb-4 text-lg font-bold">{config.title} details</h3>
+            <dl className="mb-5 grid gap-4 sm:grid-cols-2">
+              {config.columns.map((key) => (
+                <div key={key}>
+                  <dt className="text-xs capitalize text-slate-500">
+                    {key.replace(/_/g, ' ')}
+                  </dt>
+                  <dd className="mt-1 text-sm">
+                    {displayValue(selected[key])}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+            {config.children?.(selected)}
+          </div>
         </div>
       )}
       {form && (

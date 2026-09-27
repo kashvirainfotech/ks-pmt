@@ -35,17 +35,21 @@ import {
   FileText,
 } from 'lucide-react';
 import axios from 'axios';
+import { DataGrid } from '../common/DataGrid';
+import { fetchListing } from '../../api/listings';
 
 interface TaskDrawerProps {
   task: Task | null;
   onClose: () => void;
   onTaskUpdated: () => void;
+  startEditing?: boolean;
 }
 
 export const TaskDrawer: React.FC<TaskDrawerProps> = ({
   task,
   onClose,
   onTaskUpdated,
+  startEditing = false,
 }) => {
   if (!task) return null;
 
@@ -60,7 +64,7 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [timeLogs, setTimeLogs] = useState<TimeLog[]>([]);
 
-  const [editing, setEditing] = useState(false);
+  const [editing, setEditing] = useState(startEditing);
 
   // Subtask form
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
@@ -144,8 +148,9 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({
   // Load Time Logs
   const fetchTimeLogs = async () => {
     try {
-      const res: any = await timeLogsApi.getTimeLogs({ taskId: task.id });
-      setTimeLogs(res?.data?.timeLogs || res?.data || []);
+      setTimeLogs(
+        (await fetchListing('/time-logs', { taskId: task.id })) as TimeLog[],
+      );
     } catch (e) {
       alert(errorText(e));
     }
@@ -613,40 +618,27 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({
               </button>
             </form>
 
-            <div className="divide-y divide-slate-100 dark:divide-slate-800 space-y-1">
-              {subtasks.length === 0 ? (
-                <p className="py-6 text-center text-xs text-slate-400">
-                  No subtasks created yet
-                </p>
-              ) : (
-                subtasks.map((st) => (
-                  <div
-                    key={st.id}
-                    className="flex items-center justify-between py-2.5 px-2 hover:bg-slate-50 dark:hover:bg-slate-800/40 rounded-lg transition"
-                  >
-                    <label className="flex items-center gap-2.5 cursor-pointer flex-1">
-                      <input
-                        type="checkbox"
-                        checked={st.is_completed}
-                        onChange={() =>
-                          handleToggleSubtask(st.id, st.is_completed)
-                        }
-                        className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                      />
-                      <span
-                        className={`text-xs ${
-                          st.is_completed
-                            ? 'line-through text-slate-400'
-                            : 'text-slate-800 dark:text-slate-200'
-                        }`}
-                      >
-                        {st.title}
-                      </span>
-                    </label>
-                  </div>
-                ))
-              )}
-            </div>
+            <DataGrid
+              title="Subtasks"
+              data={subtasks}
+              columns={[
+                { id: 'title', label: 'Title' },
+                {
+                  id: 'is_completed',
+                  label: 'Completed',
+                  render: (st) => (
+                    <input
+                      type="checkbox"
+                      aria-label={`Complete ${st.title}`}
+                      checked={st.is_completed}
+                      onChange={() =>
+                        handleToggleSubtask(st.id, st.is_completed)
+                      }
+                    />
+                  ),
+                },
+              ]}
+            />
           </div>
         )}
 
@@ -741,37 +733,27 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({
               </button>
             </form>
 
-            {/* Past Time Logs */}
-            <div>
-              <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 mb-2">
-                Worklog History ({timeLogs.length})
-              </h4>
-              <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                {timeLogs.map((tl) => (
-                  <div
-                    key={tl.id}
-                    className="py-2.5 flex items-center justify-between text-xs"
-                  >
-                    <div>
-                      <p className="font-semibold text-slate-800 dark:text-slate-200">
-                        {tl.user_name || 'Team Member'}
-                      </p>
-                      <p className="text-[11px] text-slate-400">
-                        {tl.description || 'Logged effort'}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <span className="font-mono font-bold text-blue-600 dark:text-blue-400">
-                        {(tl.duration_minutes / 60).toFixed(1)} hrs
-                      </span>
-                      <p className="text-[10px] text-slate-400">
-                        {tl.log_date}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <DataGrid
+              title="Worklog history"
+              data={timeLogs}
+              columns={[
+                { id: 'user_name', label: 'Employee' },
+                { id: 'description', label: 'Summary' },
+                {
+                  id: 'hours',
+                  label: 'Hours',
+                  type: 'number',
+                  value: (tl) =>
+                    Number((tl as any).hours_spent ?? tl.duration_minutes / 60),
+                },
+                {
+                  id: 'log_date',
+                  label: 'Date',
+                  value: (tl) => tl.log_date?.slice(0, 10),
+                },
+                { id: 'is_billable', label: 'Billable' },
+              ]}
+            />
           </div>
         )}
 
@@ -817,42 +799,31 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({
               )}
             </div>
 
-            {/* Attachments List */}
-            <div className="divide-y divide-slate-100 dark:divide-slate-800">
-              {attachments.length === 0 ? (
-                <p className="py-6 text-center text-xs text-slate-400">
-                  No attachments found
-                </p>
-              ) : (
-                attachments.map((att) => (
-                  <div
-                    key={att.id}
-                    className="flex items-center justify-between py-3 px-2 hover:bg-slate-50 dark:hover:bg-slate-800/40 rounded-xl transition"
-                  >
-                    <div className="flex items-center gap-2.5 truncate">
-                      <Paperclip className="h-4 w-4 text-blue-500 shrink-0" />
-                      <div className="truncate">
-                        <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate">
-                          {att.original_name}
-                        </p>
-                        <p className="text-[10px] text-slate-400">
-                          {(att.file_size_bytes / 1024).toFixed(1)} KB •{' '}
-                          {new Date(att.created_at).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={() => handleDownload(att.id, att.original_name)}
-                      className="rounded-lg p-2 text-slate-500 hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-slate-800 dark:hover:text-blue-400"
-                      title="Download File"
-                    >
-                      <Download className="h-4 w-4" />
-                    </button>
-                  </div>
-                ))
-              )}
-            </div>
+            <DataGrid
+              title="Attachments"
+              data={attachments}
+              columns={[
+                { id: 'original_name', label: 'File name' },
+                {
+                  id: 'file_size_bytes',
+                  label: 'Size (bytes)',
+                  type: 'number',
+                },
+                {
+                  id: 'created_at',
+                  label: 'Uploaded',
+                  render: (att) =>
+                    new Date(att.created_at).toLocaleDateString(),
+                },
+              ]}
+              actions={[
+                {
+                  label: 'Download',
+                  icon: Download,
+                  onClick: (att) => handleDownload(att.id, att.original_name),
+                },
+              ]}
+            />
           </div>
         )}
 

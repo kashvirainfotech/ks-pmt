@@ -1,61 +1,27 @@
-import React, { useState, useEffect } from 'react';
-import { auditLogsApi } from '../../api/endpoints';
+import React, { useState } from 'react';
 import { AuditLogItem } from '../../types';
-import {
-  ShieldCheck,
-  Search,
-  Filter,
-  Eye,
-  X,
-  Globe,
-  Smartphone,
-  Monitor,
-} from 'lucide-react';
+import { useListing } from '../../hooks/useListing';
+import { DataGrid } from '../common/DataGrid';
+import { Eye, X } from 'lucide-react';
 
 export const AuditLogsView: React.FC = () => {
-  const [logs, setLogs] = useState<AuditLogItem[]>([]);
-  const [loading, setLoading] = useState(true);
   const [actionType, setActionType] = useState('');
   const [entityName, setEntityName] = useState('');
-  const [page, setPage] = useState(1);
-  const [pages, setPages] = useState(1);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const [error, setError] = useState('');
   const [selectedLog, setSelectedLog] = useState<AuditLogItem | null>(null);
 
-  const fetchLogs = async () => {
-    setLoading(true);
-    try {
-      const res: any = await auditLogsApi.getAuditLogs({
-        actionType: actionType || undefined,
-        entityName: entityName || undefined,
-        limit: 50,
-        page,
-        startDate: startDate || undefined,
-        endDate: endDate ? `${endDate}T23:59:59.999` : undefined,
-      });
-      setLogs(res?.data?.auditLogs || res?.data || []);
-      setPages(res?.data?.totalPages || 1);
-      setError('');
-    } catch (err) {
-      setError('Unable to load audit events. Please retry.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchLogs();
-  }, [actionType, entityName, page, startDate, endDate]);
-
-  const getPlatformIcon = (platform?: string) => {
-    if (platform === 'ANDROID' || platform === 'IOS') {
-      return <Smartphone className="h-3.5 w-3.5 text-blue-500" />;
-    }
-    return <Monitor className="h-3.5 w-3.5 text-slate-400" />;
-  };
-
+  const {
+    rows: logs,
+    loading,
+    error,
+    reload: fetchLogs,
+  } = useListing<AuditLogItem>('/audit-logs', {
+    actionType: actionType || undefined,
+    entityName: entityName || undefined,
+    startDate: startDate || undefined,
+    endDate: endDate ? `${endDate}T23:59:59.999` : undefined,
+  });
   return (
     <div className="space-y-6">
       <div>
@@ -74,7 +40,6 @@ export const AuditLogsView: React.FC = () => {
           value={actionType}
           aria-label="Action type"
           onChange={(e) => {
-            setPage(1);
             setActionType(e.target.value);
           }}
           className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs dark:border-slate-700 dark:bg-slate-800"
@@ -100,7 +65,6 @@ export const AuditLogsView: React.FC = () => {
           value={entityName}
           aria-label="Entity"
           onChange={(e) => {
-            setPage(1);
             setEntityName(e.target.value);
           }}
           className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs dark:border-slate-700 dark:bg-slate-800"
@@ -121,7 +85,6 @@ export const AuditLogsView: React.FC = () => {
             type="date"
             value={startDate}
             onChange={(e) => {
-              setPage(1);
               setStartDate(e.target.value);
             }}
           />
@@ -132,91 +95,41 @@ export const AuditLogsView: React.FC = () => {
             type="date"
             value={endDate}
             onChange={(e) => {
-              setPage(1);
               setEndDate(e.target.value);
             }}
           />
         </label>
       </div>
-      {error && (
-        <p role="alert">
-          {error} <button onClick={fetchLogs}>Retry</button>
-        </p>
-      )}
-      {/* Table */}
-      <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
-        <table className="w-full text-left text-xs">
-          <thead className="border-b border-slate-200 bg-slate-50/70 font-semibold text-slate-600 dark:border-slate-800 dark:bg-slate-800/40 dark:text-slate-300">
-            <tr>
-              <th className="px-4 py-3">Timestamp</th>
-              <th className="px-4 py-3">User</th>
-              <th className="px-4 py-3">Action</th>
-              <th className="px-4 py-3">Entity</th>
-              <th className="px-4 py-3">Platform</th>
-              <th className="px-4 py-3">IP Address</th>
-              <th className="px-4 py-3 text-right">Details</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-            {logs.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="py-8 text-center text-slate-400">
-                  No audit logs match current filters
-                </td>
-              </tr>
-            ) : (
-              logs.map((log) => (
-                <tr
-                  key={log.id}
-                  onClick={() => setSelectedLog(log)}
-                  className="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 transition"
-                >
-                  <td className="px-4 py-3 text-slate-500 font-mono text-[11px]">
-                    {new Date(log.created_at).toLocaleString()}
-                  </td>
-                  <td className="px-4 py-3 font-semibold text-slate-800 dark:text-slate-200">
-                    {log.user_name || 'System Actor'}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="rounded-lg bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
-                      {log.action_type}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 font-mono text-[11px] text-slate-600 dark:text-slate-400">
-                    {log.entity_name}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-1.5 text-[11px]">
-                      {getPlatformIcon(log.device_platform)}
-                      <span>{log.device_platform || 'WEB'}</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 font-mono text-[11px] text-slate-400">
-                    {log.ip_address || '127.0.0.1'}
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <button className="rounded p-1 text-slate-400 hover:text-blue-600">
-                      <Eye className="h-4 w-4" />
-                    </button>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      <div className="flex gap-4">
-        <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
-          Previous
-        </button>
-        <span>
-          Page {page} of {pages}
-        </span>
-        <button disabled={page >= pages} onClick={() => setPage((p) => p + 1)}>
-          Next
-        </button>
-      </div>
+      <DataGrid
+        title="Audit trail"
+        data={logs}
+        loading={loading}
+        error={error}
+        onRetry={fetchLogs}
+        columns={[
+          {
+            id: 'created_at',
+            label: 'Timestamp',
+            render: (log) => new Date(log.created_at).toLocaleString(),
+          },
+          {
+            id: 'user_name',
+            label: 'User',
+            value: (log) => log.user_name || 'System Actor',
+          },
+          { id: 'action_type', label: 'Action' },
+          { id: 'entity_name', label: 'Entity' },
+          {
+            id: 'device_platform',
+            label: 'Platform',
+            value: (log) => log.device_platform || 'WEB',
+          },
+          { id: 'ip_address', label: 'IP address' },
+        ]}
+        actions={[
+          { label: 'View', icon: Eye, onClick: (log) => setSelectedLog(log) },
+        ]}
+      />
       {/* JSON Diff & Audit Details Modal */}
       {selectedLog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">

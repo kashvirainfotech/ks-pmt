@@ -110,7 +110,6 @@ export const userConfig: Entity = {
   endpoint: '/users',
   permission: 'USERS:MANAGE',
   status: true,
-  paginated: true,
   columns: [
     'employee_code',
     'first_name',
@@ -247,7 +246,6 @@ export const clientConfig: Entity = {
   title: 'Clients',
   endpoint: '/clients',
   status: true,
-  paginated: true,
   columns: [
     'client_code',
     'company_name',
@@ -316,7 +314,6 @@ export const projectConfig: Entity = {
   permission: 'PROJECTS:CREATE',
   updatePermission: 'PROJECTS:UPDATE',
   status: true,
-  paginated: true,
   columns: [
     'project_code',
     'project_name',
