@@ -25,17 +25,23 @@ Built with a **NestJS REST API backend**, a modern **React 18 + Tailwind CSS web
 ## 📑 Table of Contents
 
 - [Architectural Overview](#-architectural-overview)
-- [Key Features](#-key-features)
+- [Feature Matrix & Implementation Status](#-feature-matrix--implementation-status)
   - [1. Multi-Branch & Dynamic RBAC Engine](#1-multi-branch--dynamic-rbac-engine)
-  - [2. Dual Authentication & Zero Public Registration](#2-dual-authentication--zero-public-registration)
+  - [2. Dual Authentication & Access Control](#2-dual-authentication--access-control)
   - [3. Dynamic Task Engine & State Machine Workflows](#3-dynamic-task-engine--state-machine-workflows)
-  - [4. Auto-Assignment Rule Matrix](#4-auto-assignment-rule-matrix)
-  - [5. Financial & Commercial Tracking](#5-financial--commercial-tracking)
-  - [6. Cloud Storage (AWS S3 Direct Uploads)](#6-cloud-storage-aws-s3-direct-uploads)
-  - [7. Time Tracking & Worklogs](#7-time-tracking--worklogs)
-  - [8. Central Tamper-Evident Audit Trail](#8-central-tamper-evident-audit-trail)
-  - [9. Responsive Web Application (`web/`)](#9-responsive-web-application-web)
-  - [10. Cross-Platform Mobile Application (`mobile/`)](#10-cross-platform-mobile-application-mobile)
+  - [4. Agile Sprints, Milestones & Backlog Management](#4-agile-sprints-milestones--backlog-management)
+  - [5. Task Dependencies, Critical Path & Blocker Radar](#5-task-dependencies-critical-path--blocker-radar)
+  - [6. Effort Tracking, Timesheets & Budget Variance](#6-effort-tracking-timesheets--budget-variance)
+  - [7. Deadline Management, SLA Engine & Early Warnings](#7-deadline-management-sla-engine--early-warnings)
+  - [8. Bottleneck Detection & Flow Analytics](#8-bottleneck-detection--flow-analytics)
+  - [9. Team & Employee Performance, Workload & Capacity](#9-team--employee-performance-workload--capacity)
+  - [10. Auto-Assignment Rule Matrix](#10-auto-assignment-rule-matrix)
+  - [11. Financial, Client & Commercial Tracking](#11-financial-client--commercial-tracking)
+  - [12. Cloud Storage (AWS S3 Direct Uploads)](#12-cloud-storage-aws-s3-direct-uploads)
+  - [13. Central Tamper-Evident Audit Trail](#13-central-tamper-evident-audit-trail)
+  - [14. Responsive Web Application (`web/`)](#14-responsive-web-application-web)
+  - [15. Cross-Platform Mobile Application (`mobile/`)](#15-cross-platform-mobile-application-mobile)
+  - [16. Executive & Portfolio Intelligence](#16-executive--portfolio-intelligence)
 - [Technology Stack](#-technology-stack)
 - [Directory Structure](#-directory-structure)
 - [Quick Start & Installation Guide](#-quick-start--installation-guide)
@@ -87,72 +93,137 @@ Built with a **NestJS REST API backend**, a modern **React 18 + Tailwind CSS web
 
 ---
 
-## ✨ Key Features
+## ✨ Feature Matrix & Implementation Status
+
+> Legend: `[x]` Implemented / Available in current build | `[ ]` Planned Roadmap Feature
 
 ### 1. Multi-Branch & Dynamic RBAC Engine
-- **Multi-Location Hubs**: Native support for a single company operating across multiple physical branches and regional tech centers with GPS coordinates and geofence radii.
-- **Hierarchical Access Model**: 
-  $$\text{Effective Permissions} = \text{Base Role} - \text{Branch Revocations} + \text{User Explicit Overrides}$$
-- **Granular Override Controls**: Instantly grant or revoke permissions at the specific branch or individual employee level without modifying global system roles.
-- **Super Admin Bypass**: Built-in system override for top-level corporate administrators.
+- [x] **Multi-Location Hubs**: Native support for multiple physical branches and regional tech centers with GPS coordinates and geofence radii.
+- [x] **Hierarchical Access Model**: Dynamic permissions computed from $\text{Effective Permissions} = \text{Base Role} - \text{Branch Revocations} + \text{User Explicit Overrides}$.
+- [x] **Granular Override Controls**: Instantly grant or revoke module permissions at the specific branch or individual employee level.
+- [x] **Super Admin Bypass**: Built-in system override for top-level corporate administrators.
+- [x] **Department & Designation Hierarchy**: Department master with HOD mapping and designation seniority ranking.
 
-### 2. Dual Authentication & Zero Public Registration
-- **Strict Corporate Security**: Open public registration is disabled; employee accounts are strictly provisioned by authorized administrators.
-- **Dual Login Methods**:
-  1. Corporate Email & Password (with bcrypt hashing, 12 rounds).
-  2. Registered Mobile Number & 6-Digit OTP (with auto-expiring tokens and resend countdown timers).
-- **Session Protection**: Stateless JWT access tokens + rotating refresh tokens with automatic client-side silent renewal.
+### 2. Dual Authentication & Access Control
+- [x] **Zero Public Registration**: Open self-registration disabled; employee accounts are provisioned exclusively by authorized administrators.
+- [x] **Email & Password Authentication**: Secure authentication with Argon2id / bcrypt hashing (12 rounds) and password complexity validation.
+- [x] **Mobile Number & 6-Digit OTP**: OTP-based authentication with expiration countdowns and rate-limiting.
+- [x] **Session Tracking & Remote Revocation**: View active sessions with device platform, IP address, and remote session termination.
+- [ ] **MFA Challenge & Password Expiration Policies**: Mandatory password rotation cycles and multi-factor verification prompts.
 
 ### 3. Dynamic Task Engine & State Machine Workflows
-- **Dynamic Task Types**: Configure customized task types (e.g., *Feature, Bug Fix, Code Review, Security Patch, AMC Support*) with individual color codes and default billing flags.
-- **Workflow State Machine**: Strictly enforces allowed status transitions (e.g., `OPEN` $\rightarrow$ `IN_PROGRESS` $\rightarrow$ `CODE_REVIEW` $\rightarrow$ `READY_FOR_TEST` $\rightarrow$ `CLOSED`). Prohibits illegal state skipping.
-- **Subtasks & Hierarchical Checklists**: Create child subtasks with individual completion states and assignees.
-- **Multi-Assignee Support**: Assign primary owners alongside secondary collaborators.
+- [x] **Dynamic Task Types**: Configurable task types (*New Development, Bug, Issue, Enhancement, Support Ticket*) with individual color codes and default chargeability.
+- [x] **Workflow State Machine**: Strictly enforces allowed status transitions per task type, preventing illegal workflow skipping.
+- [x] **Jira-Style Inline Editing**: Click-to-edit for title, description, priority, severity, dates, release, and billable amounts with optimistic conflict checking.
+- [x] **Revision Concurrency Locking**: Atomic `revision` checks on task updates to prevent concurrent overwrite collisions (HTTP 409 Conflict).
+- [x] **Custom Fields per Task Type**: JSONB custom fields (*text, textarea, number, boolean, date, select, multiselect, user*) with server-side schema validation.
+- [x] **Rich Markdown Descriptions**: Formatted descriptions with toolbar support (headings, bold, lists, code blocks) and real-time preview.
+- [x] **Multi-Assignee Support**: Assign primary owners alongside secondary collaborators with searchable user pickers.
+- [x] **Hierarchical Subtasks**: Parent-child subtask checklist with quick-add and full-detail creation modes.
+- [ ] **Structured Defect Fields**: Standardized numbered Steps to Reproduce, Expected vs. Actual behavior, and Workaround details.
+- [ ] **Defect Resolution Classification**: Formal resolution categorizations (*Fixed, Won't Fix, Duplicate, Cannot Reproduce, By Design*).
 
-### 4. Auto-Assignment Rule Matrix
-- **Configurable Event Triggers**: Evaluate routing rules automatically `ON_CREATION` or `ON_STATUS_CHANGE`.
-- **Intelligent Assignment Strategies**:
-  - `DEPARTMENT_HOD`: Automatically routes tasks to the department head (e.g., route completed dev tasks to the QA HOD).
-  - `ROUND_ROBIN`: Dynamically assigns tasks to the least-loaded active team member in the department.
-  - `DESIGNATION_HIERARCHY`: Routes to specific designation seniority tiers.
-  - `SPECIFIC_USER`: Directly routes to designated specialists.
+### 4. Agile Sprints, Milestones & Backlog Management
+- [x] **Version & Release Milestones**: Scheduling and tracking product and project releases with target vs. actual delivery dates.
+- [ ] **Sprint Lifecycle Management**: Dedicated agile sprints within projects (`sprint_number`, `sprint_goal`, `PLANNING`, `ACTIVE`, `COMPLETED`).
+- [ ] **Backlog Grooming & Sprint Planning**: Interactive drag-and-drop planning board to rank and move tasks from project backlog to active sprints.
+- [ ] **Story Points & Complexity Sizing**: Support Fibonacci sizing (`1, 2, 3, 5, 8, 13`) and T-shirt sizing (`XS, S, M, L, XL`) alongside hourly estimates.
+- [ ] **Sprint Rollover Wizard**: Automated wizard on sprint completion to rollover incomplete tasks to the next sprint or backlog.
 
-### 5. Financial & Commercial Tracking
-- **Dual Business Models**: Supports both **Client Development Projects** (Fixed Price, Time & Materials, Retainers) and **In-House Software Products**.
-- **Software Product Licensing**: Manages standard licensing fees, annual maintenance contract (AMC) dates, and client subscription renewals.
-- **Task-Level Chargeables**: Toggle individual tasks as chargeable/billable with custom financial amounts, auto-rolled up into project financial summaries.
-- **Milestones & Versions**: Release roadmaps linked to product semantic versions and sprint deadlines.
+### 5. Task Dependencies, Critical Path & Blocker Radar
+- [ ] **Relational Task Dependencies**: Support `Finish-to-Start` (FS), `Start-to-Start` (SS), `Finish-to-Finish` (FF), `Blocks / Is Blocked By`, and `Relates To`.
+- [ ] **Circular Dependency Prevention**: Server-side Directed Acyclic Graph (DAG) cycle validation ($A \rightarrow B \rightarrow C \rightarrow A$).
+- [ ] **Interactive Critical Path Gantt**: Visual Gantt chart showing dependency lines, critical path calculations, and cascading schedule shift alerts.
+- [ ] **Explicit Blocker Flagging**: "Flag as Blocked" toggle with categorized reasons (*Client Dependency, Missing Specs, Technical Blocker, Environment Down*).
+- [ ] **Blocker Radar & Elapsed Timers**: Automated tracking of cumulative blocked hours and a dashboard Blocker Radar strip for rapid impediment triage.
 
-### 6. Cloud Storage (AWS S3 Direct Uploads)
-- **Direct-to-S3 Pre-Signed URLs**: The client requests a secure pre-signed PUT URL from the server and uploads binary files (photos, documents, logs, zip archives) directly to Amazon S3.
-- **Zero Server Memory Bottlenecks**: Prevents server RAM exhaustion and eliminates proxy bandwidth overhead.
-- **Private & Time-Limited Downloads**: All files remain private in S3; downloads are generated via expiring pre-signed GET URLs.
+### 6. Effort Tracking, Timesheets & Budget Variance
+- [x] **Per-Task Worklogs**: Manual effort logging with date, hours spent, billable/non-billable flag, and summary descriptions.
+- [x] **Overtime & Weekend Classification**: Track standard hours vs. overtime and weekend effort.
+- [x] **Individual Worklog Approval Workflow**: Draft, submit, approve, and reject pipeline with manager review remarks.
+- [ ] **Grouped Weekly Timesheet Grid**: Unified Monday-to-Sunday matrix view for batch effort logging across assigned projects and tasks.
+- [ ] **Missing Hours Automated Reminders**: Automated Friday afternoon and Monday morning alerts for employees logging $<40$ hours/week.
+- [ ] **One-Click Batch Timesheet Approvals**: Single-click approval for an employee's full weekly timesheet with inline task audit drill-downs.
+- [ ] **Persistent Live Global Stopwatch**: Sticky header timer with automatic task switching, pause on switch, and idle-time detection.
+- [ ] **Task Effort Variance Badges**: Real-time $\text{Actual} - \text{Estimated}$ variance badges (Green $<90\%$, Amber $90-100\%$, Red $>100\%$).
+- [ ] **Project Budget Burn Rate Curves**: Planned vs. actual hours burn curves with automated alerts at 75%, 90%, and 100% of budgeted hours.
+- [ ] **Project Profitability Margins**: Calculate internal employee cost rate vs. billable client rate to evaluate gross project margins.
 
-### 7. Time Tracking & Worklogs
-- **Live Interactive Timer**: Built-in stopwatch timer on web and mobile with start, pause, and elapsed counters.
-- **Manual Worklog Submission**: Log daily effort with hours, minutes, billable classification, and descriptions.
-- **Manager Approval Pipeline**: Timesheet review screen for department managers to audit and approve team hours.
+### 7. Deadline Management, SLA Engine & Early Warnings
+- [x] **Static Due Date Tracking**: Planned and actual start/end dates with overdue task flagging.
+- [ ] **Configurable SLA Policies Matrix**: First Response Time and Resolution Time targets mapped by Priority, Severity, Task Type, and Client Tier.
+- [ ] **Business Hours Calculation Engine**: Automatic pause of SLA clocks outside office working hours and on regional branch holidays.
+- [ ] **Dynamic SLA Countdown Badges**: Real-time countdown badges on tasks with warning and breach indicators.
+- [ ] **Delay Early Warning System (EWS)**: Predictive algorithm identifying at-risk tasks prior to deadline breach (e.g. deadline within 48h while in `TODO`).
+- [ ] **Multi-Tier Automated Escalation Matrix**: Progressive notifications on impending and breached deadlines (Assignee $\rightarrow$ PM $\rightarrow$ Branch Leadership).
+- [ ] **Mandatory Delay Root-Cause Attribution**: Enforced selection of delay reasons upon overdue closure or deadline extension (*Scope Creep, Client Delay, Tech Complexity, Estimation, Leave*).
 
-### 8. Central Tamper-Evident Audit Trail
-- **Comprehensive Activity Logging**: Tracks user authentication, task status shifts, financial changes, and file uploads.
-- **Before / After JSON Snapshots**: Automatically stores `old_values` and `new_values` JSONB diffs.
-- **Forensic Metadata**: Captures IP address, user agent, client device platform (`WEB`, `ANDROID`, `IOS`), and GPS coordinates.
+### 8. Bottleneck Detection & Flow Analytics
+- [ ] **Kanban Work In Progress (WIP) Limits**: Configurable min/max task thresholds per status column with soft warnings and hard guards.
+- [ ] **Status Dwell Time Heatmap**: Track exact business hours spent in each stage to pinpoint pipeline bottlenecks (e.g., development vs. code review vs. testing).
+- [ ] **Cumulative Flow Diagram (CFD)**: Area charts visualizing work volume distribution across stages over time to highlight expanding bottlenecks.
+- [ ] **Lead Time & Cycle Time Scatterplots**: Measure elapsed duration from creation to closure (Lead Time) and work started to closure (Cycle Time).
 
-### 9. Responsive Web Application (`web/`)
-- Built with **React 18**, **Vite**, **Tailwind CSS**, and **Lucide Icons**.
-- **Interactive Kanban Board**: Dynamic status columns with quick status movement.
-- **Shared Listing Grid**: Built with MIT-licensed [TanStack Table](https://github.com/TanStack/table), with search, column filters, pagination, multi-column sorting and grouping, and expandable groups. Icon actions support adding, viewing, editing, deleting or deactivating records where applicable, plus printing and CSV export of all filtered records. Includes light/dark styling and horizontal scrolling on smaller screens. See the [shared grid guide](docs/shared-listing-grid.md) for reuse.
-- **Comprehensive Task Drawer**: Slide-over drawer with subtasks, live timer, AWS S3 upload progress bar, and threaded comments.
-- **Command Palette (`Ctrl+K`)**: Instant debounced search across all tasks, projects, and clients.
-- **Bento-Grid Dashboard**: Executive metrics for active tasks, billable rupee values, sprint velocity, and branch status.
-- **Light & Dark Mode**: Persistent theme toggle.
+### 9. Team & Employee Performance, Workload & Capacity
+- [x] **Basic Employee Workload Summary**: Active assigned task counts and aggregated logged hours per user (`vw_employee_workload`).
+- [ ] **Resource Allocation & Capacity Heatmap**: Team member bandwidth matrix (Sprints/Weeks) highlighting over-allocated (>100%) and under-utilized (<75%) staff.
+- [ ] **Estimation Accuracy Index (EAI)**: Track variance between estimated and actual logged hours over time to identify chronic estimation bias.
+- [ ] **Engineering Quality & Rework Rates**: Track task reopen/rejection counts from QA back to dev and calculate First-Time-Right (FTR %) rate.
+- [ ] **Post-Release Defect Leakage**: Ratio of customer-reported defects vs. internally detected defects per release version.
+- [ ] **Employee 360° Operational Performance Scorecard**: Managerial performance scorecard tracking On-Time Delivery (OTD %), billable efficiency %, velocity, and quality.
+- [ ] **Skill Matrix & Smart Task Allocation**: Employee skill taxonomy with proficiency tiers and smart assignment recommendations matching skills and available bandwidth.
 
-### 10. Cross-Platform Mobile Application (`mobile/`)
-- Built with **Flutter (Dart)** for **Android** and **iOS**.
-- **GPS Location Check-in & Geofencing**: High-accuracy positioning calculating real-time distance from the branch coordinates.
-- **Camera & Photo Gallery S3 Uploader**: Snap photos or attach documents with direct progress streaming to AWS S3.
-- **Mobile Effort Tracker**: Live timer widget with quick worklog logging.
-- **5-Tab Navigation**: Dashboard, Tasks, Timesheets, Alerts, and Profile.
+### 10. Auto-Assignment Rule Matrix
+- [x] **Event-Driven Triggers**: Evaluate routing rules automatically `ON_CREATION` or `ON_STATUS_CHANGE`.
+- [x] **Department HOD Routing**: Automatically route tasks to the designated department head (e.g., dev complete $\rightarrow$ QA HOD).
+- [x] **Round-Robin Distribution**: Dynamically distribute tasks to the least-loaded active team member in a department or branch.
+- [x] **Designation Hierarchy Routing**: Route based on seniority hierarchy ranking.
+- [x] **Specific User Assignment**: Direct assignment to designated specialist users.
+
+### 11. Financial, Client & Commercial Tracking
+- [x] **Dual Business Models**: Supports both **Client Development Projects** (Fixed Price, Time & Materials, Retainers) and **In-House Software Products**.
+- [x] **Client & Prospect CRM**: Manage leads, active client accounts, and lifecycle conversion with tax/billing details.
+- [x] **Software Product Licensing**: Manage license models (SaaS, On-Premise, Perpetual), standard pricing, and annual maintenance contract (AMC) renewals.
+- [x] **Task-Level Chargeables**: Toggle individual tasks as chargeable/billable with custom amounts, rolling up into project financial summaries.
+- [x] **Project Team Member Allocations**: Assign employees to projects with explicit allocation percentages and date spans.
+
+### 12. Cloud Storage (AWS S3 Direct Uploads)
+- [x] **Direct-to-S3 Pre-Signed URLs**: Pre-signed PUT URLs for direct client uploads of binary files (photos, documents, logs, zip archives) to Amazon S3.
+- [x] **Zero Server Memory Bottlenecks**: Prevents server memory exhaustion and eliminates proxy bandwidth overhead.
+- [x] **Expiring Secure Downloads**: Pre-signed GET URLs with time limits for private, secure file access.
+- [ ] **Verified End-to-End Cloud S3 Acceptance**: Verification of production S3 bucket policies and CORS configuration in live cloud deployments.
+
+### 13. Central Tamper-Evident Audit Trail
+- [x] **Comprehensive Activity Logging**: Tracks user authentication, task status shifts, financial changes, and file uploads.
+- [x] **Before / After JSON Snapshots**: Stores `old_values` and `new_values` JSONB diffs with automated triggers.
+- [x] **Forensic Metadata**: Captures IP address, user agent, client device platform (`WEB`, `ANDROID`, `IOS`), and GPS coordinates.
+- [x] **Task-Scoped History Tab**: Readable timeline in task drawers displaying field mutations, actor names, and timestamps.
+- [ ] **Automated Audit Partitioning & Archival**: Monthly/quarterly table partitioning for high-volume audit logs older than 12 months.
+
+### 14. Responsive Web Application (`web/`)
+- [x] **Modern Tech Stack**: React 18, Vite, Tailwind CSS, Lucide Icons.
+- [x] **Interactive Kanban Board**: Drag-and-drop status transitions with workflow guardrails.
+- [x] **Shared Listing Grid**: Built with MIT-licensed TanStack Table, with search, column filters, pagination, multi-column sorting, grouping, print, and CSV exports.
+- [x] **Task Drawer & Full-Page Workspace**: Drawer view with inline field editors and a dedicated full-page route (`/tasks?taskId=<id>&viewTask=full`).
+- [x] **Command Palette (`Ctrl+K`)**: Instant debounced search across all tasks, projects, and clients.
+- [x] **Bento-Grid Dashboard**: Executive metrics for active tasks, billable values, and recent activities.
+- [x] **Adaptive Dark & Light Theme**: System preference detection, explicit toggle, and cross-tab synchronization.
+
+### 15. Cross-Platform Mobile Application (`mobile/`)
+- [x] **Flutter Multiplatform Architecture**: Clean modular architecture for Android and iOS.
+- [x] **Secure Token Storage**: Encrypted credential storage via `flutter_secure_storage`.
+- [x] **5-Tab Navigation Shell**: Dashboard, Tasks, Timesheets, Alerts, and Profile.
+- [x] **Task Detail & Workflow Screen**: Status transition picker and subtask checklists.
+- [ ] **Camera & Gallery S3 Uploader**: Snap photos or attach documents with direct progress streaming to AWS S3.
+- [ ] **GPS Location Check-in & Geofencing**: Real-time proximity calculation against branch coordinates on field check-ins.
+- [ ] **Mobile Live Stopwatch**: Notification drawer timer controls with quick worklog logging.
+- [ ] **FCM Push Notification Integration**: Push alert handler with deep-linking directly into referenced tasks.
+- [ ] **Offline Task Caching & Sync**: Local SQLite / Hive caching for offline viewing with reconnect synchronization.
+
+### 16. Executive & Portfolio Intelligence
+- [x] **Multi-Branch Filtering**: Corporate overview with instant branch switching for multi-location oversight.
+- [ ] **Project Health Index (PHI)**: Composite 0-100 score combining schedule health, budget burn, defect density, and active blockers.
+- [ ] **Cross-Branch Productivity Benchmarking**: Comparative analytics across locations comparing velocity, billable efficiency %, and on-time delivery rates.
 
 ---
 
