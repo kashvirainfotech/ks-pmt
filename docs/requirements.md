@@ -82,10 +82,15 @@ The system connects multiple company branches and locations under a unified oper
 - **Financial Tracking**: Total Contract Value, Budgeted Hours, Hourly Rate (for T&M), Currency, Invoicing Milestones.
 - **Team Allocation**: Assigning leads, developers, and QA engineers to specific projects with allocated allocation percentages and date ranges.
 
-### 3.8 Version & Release Management
+### 3.8 Version, Sprint & Release Management
 - **Applicable To**: Both Software Products and Projects.
 - **Version Attributes**: Version Number (e.g., `v1.0.0`, `v2.4.1-hotfix`), Version Name/Codename, Target Release Date, Actual Release Date, Release Notes / Changelog, Status (Planning, In Progress, Code Freeze, Released, Deprecated).
 - **Task Association**: Scheduling and tagging tasks, features, and bug fixes directly to a targeted Version/Release/Milestone.
+- **Sprint Management & Backlog Grooming**:
+  - Dedicated sprint cycles within projects (`sprint_number`, `sprint_goal`, `start_date`, `end_date`, `status: PLANNING, ACTIVE, COMPLETED`).
+  - Sprint backlog planning with drag-and-drop task prioritization from project backlog to active sprints.
+  - Story point / complexity estimation (Fibonacci `1, 2, 3, 5, 8, 13` or T-shirt sizing) alongside planned hours.
+  - Sprint completion rollover wizard to handle unfinished tasks.
 
 ### 3.9 Dynamic Task Management Engine
 - **Dynamic Task Types Master**:
@@ -99,13 +104,24 @@ The system connects multiple company branches and locations under a unified oper
 - **Task Core Attributes**:
   - Unique Task Code (e.g., `PRJ-1024`, `PRD-512`).
   - Title, Rich-text Description, Priority (`Low`, `Medium`, `High`, `Urgent`, `Critical`), Severity.
-  - Project ID or Product ID + Version ID.
+  - Project ID or Product ID + Version ID / Sprint ID.
   - Parent Task ID (for hierarchical sub-tasks).
-  - Multi-User Assignment: Provision to assign a single task to one or multiple employees with individual responsibility flags.
+  - Multi-User Assignment: Provision to assign a single task to one or multiple employees with individual responsibility flags and primary assignee distinction.
   - Dates: Planned Start Date, Planned End Date, Actual Start Date, Actual End Date.
   - Effort Estimates: Estimated Hours (Planned).
   - Billing & Commercials: `is_chargeable` (Boolean flag) and `charge_amount` (Decimal) with currency.
   - Status ID (linked to dynamic status master).
+  - Revision counter (`revision`) for optimistic concurrency conflict detection.
+- **Task Dependencies & Critical Path**:
+  - Relational dependencies between tasks: `FINISH_TO_START` (FS), `START_TO_START` (SS), `FINISH_TO_FINISH` (FF), `BLOCKS` / `IS_BLOCKED_BY`, and `RELATES_TO`.
+  - DAG circular dependency prevention.
+  - Interactive Gantt chart with Critical Path highlighting and cascading delay warning.
+- **Explicit Blocker Radar & Impediments**:
+  - "Flag as Blocked" status toggle with mandatory blocker categorization (*Client Dependency*, *Missing Specs*, *Technical Blocker*, *Environment Down*).
+  - Cumulative blocked duration tracking with real-time Blocker Radar widget.
+- **Structured Bug / Defect Tracking**:
+  - Standardized defect fields: Steps to Reproduce (ordered list), Expected Behavior, Actual Behavior, Environment/OS/Browser, and Workaround details.
+  - Formal resolution classifications (*Fixed*, *Won't Fix*, *Duplicate*, *Cannot Reproduce*, *By Design*).
 - **Sub-Task Support**:
   - Unlimited nesting or 2-level parent-child hierarchy.
   - Aggregated completion percentage and effort roll-up to parent tasks.
@@ -113,19 +129,24 @@ The system connects multiple company branches and locations under a unified oper
   - Upload multiple files, screenshots, design mockups, error log traces, or test recordings.
   - Stored directly in **AWS S3** with pre-signed secure access and metadata saved in DB.
 - **Task Comments & Collaboration**:
-  - Threaded comment system on every task.
-  - Rich text formatting with file/image attachments.
+  - Threaded comment system on every task with markdown support.
   - `@mention` functionality triggering instant notifications to tagged teammates.
 
-### 3.10 Effort & Time Tracking (Worklogs / Timesheets)
+### 3.10 Effort & Time Tracking (Worklogs, Timesheets & Budget Variance)
 - **Time Capture**:
   - Manual entry: Employee logs date, hours worked (e.g., 2.5 hrs), description/summary of work done.
-  - Timer-based: Start / Pause / Stop timer directly within the web or mobile interface.
+  - Timer-based: Start / Pause / Stop timer directly within the web or mobile interface, including a persistent global navigation stopwatch with idle-time detection.
+- **Grouped Weekly Timesheet Matrix & Batch Approval**:
+  - Standardized weekly timesheet periods (Monday through Sunday) for batch entry across assigned tasks.
+  - Automated missing-hours alerts for incomplete weekly submissions (< 40 hrs).
+  - Single-click batch manager sign-off with inline audit drill-down.
 - **Effort Classification**:
   - Billable Hours vs. Non-Billable Hours.
   - Overtime tracking and weekend work classification.
-- **Manager Approval Workflow**:
-  - Weekly or monthly timesheet submission and sign-off by Project Managers / Branch Managers.
+- **Effort Variance & Budget Burn Analytics**:
+  - Task Effort Variance tracking ($\text{Actual Hours} - \text{Estimated Hours}$) with green/amber/red thresholds.
+  - Project budget burn rate curves with threshold notifications at 75%, 90%, and 100% of budgeted hours.
+  - Project profitability calculation based on internal employee cost rate vs. client billable rate.
 
 ### 3.11 Automated Task Assignment Engine
 - **Rule-Based Routing**:
@@ -167,9 +188,58 @@ The system connects multiple company branches and locations under a unified oper
 
 ### 3.15 Public & External REST APIs
 - **Secure Integration Surface**:
-  - Expose select REST APIs for external systems (e.g., client portals, Jira/GitHub integrations, HRMS synchronization).
+  - Expose select REST APIs for external systems (e.g., client portals, HRMS synchronization).
   - Token-based API Key / OAuth2 authentication with rate-limiting and IP whitelisting.
   - Comprehensive Swagger / OpenAPI 3.0 documentation.
+
+### 3.16 Service Level Agreements (SLA), Deadline Management & Early Warnings
+- **Configurable SLA Policies**:
+  - Matrix defining First Response Time and Resolution Time targets per Priority, Severity, Task Type, Client Tier, and Project.
+  - Pausing of SLA clocks during non-business hours and regional office holidays.
+  - Live dynamic SLA countdown badges on tasks with breach warning states.
+- **Delay Early Warning System (EWS)**:
+  - Predictive algorithm identifying "At-Risk" tasks before deadlines are breached:
+    - Planned end date within 48 hours while task remains in `TODO`/`Open`.
+    - Remaining estimated hours exceed remaining working hours prior to deadline.
+    - Stale `WIP` tasks with no worklogs or activity for over 3 business days.
+  - Dedicated "At-Risk Deadlines" radar view for Project Managers.
+- **Automated Escalation Matrix**:
+  - Multi-tiered background escalation workflow:
+    - Tier 1 (Near breach / 2h breach): Notify Primary Assignee and Tech Lead.
+    - Tier 2 (24h breach): Escalate to Project Manager and Department Head.
+    - Tier 3 (48h breach): Escalate to Branch Manager and Operations Director.
+- **Mandatory Delay Root-Cause Attribution**:
+  - Enforced selection of delay reasons upon overdue completion or planned date extensions (*Scope Creep*, *Client Dependency*, *Technical Complexity*, *Inaccurate Estimate*, *Resource Leave*, *Preempted by Production Emergency*).
+
+### 3.17 Bottleneck Detection & Flow Analytics
+- **Kanban Work-in-Progress (WIP) Limits**:
+  - Configurable minimum and maximum task capacity per workflow status column to prevent multitasking and highlight queue blockages.
+- **Status Dwell Time & Bottleneck Heatmap**:
+  - Denormalized tracking of exact business hours tasks spend inside each workflow status.
+  - Visual status dwell time heatmap highlighting stage congestion (e.g., dev vs. code review vs. QA testing).
+- **Cumulative Flow Diagram (CFD), Lead Time & Cycle Time**:
+  - Cumulative Flow Diagram area chart tracking work distribution over time to expose expanding process bottlenecks.
+  - Lead Time (creation to closure) and Cycle Time (in-progress to closure) metrics and scatterplots.
+
+### 3.18 Team & Employee Performance, Workload & Capacity Intelligence
+- **Resource Allocation & Capacity Heatmap**:
+  - Matrix view mapping team member bandwidth against assigned task estimates, project member allocation percentages, and standard working schedules (Red: Over-allocated >100%, Green: Balanced 75-100%, Blue: Under-utilized <75%).
+- **Estimation Accuracy Index (EAI)**:
+  - Variance index comparing estimated vs. actual logged hours over time to identify chronic under-estimation or over-estimation trends.
+- **Quality & Rework / Reopen Rate**:
+  - Tracking of task rejection counts (sent back from `Testing` to `WIP`), First-Time-Right (FTR %) rate, and post-release defect leakage.
+- **Employee 360° Operational Performance Scorecard**:
+  - Managerial performance profile tracking On-Time Delivery (OTD %), billable efficiency ratio, sprint velocity, and quality scores.
+- **Skill Matrix & Smart Allocation Suggestions**:
+  - Employee skill and proficiency taxonomy (`Beginner`, `Intermediate`, `Expert`).
+  - Task recommendation engine scoring eligible team members based on required skill matches, active workload bandwidth, and branch proximity.
+
+### 3.19 Executive Project Health Index & Cross-Branch Benchmarking
+- **Project Health Index (PHI)**:
+  - Composite 0-100 algorithmic score combining schedule health, budget burn health, open critical bug density, and active blocker count.
+  - Categorized as Healthy (Green), Needs Attention (Yellow), or At Risk (Red).
+- **Cross-Branch Productivity Benchmarking**:
+  - Executive comparative analytics across branch locations comparing task turnaround velocity, billable utilization %, and project on-time delivery rates.
 
 ---
 

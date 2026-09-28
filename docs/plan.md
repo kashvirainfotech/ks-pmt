@@ -15,6 +15,7 @@ flowchart TD
     P6 --> P7["Phase 7: Modern Responsive Web Application"]
     P7 --> P8["Phase 8: Cross-Platform Mobile App (Android/iOS)"]
     P8 --> P9["Phase 9: Quality Assurance & Deployment Readiness"]
+    P9 --> P10["Phase 10: Operational Tracking, Flow & Performance Intelligence"]
 ```
 
 ---
@@ -129,6 +130,43 @@ flowchart TD
   - OWASP security vulnerability scan and penetration testing audit.
   - Complete Swagger / OpenAPI 3.0 specification published for external developers.
   - Developer Handover & Operations Guide.
+
+### Phase 10: Operational Tracking, Flow & Performance Intelligence
+- **Goals**: Deliver advanced issue dependencies, sprint agility, grouped weekly timesheets, budget burn curves, SLA early warning countdowns, flow bottleneck heatmaps, and resource capacity intelligence.
+- **Key Deliverables**:
+  - **10.1 Advanced Project & Issue Tracking**:
+    - Relational task dependencies (`task_dependencies` with `FS`, `SS`, `FF`, `BLOCKS`, `RELATES_TO`) with server-side DAG circular loop prevention.
+    - Interactive Gantt chart with Critical Path analysis and cascading delay warnings.
+    - Sprint lifecycle management (`sprints`), backlog grooming board, and story point complexity sizing.
+    - Blocker Radar system with categorized impediment tracking and elapsed blocked timers.
+    - Standardized defect fields (steps to reproduce, expected/actual) and formal resolution categories.
+  - **10.2 Effort Tracking, Timesheets & Budget Variance**:
+    - Grouped Weekly Timesheet Periods (`timesheet_periods`) with batch Monday-Sunday entry grid.
+    - Automated missing-hours alerts (< 40h/week) and one-click manager sign-offs.
+    - Persistent live stopwatch widget in top navigation bar with inactivity idle detection.
+    - Real-time Task Effort Variance ($\text{Actual} - \text{Estimated}$) with color-coded threshold badges.
+    - Project budget burn rate curves with threshold notifications at 75%, 90%, and 100% of budgeted hours.
+    - Project profitability margin analysis based on internal employee cost rates vs. client billable rates.
+  - **10.3 Deadline Management, SLA Engine & Early Warning System**:
+    - SLA Policies Matrix (`sla_policies`) with dynamic business-hours countdowns and breach alerts.
+    - Delay Early Warning System (EWS) algorithm detecting "At-Risk" tasks before deadlines breach.
+    - Multi-tier automated background escalation matrix (assignee $\rightarrow$ PM $\rightarrow$ branch leadership).
+    - Mandatory delay root-cause attribution (*Scope Creep*, *Client Dependency*, *Technical Complexity*, *Estimation*, *Leave*).
+  - **10.4 Bottleneck Detection & Flow Metrics**:
+    - Kanban Work-in-Progress (WIP) minimum/maximum limits per status column.
+    - Denormalized status duration tracking (`task_status_durations`) measuring exact business hours spent in each stage.
+    - Visual Status Dwell Time Heatmap highlighting pipeline queues.
+    - Cumulative Flow Diagram (CFD) area chart tracking work stage distributions over time.
+    - Lead Time and Cycle Time metrics and scatterplot distribution charts.
+  - **10.5 Team & Employee Performance, Workload & Capacity Intelligence**:
+    - Resource Allocation & Capacity Heatmap (Team Members $\times$ Sprints/Weeks) highlighting over-allocated (>100%) and under-utilized (<75%) staff.
+    - Estimation Accuracy Index (EAI) tracking estimation bias and precision per employee and team.
+    - Engineering Quality tracking: Task Rejection / Reopen counts and First-Time-Right (FTR %) rate.
+    - Employee 360° Operational Performance Scorecard (On-Time Delivery %, billable efficiency, velocity, quality).
+    - Employee Skill Matrix taxonomy with proficiency ratings and "Smart Assign" task recommendation routing.
+  - **10.6 Executive & Portfolio Intelligence**:
+    - Composite Project Health Index (PHI, 0-100) combining schedule, budget burn, defect density, and blockers.
+    - Cross-Branch Productivity Benchmarking comparing velocity, billable efficiency %, and on-time delivery across locations.
 
 ---
 

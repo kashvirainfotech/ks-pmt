@@ -307,3 +307,58 @@ UI evidence: [refresh walkthrough](walkthrough/web-ui-refresh-and-checklist-2026
 - [ ] Developer/DBA blank-database installation and live task-workflow acceptance for the new schema
 
 Evidence: [create/edit walkthrough](walkthrough/jira-style-task-create-edit-2026-09-28.md). Advanced list productivity, visual field-layout administration and native mobile parity remain separate work.
+
+## 11. Operational Tracking, Flow & Performance Intelligence Roadmap
+
+### 11.1 Project & Issue Tracking Enhancements
+- [ ] Canonical DDL & API for task dependencies (`task_dependencies` with `FS`, `SS`, `FF`, `BLOCKS`, `RELATES_TO`)
+- [ ] Server-side DAG validation preventing circular dependencies ($A \rightarrow B \rightarrow C \rightarrow A$)
+- [ ] Interactive Gantt view with dependency connectors, Critical Path highlighting and cascading delay recalculation
+- [ ] Agile Sprints entity (`sprints`) with sprint backlog grooming, ranking, and status progression (`PLANNING`, `ACTIVE`, `COMPLETED`)
+- [ ] Story Points / complexity sizing (Fibonacci and T-shirt sizes) alongside hourly estimates
+- [ ] Sprint rollover wizard to carry over incomplete tasks on sprint closure
+- [ ] Explicit "Flag as Blocked" toggle with structured blocker categorization (*Client*, *Specs*, *Tech*, *Environment*)
+- [ ] Blocker stopwatch tracking cumulative blocked hours and dashboard Blocker Radar strip
+- [ ] Structured Bug lifecycle fields: numbered Steps to Reproduce, Expected vs. Actual behavior, and Workaround info
+- [ ] Bug resolution classification (*Fixed*, *Won't Fix*, *Duplicate*, *Cannot Reproduce*, *By Design*)
+
+### 11.2 Effort Spent, Timesheets & Budget Variance
+- [ ] Grouped Weekly Timesheet Periods entity (`timesheet_periods`) and batch submission workflow
+- [ ] Weekly Timesheet Matrix UI (Monday through Sunday hours grid across assigned tasks)
+- [ ] Automated missing-hours alerts (< 40h/week) for employees and managers
+- [ ] One-click batch manager sign-off with task-level audit drill-down
+- [ ] Global persistent stopwatch in the application header with automatic pause and draft creation
+- [ ] Browser blur / inactivity idle detection for the live stopwatch
+- [ ] Real-time Task Effort Variance calculation ($\text{Actual} - \text{Estimated}$) with color-coded threshold badges
+- [ ] Project Budget Burn Rate curves with proactive alerts at 75%, 90%, and 100% of budgeted hours
+- [ ] Project Profitability Margin calculation based on employee internal cost rates vs. client billable rates
+
+### 11.3 Deadline Management, SLA Engine & Early Warnings
+- [ ] SLA Policies Matrix table (`sla_policies`) defining First Response and Resolution targets by Priority, Type, and Client Tier
+- [ ] SLA business hours engine pausing timers during off-hours and regional branch holidays
+- [ ] Dynamic SLA countdown badges on tasks with warning and breach states
+- [ ] Delay Early Warning System (EWS) algorithm detecting "At-Risk" tasks before deadlines pass
+- [ ] Dedicated "At-Risk Deadlines" radar tab for Project Managers
+- [ ] Multi-tier background escalation scheduler (Tier 1: Assignee/Tech Lead, Tier 2: PM/HOD, Tier 3: Branch Manager)
+- [ ] Mandatory Delay Root-Cause attribution (*Scope Creep*, *Client Dependency*, *Technical Complexity*, *Estimation*, *Leave*)
+
+### 11.4 Bottleneck Detection & Flow Analytics
+- [ ] Kanban Work-in-Progress (WIP) minimum/maximum limits per status column with soft/hard warnings
+- [ ] Denormalized status duration tracking (`task_status_durations`) measuring exact business hours spent in each stage
+- [ ] Visual Status Dwell Time Heatmap highlighting pipeline queues (e.g. development vs. code review vs. testing)
+- [ ] Cumulative Flow Diagram (CFD) area chart tracking work stage distributions over time
+- [ ] Lead Time (creation to closure) and Cycle Time (in-progress to closure) metrics and scatterplot charts
+
+### 11.5 Team & Employee Performance, Workload & Capacity Intelligence
+- [ ] Resource Allocation & Capacity Heatmap (Team Members $\times$ Sprints/Weeks) highlighting over-allocated (>100%) and under-utilized (<75%) staff
+- [ ] Estimation Accuracy Index (EAI) tracking estimation bias and precision per employee and team
+- [ ] Engineering Quality tracking: Task Rejection / Reopen count (sent back from QA to dev) and First-Time-Right (FTR %) rate
+- [ ] Post-release Defect Leakage ratio tracking per release version
+- [ ] Employee 360° Operational Performance Scorecard (On-Time Delivery %, billable efficiency, velocity, quality)
+- [ ] Employee Skill Matrix taxonomy with proficiency ratings (`Beginner`, `Intermediate`, `Expert`)
+- [ ] "Smart Assign" task routing ranking team members by skill match, available bandwidth, and branch proximity
+
+### 11.6 Executive & Portfolio Intelligence
+- [ ] Composite Project Health Index (PHI, 0-100) combining schedule, budget burn, defect density, and blockers
+- [ ] Cross-Branch Productivity Benchmarking comparing velocity, billable efficiency %, and on-time delivery across locations
+
