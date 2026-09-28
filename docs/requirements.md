@@ -23,7 +23,7 @@ The system connects multiple company branches and locations under a unified oper
 | **Developer / Engineer** | Executes assigned tasks, updates statuses, logs work hours/efforts, creates subtasks, and attaches technical artifacts. |
 | **QA / Test Engineer** | Reports bugs and issues, executes verification passes, updates testing statuses, and attaches bug evidence/logs. |
 | **Support / Implementation Executive** | Handles client support tickets, installation/deployment tasks, and on-site support visits (via mobile GPS). |
-| **Client / Stakeholder (External API)** | Consumes exposed REST APIs or receives automated milestone and task progress notifications. |
+| **Client / Customer User (Portal & API)** | Authenticated portal access for authorized client representatives (product licensees and project clients) to report bugs, submit tasks, monitor release timelines, and vote on product feature requests. |
 
 ---
 
@@ -240,6 +240,42 @@ The system connects multiple company branches and locations under a unified oper
   - Categorized as Healthy (Green), Needs Attention (Yellow), or At Risk (Red).
 - **Cross-Branch Productivity Benchmarking**:
   - Executive comparative analytics across branch locations comparing task turnaround velocity, billable utilization %, and project on-time delivery rates.
+
+### 3.20 Customer Portal (Client Self-Service & Issue Tracking)
+- **Applicable To**: Both Software Product Licensees and Custom Project Clients.
+- **Customer User Provisioning & Authentication**:
+  - Customer user accounts linked directly to a client record (`client_id`) with designated roles (e.g. `Client Admin`, `Client User`).
+  - Standard dual login (Email + Password or Mobile + OTP) with access restricted to active client accounts.
+- **Strict Scope Isolation & Security Boundaries**:
+  - Multi-tenant data segregation: Customers can ONLY see tasks, releases, and timelines belonging to their assigned projects or actively licensed products.
+  - Mandatory redaction of internal data:
+    - Internal employee notes (`is_internal_only = TRUE`) are strictly hidden.
+    - Developer hourly rates, employee internal costings, project profit margins, and internal assignment hours are completely redacted.
+    - Zero visibility into other clients' data or cross-project work.
+- **Self-Service Task Creation & Defect Reporting**:
+  - Dedicated client submission interface for reporting bugs/defects, submitting enhancement requests, or logging support tickets.
+  - Structured issue capture with environment details, reproduction steps, and secure pre-signed AWS S3 file attachments (screenshots, logs, error dumps).
+  - Automated routing into internal backlogs via the auto-assignment matrix.
+- **Timeline & Delivery Transparency**:
+  - Client-facing task status progression (*Received* -> *In Review* -> *In Progress* -> *Testing / QA* -> *Deployed / Closed*).
+  - Milestone & Release Delivery Timeline: High-level visual timeline showing targeted version release dates and sprint completion windows for their projects/products.
+  - Interactive collaboration: Threaded client comments with internal team leads on customer-visible discussions.
+
+### 3.21 Product Feature Request & Customer Voting Engine (Crowdsourced Roadmap)
+- **Crowdsourced Product Ideation**:
+  - Customers of a shared proprietary software product can view, submit, and discuss feature ideas and enhancement requests.
+  - Feature requests are categorized by product module (e.g. Reporting, UI, Integrations, Performance, Mobile).
+- **Customer Upvoting Mechanism**:
+  - Upvote/vote submission per customer organization, preventing duplicate votes while allowing vote retraction or adjustments.
+  - Business impact justification: Customers can provide optional impact statements (*"How this enhancement impacts our daily operations"*).
+- **Product Demand & Prioritization Dashboard**:
+  - Internal Product Manager analytics view ranking enhancement requests by:
+    - **Total Vote Count**: Overall popularity among customer base.
+    - **Revenue-Weighted Demand**: Vote ranking weighted by voting clients' Annual Contract Value (ACV) or license tier.
+    - **Module / Functional Area Breakdown**: Pinpoints high-demand product areas.
+- **Public / Customer Roadmap Transparency**:
+  - Customer-visible roadmap stages: `PROPOSED` -> `UNDER_EVALUATION` -> `PLANNED` -> `IN_DEVELOPMENT` -> `RELEASED` / `DECLINED`.
+  - Automated notification triggers: All voting customers receive instant email/in-app alerts when an upvoted feature transitions to `PLANNED` (with target release version) or `RELEASED` (with changelog link).
 
 ---
 

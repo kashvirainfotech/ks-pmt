@@ -167,6 +167,16 @@ flowchart TD
   - **10.6 Executive & Portfolio Intelligence**:
     - Composite Project Health Index (PHI, 0-100) combining schedule, budget burn, defect density, and blockers.
     - Cross-Branch Productivity Benchmarking comparing velocity, billable efficiency %, and on-time delivery across locations.
+  - **10.7 Customer Portal (Client Self-Service & Issue Tracking)**:
+    - Customer user provisioning and authentication linked to client accounts with strict multi-tenant boundary checks.
+    - Absolute redaction of internal employee notes, developer hourly costs, and profit margins.
+    - Client task/bug reporting portal with S3 attachment uploads and auto-assignment routing.
+    - Milestone delivery timeline and customer-facing status progression.
+  - **10.8 Product Feature Request & Customer Voting Engine**:
+    - Crowdsourced product ideation forum for software product clients with module categorization.
+    - 1-vote-per-client voting mechanism with operational impact justification.
+    - Product Manager prioritization dashboard ranking requests by vote count and revenue impact (ACV).
+    - Transparent public roadmap and automated notifications on feature stage progression.
 
 ---
 

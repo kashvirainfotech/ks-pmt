@@ -362,3 +362,20 @@ Evidence: [create/edit walkthrough](walkthrough/jira-style-task-create-edit-2026
 - [ ] Composite Project Health Index (PHI, 0-100) combining schedule, budget burn, defect density, and blockers
 - [ ] Cross-Branch Productivity Benchmarking comparing velocity, billable efficiency %, and on-time delivery across locations
 
+### 11.7 Customer Portal (Client Self-Service & Issue Tracking)
+- [ ] Customer user authentication & profile model (`user_type = 'CLIENT'`, bound to `client_id`)
+- [ ] Multi-tenant client isolation guard ensuring customers only access their own project/licensed product tasks
+- [ ] Internal data redaction layer (strictly filter out `is_internal_only` comments, billable/cost rates, and internal assignees)
+- [ ] Customer task & defect creation dialog with environment specs, numbered reproduction steps, and S3 file attachments
+- [ ] Customer status progression view with user-friendly status translations
+- [ ] Project & Product Milestone Delivery Timeline view for customers
+- [ ] Threaded customer collaboration comments with internal PMs/Leads
+
+### 11.8 Product Feature Request & Customer Voting Engine
+- [ ] Product feature requests entity (`product_feature_requests`) with module categorization and status lifecycle (`PROPOSED`, `UNDER_EVALUATION`, `PLANNED`, `IN_DEVELOPMENT`, `RELEASED`, `DECLINED`)
+- [ ] Customer voting entity (`product_feature_votes`) enforcing 1 vote per customer organization with impact justification statement
+- [ ] Product Manager demand analytics dashboard ranking feature requests by raw vote count and revenue-weighted (ACV) value
+- [ ] Customer-facing product enhancement roadmap view
+- [ ] Automated email/in-app notification alerts to all voting customers on feature status progression (e.g. planned in release `v2.1.0`)
+
+

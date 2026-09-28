@@ -42,6 +42,8 @@ Built with a **NestJS REST API backend**, a modern **React 18 + Tailwind CSS web
   - [14. Responsive Web Application (`web/`)](#14-responsive-web-application-web)
   - [15. Cross-Platform Mobile Application (`mobile/`)](#15-cross-platform-mobile-application-mobile)
   - [16. Executive & Portfolio Intelligence](#16-executive--portfolio-intelligence)
+  - [17. Customer Portal (Client Self-Service & Issue Tracking)](#17-customer-portal-client-self-service--issue-tracking)
+  - [18. Product Feature Request & Customer Voting Engine](#18-product-feature-request--customer-voting-engine)
 - [Technology Stack](#-technology-stack)
 - [Directory Structure](#-directory-structure)
 - [Quick Start & Installation Guide](#-quick-start--installation-guide)
@@ -224,6 +226,23 @@ Built with a **NestJS REST API backend**, a modern **React 18 + Tailwind CSS web
 - [x] **Multi-Branch Filtering**: Corporate overview with instant branch switching for multi-location oversight.
 - [ ] **Project Health Index (PHI)**: Composite 0-100 score combining schedule health, budget burn, defect density, and active blockers.
 - [ ] **Cross-Branch Productivity Benchmarking**: Comparative analytics across locations comparing velocity, billable efficiency %, and on-time delivery rates.
+
+### 17. Customer Portal (Client Self-Service & Issue Tracking)
+- [ ] **Customer Authentication & Provisioning**: Secure customer user logins (`user_type = 'CLIENT'`) mapped directly to client company records.
+- [ ] **Dual Client Support**: Native portal support for both **Custom Project Clients** and **Software Product Licensees**.
+- [ ] **Strict Multi-Tenant Boundary Isolation**: Customers can ONLY view projects, products, releases, and tasks belonging to their organization.
+- [ ] **Internal Data Redaction Layer**: Strictly hides internal notes (`is_internal_only = TRUE`), employee costings, billing rates, and internal assignees.
+- [ ] **Customer Task & Bug Reporting**: Self-service interface for logging bugs, change requests, and support tickets with environment info and S3 file attachments.
+- [ ] **Milestone Delivery Timeline**: Client-facing Gantt/timeline view showing planned releases, versions, and sprint delivery dates.
+- [ ] **Direct Customer Collaboration**: Threaded discussions between client representatives and internal project leads on public task comments.
+
+### 18. Product Feature Request & Customer Voting Engine
+- [ ] **Crowdsourced Product Ideation**: Shared feature request forum where licensed customers of the same software product can submit and discuss enhancements.
+- [ ] **Module Categorization**: Organize enhancement requests by product module (e.g. Reporting, UI, Integration, Performance, Mobile).
+- [ ] **Customer Upvoting Mechanism**: Enforce 1 vote per customer organization with optional business impact justification statements.
+- [ ] **Product Demand Analytics Dashboard**: Prioritization report for Product Managers ranking feature requests by raw vote counts and revenue-weighted impact (client ACV/ARR).
+- [ ] **Customer-Facing Roadmap Transparency**: Live feature lifecycle stages (`PROPOSED` -> `UNDER_EVALUATION` -> `PLANNED` -> `IN_DEVELOPMENT` -> `RELEASED` / `DECLINED`).
+- [ ] **Automated Status Notifications**: Automatic email and in-app alerts sent to all voting customers when an upvoted feature is planned or released in a new version.
 
 ---
 
