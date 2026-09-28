@@ -175,7 +175,7 @@ Evidence: [completion review](walkthrough/completion-status-review-2026-09-26.md
   - Calendar / Timeline view for Version milestones
 - [ ] Complete and verify multi-column sorting
 - [ ] Complete all advanced Task Detail View features (core drawer is implemented):
-  - Core field editing is implemented; full inline editing acceptance remains pending
+  - Core inline field editing, focused creation, revision conflicts and fixture-based browser acceptance are implemented; live database acceptance remains pending
   - Multi-assignee avatar chips and selector
   - Subtask checklist with quick-add
   - File attachments gallery with image preview and S3 upload progress bar
@@ -238,7 +238,7 @@ Evidence: [completion review](walkthrough/completion-status-review-2026-09-26.md
 - [x] Project team allocation and product-client license management screens
 - [x] Version/release management and release timeline
 - [x] Task severity, dates, primary assignee and inherited task-type defaults
-- [x] Task-type custom-field schema definitions (per-task values remain pending)
+- [x] Task-type custom-field definitions and validated per-task values with create/edit rendering
 - [x] Threaded comment replies and workflow-aware subtask actions
 - [x] Overtime/weekend worklog classification and per-worklog approval protection
 - [x] Notification preferences and in-app task/assignment/status/comment events
@@ -259,8 +259,9 @@ Evidence: [completion review](walkthrough/completion-status-review-2026-09-26.md
 - [ ] Planned asynchronous delivery queues, audit archival/partitioning and operational infrastructure
 
 ### Task collaboration and reporting
-- [ ] Dynamic per-task custom-field value storage and rendering
-- [ ] Rich-text descriptions/comments and comment-specific attachment composition
+- [x] Dynamic per-task custom-field value storage and rendering (manual blank-database installation acceptance pending)
+- [x] Formatted task descriptions with toolbar and preview (Markdown-based, raw HTML disabled)
+- [ ] Rich-text comment composition and comment-specific attachment composition
 - [ ] Responsibility flags beyond primary-assignee selection
 - [ ] Grouped weekly/monthly timesheets, exports and complete aggregate reports
 
@@ -294,3 +295,15 @@ Evidence: [completion review](walkthrough/completion-status-review-2026-09-26.md
 - [x] Web TypeScript and production build pass
 
 UI evidence: [refresh walkthrough](walkthrough/web-ui-refresh-and-checklist-2026-09-26.md) and [browser results](walkthrough/ui-theme-results.json). These checks do not replace live backend/provider or native mobile acceptance tests.
+
+
+## 10. Jira-style Task Creation and Editing (2026-09-28)
+
+- [x] Focused task creation, context/defaults, Create another and full subtask form
+- [x] Inline task fields, wide drawer/full-page mode, assignment/primary owner controls
+- [x] Null clearing, zero/false preservation, transactional updates and revision conflict handling
+- [x] Formatted descriptions, typed custom values and task-scoped history
+- [x] Backend/web builds, 46 backend tests, fixture browser acceptance and SQL artifact checks
+- [ ] Developer/DBA blank-database installation and live task-workflow acceptance for the new schema
+
+Evidence: [create/edit walkthrough](walkthrough/jira-style-task-create-edit-2026-09-28.md). Advanced list productivity, visual field-layout administration and native mobile parity remain separate work.

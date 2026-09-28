@@ -1,17 +1,20 @@
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException } from "@nestjs/common";
 export function validateDateRanges(
   dto: Record<string, any>,
   existing: Record<string, any> = {},
+  clearNulls = false,
 ) {
   const value = (key: string) =>
-    dto[key] ?? existing[key.replace(/[A-Z]/g, (c) => `_${c.toLowerCase()}`)];
+    dto[key] !== undefined && (clearNulls || dto[key] !== null)
+      ? dto[key]
+      : existing[key.replace(/[A-Z]/g, (c) => `_${c.toLowerCase()}`)];
   for (const [start, end] of [
-    ['plannedStartDate', 'plannedEndDate'],
-    ['actualStartDate', 'actualEndDate'],
-    ['licenseStartDate', 'licenseEndDate'],
-    ['startDate', 'endDate'],
-    ['plannedStartDate', 'targetReleaseDate'],
-    ['timerStartTime', 'timerEndTime'],
+    ["plannedStartDate", "plannedEndDate"],
+    ["actualStartDate", "actualEndDate"],
+    ["licenseStartDate", "licenseEndDate"],
+    ["startDate", "endDate"],
+    ["plannedStartDate", "targetReleaseDate"],
+    ["timerStartTime", "timerEndTime"],
   ]) {
     if (
       value(start) &&

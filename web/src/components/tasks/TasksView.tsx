@@ -1,22 +1,22 @@
-import { allRows, Row } from '../management/EntityManager';
-import { useListing } from '../../hooks/useListing';
-import { DataGrid } from '../common/DataGrid';
-import { Eye, Pencil } from 'lucide-react';
-import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
-import { tasksApi, mastersApi } from '../../api/endpoints';
-import { Task, TaskWorkflowStatus, TaskType } from '../../types';
-import { KanbanBoard } from './KanbanBoard';
-import { TaskDrawer } from './TaskDrawer';
-import { CreateTaskModal } from './CreateTaskModal';
-import { Kanban, List, Plus, Search } from 'lucide-react';
+import { allRows, Row } from "../management/EntityManager";
+import { useListing } from "../../hooks/useListing";
+import { DataGrid } from "../common/DataGrid";
+import { Eye, Pencil } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import { tasksApi, mastersApi } from "../../api/endpoints";
+import { Task, TaskWorkflowStatus, TaskType } from "../../types";
+import { KanbanBoard } from "./KanbanBoard";
+import { TaskDrawer } from "./TaskDrawer";
+import { CreateTaskModal } from "./CreateTaskModal";
+import { Kanban, List, Plus, Search } from "lucide-react";
 
 export const TasksView: React.FC = () => {
   const { selectedBranchId, hasPermission } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
+  const [viewMode, setViewMode] = useState<"kanban" | "list">("kanban");
   const [statuses, setStatuses] = useState<TaskWorkflowStatus[]>([]);
   const [taskTypes, setTaskTypes] = useState<TaskType[]>([]);
 
@@ -24,8 +24,8 @@ export const TasksView: React.FC = () => {
   const [choices, setChoices] = useState<Record<string, Row[]>>({});
   useEffect(() => {
     Promise.all(
-      ['projects', 'products', 'users'].map(
-        async (name) => [name, await allRows('/' + name)] as const,
+      ["projects", "products", "users"].map(
+        async (name) => [name, await allRows("/" + name)] as const,
       ),
     )
       .then((items) => setChoices(Object.fromEntries(items)))
@@ -33,9 +33,9 @@ export const TasksView: React.FC = () => {
   }, []);
 
   // Filters
-  const [selectedTaskTypeId, setSelectedTaskTypeId] = useState<string>('');
-  const [selectedPriority, setSelectedPriority] = useState<string>('');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTaskTypeId, setSelectedTaskTypeId] = useState<string>("");
+  const [selectedPriority, setSelectedPriority] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Modals & Drawer
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -64,17 +64,22 @@ export const TasksView: React.FC = () => {
     rows: tasks,
     loading,
     error,
-    reload: fetchTasks,
-  } = useListing<Task>('/tasks', {
+    reload: reloadTasks,
+  } = useListing<Task>("/tasks", {
     branchId: selectedBranchId || undefined,
     taskTypeId: selectedTaskTypeId || undefined,
     priority: selectedPriority || undefined,
     ...facets,
-    ...(viewMode === 'kanban' ? { search: searchQuery || undefined } : {}),
+    ...(viewMode === "kanban" ? { search: searchQuery || undefined } : {}),
   });
+  const fetchTasks = () => reloadTasks({ keepRows: true });
   useEffect(() => {
-    const id = searchParams.get('taskId');
-    if (!id) return;
+    const id = searchParams.get("taskId");
+    if (!id) {
+      setSelectedTask(null);
+      setStartEditing(false);
+      return;
+    }
     let active = true;
     tasksApi
       .getTaskById(id)
@@ -85,7 +90,7 @@ export const TasksView: React.FC = () => {
     return () => {
       active = false;
     };
-  }, [searchParams]);
+  }, [searchParams.get("taskId")]);
   // Open drawer for a task and sync URL
   const handleOpenDetail = async (task: Task, edit = false) => {
     try {
@@ -93,15 +98,25 @@ export const TasksView: React.FC = () => {
       setStartEditing(edit);
       setSelectedTask(detail.data);
     } catch (e: any) {
-      alert(e.response?.data?.message || 'Unable to load task');
+      alert(e.response?.data?.message || "Unable to load task");
       return;
     }
-    setSearchParams({ taskId: task.id });
+    setSearchParams((previous) => {
+      const next = new URLSearchParams(previous);
+      next.set("taskId", task.id);
+      return next;
+    });
   };
 
   const handleCloseDetail = () => {
     setSelectedTask(null);
-    setSearchParams({});
+    setStartEditing(false);
+    setSearchParams((previous) => {
+      const next = new URLSearchParams(previous);
+      next.delete("taskId");
+      next.delete("viewTask");
+      return next;
+    });
   };
 
   const handleQuickCreate = (statusId: string) => {
@@ -126,28 +141,28 @@ export const TasksView: React.FC = () => {
           {/* View Mode Toggle */}
           <div className="flex rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
             <button
-              onClick={() => setViewMode('kanban')}
+              onClick={() => setViewMode("kanban")}
               className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition ${
-                viewMode === 'kanban'
-                  ? 'bg-white text-blue-600 shadow-xs dark:bg-slate-700 dark:text-white'
-                  : 'text-slate-600 hover:text-slate-900 dark:text-slate-400'
+                viewMode === "kanban"
+                  ? "bg-white text-blue-600 shadow-xs dark:bg-slate-700 dark:text-white"
+                  : "text-slate-600 hover:text-slate-900 dark:text-slate-400"
               }`}
             >
               <Kanban className="h-3.5 w-3.5" /> Board
             </button>
             <button
-              onClick={() => setViewMode('list')}
+              onClick={() => setViewMode("list")}
               className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition ${
-                viewMode === 'list'
-                  ? 'bg-white text-blue-600 shadow-xs dark:bg-slate-700 dark:text-white'
-                  : 'text-slate-600 hover:text-slate-900 dark:text-slate-400'
+                viewMode === "list"
+                  ? "bg-white text-blue-600 shadow-xs dark:bg-slate-700 dark:text-white"
+                  : "text-slate-600 hover:text-slate-900 dark:text-slate-400"
               }`}
             >
               <List className="h-3.5 w-3.5" /> Table
             </button>
           </div>
 
-          {hasPermission('TASKS:CREATE') && (
+          {hasPermission("TASKS:CREATE") && (
             <button
               onClick={() => {
                 setCreateModalInitialStatus(undefined);
@@ -163,15 +178,15 @@ export const TasksView: React.FC = () => {
 
       <div className="flex flex-wrap gap-3">
         {[
-          ['projectId', 'projects', 'project_name'],
-          ['productId', 'products', 'product_name'],
-          ['assigneeUserId', 'users', 'first_name'],
+          ["projectId", "projects", "project_name"],
+          ["productId", "products", "product_name"],
+          ["assigneeUserId", "users", "first_name"],
         ].map(([key, source, label]) => (
           <select
             aria-label={source}
             key={key}
             className="form-control max-w-full text-xs"
-            value={facets[key] || ''}
+            value={facets[key] || ""}
             onChange={(e) => {
               setFacets((prev) => {
                 const next = { ...prev };
@@ -192,7 +207,7 @@ export const TasksView: React.FC = () => {
         <select
           aria-label="Status filter"
           className="form-control max-w-full text-xs"
-          value={facets.statusId || ''}
+          value={facets.statusId || ""}
           onChange={(e) => {
             setFacets((prev) => {
               const next = { ...prev };
@@ -213,7 +228,7 @@ export const TasksView: React.FC = () => {
       {/* Filter Toolbar */}
       <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
         <div
-          className={`relative flex-1 min-w-[200px] ${viewMode === 'list' ? 'hidden' : ''}`}
+          className={`relative flex-1 min-w-[200px] ${viewMode === "list" ? "hidden" : ""}`}
         >
           <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
           <input
@@ -256,60 +271,66 @@ export const TasksView: React.FC = () => {
 
       {/* Main Board or List Content */}
       <div className="flex-1 min-h-[500px]">
-        {loading ? (
-          <div className="flex h-64 items-center justify-center text-xs text-slate-400">
-            Loading tasks...
-          </div>
-        ) : viewMode === 'kanban' ? (
+        {viewMode === "kanban" ? (
           <KanbanBoard
             onMoved={fetchTasks}
             tasks={tasks}
             statuses={statuses}
             onOpenDetail={handleOpenDetail}
             onQuickCreate={
-              hasPermission('TASKS:CREATE') ? handleQuickCreate : undefined
+              hasPermission("TASKS:CREATE") ? handleQuickCreate : undefined
             }
           />
         ) : (
           <DataGrid
             title="Tasks"
+            preservePageOnDataChange
             data={tasks}
             loading={loading}
             error={error}
             onRetry={fetchTasks}
             columns={[
-              { id: 'task_code', label: 'Code' },
-              { id: 'title', label: 'Task title' },
-              { id: 'project_name', label: 'Project' },
-              { id: 'task_type_name', label: 'Type' },
-              { id: 'status_name', label: 'Status' },
-              { id: 'priority', label: 'Priority' },
+              { id: "task_code", label: "Code" },
+              { id: "title", label: "Task title" },
+              { id: "project_name", label: "Project" },
+              { id: "task_type_name", label: "Type" },
+              { id: "status_name", label: "Status" },
+              { id: "priority", label: "Priority" },
               {
-                id: 'estimated_hours',
-                label: 'Estimated hours',
-                type: 'number',
+                id: "estimated_hours",
+                label: "Estimated hours",
+                type: "number",
               },
-              { id: 'spent_hours', label: 'Logged hours', type: 'number' },
-              { id: 'is_chargeable', label: 'Chargeable' },
+              { id: "spent_hours", label: "Logged hours", type: "number" },
+              { id: "is_chargeable", label: "Chargeable" },
               {
-                id: 'assignees',
-                label: 'Assignees',
+                id: "assignees",
+                label: "Assignees",
                 value: (t) =>
                   (t.assignees || [])
                     .map((a) =>
-                      [a.first_name, a.last_name].filter(Boolean).join(' '),
+                      [a.first_name, a.last_name].filter(Boolean).join(" "),
                     )
-                    .join(', '),
+                    .join(", "),
               },
             ]}
             actions={[
-              { label: 'View', icon: Eye, onClick: task => handleOpenDetail(task) },
-              { label: 'Edit', icon: Pencil, hidden: () => !hasPermission('TASKS:UPDATE'), onClick: task => handleOpenDetail(task, true) },
+              {
+                label: "View",
+                icon: Eye,
+                onClick: (task) => handleOpenDetail(task),
+              },
+              {
+                label: "Edit",
+                icon: Pencil,
+                hidden: () => !hasPermission("TASKS:UPDATE"),
+                onClick: (task) => handleOpenDetail(task, true),
+              },
             ]}
           />
         )}
       </div>
-      {error && viewMode === 'kanban' && (
+      {error && viewMode === "kanban" && (
         <p role="alert">
           {error} <button onClick={fetchTasks}>Retry</button>
         </p>
@@ -320,13 +341,25 @@ export const TasksView: React.FC = () => {
           key={selectedTask?.id}
           task={selectedTask}
           startEditing={startEditing}
+          fullPage={searchParams.get("viewTask") === "full"}
+          onExpand={() =>
+            setSearchParams((previous) => {
+              const next = new URLSearchParams(previous);
+              if (next.get("viewTask") === "full") next.delete("viewTask");
+              else next.set("viewTask", "full");
+              return next;
+            })
+          }
           onClose={handleCloseDetail}
           onTaskUpdated={() => {
             fetchTasks();
             // Refresh currently selected task detail
-            tasksApi.getTaskById(selectedTask.id).then((res: any) => {
-              setSelectedTask(res?.data || res);
-            });
+            tasksApi
+              .getTaskById(selectedTask.id)
+              .then((res: any) => {
+                setSelectedTask(res?.data || res);
+              })
+              .catch(console.error);
           }}
         />
       )}
@@ -335,6 +368,12 @@ export const TasksView: React.FC = () => {
       {createModalOpen && (
         <CreateTaskModal
           initialStatusId={createModalInitialStatus}
+          initial={{
+            projectId: facets.projectId || "",
+            productId: facets.projectId ? "" : facets.productId || "",
+            taskTypeId: selectedTaskTypeId || "",
+            ...(selectedPriority ? { priority: selectedPriority } : {}),
+          }}
           onClose={() => setCreateModalOpen(false)}
           onCreated={fetchTasks}
         />

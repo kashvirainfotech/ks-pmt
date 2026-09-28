@@ -1,17 +1,19 @@
+import { customDefinitions } from "../tasks/custom-task-fields";
 import {
   BadRequestException,
   Injectable,
   NotFoundException,
-} from '@nestjs/common';
-import { DatabaseService } from '../../database/database.service';
-import { CreateTaskTypeDto } from './dto/create-task-type.dto';
-import { UpdateTaskTypeDto } from './dto/update-task-type.dto';
+} from "@nestjs/common";
+import { DatabaseService } from "../../database/database.service";
+import { CreateTaskTypeDto } from "./dto/create-task-type.dto";
+import { UpdateTaskTypeDto } from "./dto/update-task-type.dto";
 
 @Injectable()
 export class TaskTypesService {
   constructor(private readonly db: DatabaseService) {}
 
   async create(dto: CreateTaskTypeDto, userId: string) {
+    if (dto.customFields !== undefined) customDefinitions(dto.customFields);
     const checkQuery = `SELECT id FROM task_types WHERE type_code = $1;`;
     const checkResult = await this.db.query(checkQuery, [dto.typeCode]);
     if (checkResult.rowCount > 0) {
@@ -34,12 +36,12 @@ export class TaskTypesService {
         dto.typeCode,
         dto.typeName,
         dto.description || null,
-        dto.colorHex || '#3B82F6',
-        dto.iconName || 'check-square',
+        dto.colorHex || "#3B82F6",
+        dto.iconName || "check-square",
         dto.isChargeableDefault || false,
         userId,
       ],
-      'task_types',
+      "task_types",
       {
         default_severity: dto.defaultSeverity,
         custom_fields: dto.customFields,
@@ -82,6 +84,7 @@ export class TaskTypesService {
   }
 
   async update(id: string, dto: UpdateTaskTypeDto, userId: string) {
+    if (dto.customFields !== undefined) customDefinitions(dto.customFields);
     await this.findOne(id);
 
     const updateQuery = `
@@ -109,7 +112,7 @@ export class TaskTypesService {
         userId,
         id,
       ],
-      'task_types',
+      "task_types",
       {
         default_severity: dto.defaultSeverity,
         custom_fields: dto.customFields,

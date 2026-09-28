@@ -58,8 +58,10 @@ export const tasksApi = {
   updateTask: (id: string, data: any): Promise<{ data: Task }> =>
     api.put(`/tasks/${id}`, data),
 
-  updateStatus: (id: string, toStatusId: string, remarks?: string) =>
-    api.patch(`/tasks/${id}/status`, { toStatusId, remarks }),
+  patchTask: (id: string, data: any): Promise<{ data: Task }> => api.patch(`/tasks/${id}`, data),
+  saveAssignees: (id: string, data: any): Promise<{ data: Task }> => api.put(`/tasks/${id}/assignees`, data),
+  updateStatus: (id: string, toStatusId: string, remarks?: string, expectedRevision?: number) =>
+    api.patch(`/tasks/${id}/status`, { toStatusId, remarks, expectedRevision }),
 
   updateAssignees: (
     id: string,

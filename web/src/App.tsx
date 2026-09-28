@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import {
   ProfilePage,
   NotificationsPage,
@@ -15,7 +15,7 @@ import { useAuth } from './context/AuthContext';
 import { AppLayout } from './components/layout/AppLayout';
 import { LoginPage } from './components/auth/LoginPage';
 import { BentoGridDashboard } from './components/dashboard/BentoGridDashboard';
-import { TasksView } from './components/tasks/TasksView';
+const TasksView = lazy(() => import('./components/tasks/TasksView').then(module => ({ default: module.TasksView })));
 import { AuditLogsView } from './components/audit/AuditLogsView';
 import { adminScreens, portfolioScreens } from './components/management/screens';
 
@@ -61,7 +61,7 @@ export const App: React.FC = () => {
       >
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="dashboard" element={<BentoGridDashboard />} />
-        <Route path="tasks" element={<TasksView />} />
+        <Route path="tasks" element={<Suspense fallback={<p role="status">Loading task workspace...</p>}><TasksView /></Suspense>} />
         {portfolioScreens.map(screen => (
           <Route key={screen.path} path={screen.path} element={<PortfolioPage key={screen.path} screen={screen} />} />
         ))}

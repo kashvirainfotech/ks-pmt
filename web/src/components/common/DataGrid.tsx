@@ -90,6 +90,7 @@ export function DataGrid<T extends { id?: string }>({
   onRetry,
   toolbar,
   initialSorting = [],
+  preservePageOnDataChange = false,
 }: {
   title: string;
   data: T[];
@@ -103,6 +104,7 @@ export function DataGrid<T extends { id?: string }>({
   onRetry?: () => void;
   toolbar?: React.ReactNode;
   initialSorting?: SortingState;
+  preservePageOnDataChange?: boolean;
 }) {
   const [search, setSearch] = useState('');
   const [sorting, setSorting] = useState<SortingState>(initialSorting);
@@ -167,6 +169,7 @@ export function DataGrid<T extends { id?: string }>({
     getGroupedRowModel: getGroupedRowModel(),
     getExpandedRowModel: getExpandedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    autoResetPageIndex: !preservePageOnDataChange,
     groupedColumnMode: false,
     paginateExpandedRows: false,
     getRowId: (row, index) => row.id ?? String(index),

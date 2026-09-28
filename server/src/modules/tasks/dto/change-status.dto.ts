@@ -1,18 +1,23 @@
-import { IsUUID } from '../../../common/validators/record-id';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsUUID } from "../../../common/validators/record-id";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { IsNotEmpty, IsOptional, IsString, IsInt, Min } from "class-validator";
 
 export class ChangeTaskStatusDto {
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  expectedRevision?: number;
   @ApiProperty({
-    example: '66666666-6666-6666-6666-666666666662',
-    description: 'Target Task Status UUID to transition to',
+    example: "66666666-6666-6666-6666-666666666662",
+    description: "Target Task Status UUID to transition to",
   })
   @IsUUID()
   @IsNotEmpty()
   toStatusId: string;
 
   @ApiPropertyOptional({
-    example: 'Code review approved by Tech Lead; deploying to QA environment',
+    example: "Code review approved by Tech Lead; deploying to QA environment",
   })
   @IsString()
   @IsOptional()

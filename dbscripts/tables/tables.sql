@@ -404,6 +404,8 @@ CREATE TABLE IF NOT EXISTS task_type_workflow_statuses (
 CREATE TABLE IF NOT EXISTS tasks (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     task_code VARCHAR(50) NOT NULL UNIQUE, -- e.g., 'TSK-1001'
+    revision INTEGER NOT NULL DEFAULT 1 CHECK (revision > 0),
+    custom_field_values JSONB NOT NULL DEFAULT '{}'::jsonb CHECK (jsonb_typeof(custom_field_values) = 'object'),
     title VARCHAR(255) NOT NULL,
     description TEXT,
     task_type_id UUID NOT NULL REFERENCES task_types(id) ON DELETE RESTRICT,

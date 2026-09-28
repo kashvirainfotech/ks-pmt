@@ -1,0 +1,11 @@
+{
+  "checks": [
+    "Contextual creation, type defaults, scoped releases, assignment and Create another",
+    "Inline editing, dropdown save, Escape cancellation, null clearing and zero values",
+    "Conflict review/retry and failed-save draft preservation",
+    "Custom values preserve zero/false and formatted descriptions safely preview and save",
+    "Multi-assignees/primary owner, full-page mode, preserved list context and mobile dark layout",
+    "Read-only task access hides editing and financial fields"
+  ],
+  "errors": []
+}

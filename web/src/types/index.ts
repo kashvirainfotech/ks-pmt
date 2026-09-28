@@ -105,6 +105,12 @@ export interface SubTask {
 }
 
 export interface Task {
+  revision?: number;
+  updated_at?: string;
+  severity?: string;
+  currency?: string;
+  planned_end_date?: string;
+  actual_end_date?: string;
   id: string;
   task_code: string;
   title: string;
