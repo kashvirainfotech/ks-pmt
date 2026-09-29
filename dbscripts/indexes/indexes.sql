@@ -141,3 +141,15 @@ CREATE INDEX IF NOT EXISTS idx_saved_views_user ON saved_views(user_id, scope, i
 CREATE INDEX IF NOT EXISTS idx_saved_views_project ON saved_views(project_id, scope, is_active);
 CREATE INDEX IF NOT EXISTS idx_saved_views_favorite ON saved_views(user_id, is_favorite) WHERE is_active = TRUE;
 CREATE INDEX IF NOT EXISTS idx_tasks_sorting_priority_due ON tasks(priority, planned_due_date ASC);
+
+-- ========================================================
+-- Date & Time: 2026-09-29 14:08:00 IST
+-- Description: TIME-001 - Indexes for Weekly Timesheets, Reviewer Portions, and Persistent Timers
+-- ========================================================
+CREATE INDEX IF NOT EXISTS idx_weekly_timesheets_user_period ON weekly_timesheets(user_id, period_start_date);
+CREATE INDEX IF NOT EXISTS idx_weekly_timesheets_status ON weekly_timesheets(status) WHERE is_active = TRUE;
+CREATE INDEX IF NOT EXISTS idx_timesheet_portions_timesheet ON timesheet_project_portions(timesheet_id);
+CREATE INDEX IF NOT EXISTS idx_timesheet_portions_project ON timesheet_project_portions(project_id, status);
+CREATE INDEX IF NOT EXISTS idx_task_time_logs_timesheet ON task_time_logs(timesheet_id);
+CREATE INDEX IF NOT EXISTS idx_user_active_timers_user ON user_active_timers(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_active_timers_task ON user_active_timers(task_id);

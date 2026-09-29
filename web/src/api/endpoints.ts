@@ -33,6 +33,10 @@ import {
   SavedViewPreset,
   BulkUpdateItem,
   BulkUpdateTasksResponse,
+  WeeklyTimesheet,
+  WeeklyTimesheetResponse,
+  TimesheetProjectPortion,
+  ActiveTimer,
 } from '../types';
 
 // ==========================================
@@ -496,6 +500,42 @@ export const savedViewsApi = {
 
   delete: (id: string) => api.delete(`/saved-views/${id}`),
 };
+
+// ==========================================
+// Timesheets & Global Persistent Timer (TIME-001)
+// ==========================================
+export const timesheetsApi = {
+  getWeekly: (params?: { startDate?: string; userId?: string }): Promise<{ data: WeeklyTimesheetResponse }> =>
+    api.get('/timesheets/weekly', { params }),
+
+  submitTimesheet: (id: string, data?: { remarks?: string }): Promise<{ data: WeeklyTimesheet }> =>
+    api.post(`/timesheets/${id}/submit`, data),
+
+  reviewPortion: (portionId: string, data: { status: 'APPROVED' | 'REJECTED'; remarks?: string }): Promise<{ data: any }> =>
+    api.post(`/timesheets/portions/${portionId}/review`, data),
+
+  reopenTimesheet: (id: string, data?: { reason?: string }): Promise<{ data: WeeklyTimesheet }> =>
+    api.post(`/timesheets/${id}/reopen`, data),
+
+  getActiveTimer: (): Promise<{ data: { timer: ActiveTimer | null } }> =>
+    api.get('/timesheets/timer/active'),
+
+  startTimer: (data: { taskId: string; isBillable?: boolean; notes?: string }): Promise<{ data: ActiveTimer }> =>
+    api.post('/timesheets/timer/start', data),
+
+  pauseTimer: (): Promise<{ data: ActiveTimer }> =>
+    api.post('/timesheets/timer/pause'),
+
+  resumeTimer: (): Promise<{ data: ActiveTimer }> =>
+    api.post('/timesheets/timer/resume'),
+
+  stopTimer: (data?: { description?: string; isBillable?: boolean }): Promise<{ data: { message: string; log: any } }> =>
+    api.post('/timesheets/timer/stop', data),
+
+  discardTimer: (): Promise<{ data: { message: string } }> =>
+    api.delete('/timesheets/timer'),
+};
+
 
 
 

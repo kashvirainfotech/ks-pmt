@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { notificationsApi } from '../../api/endpoints';
 import { NotificationItem } from '../../types';
+import { GlobalTimerWidget } from '../common/GlobalTimerWidget';
 
 interface HeaderProps {
   onToggleSidebar?: () => void;
@@ -106,8 +107,11 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar, onOpenSearch })
         </button>
       </div>
 
-      {/* Right Controls: Branch Switcher, Theme, Notifications, Profile */}
+      {/* Right Controls: Global Timer, Branch Switcher, Theme, Notifications, Profile */}
       <div className="flex shrink-0 items-center gap-1 sm:gap-3">
+        {/* Persistent Global Timer (TIME-001) */}
+        <GlobalTimerWidget />
+
         {/* Branch Switcher */}
         {branches && branches.length > 0 && (
           <div className="relative">

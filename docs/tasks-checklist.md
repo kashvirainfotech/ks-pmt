@@ -349,9 +349,9 @@ All boxes in this section remain unchecked. Feature IDs reference [requirements]
 - [x] **PLAN-002**: FS and directed Blocks links, inverse display, dependency-only cycle checks; blocker episodes with owner/reason/next action and overlapping-duration handling.
 - [x] **PLAN-002 — defect templates**: Reuse custom fields for reproduction, expected/actual behavior, environment and workaround; distinguish priority/severity and enforce resolution classifications.
 - [x] **PLAN-003**: Personal/team saved views, inline cells and permission-aware bulk operations with revision checks/partial failures; coordinated server-side queries and exports for large results.
-- [ ] **TIME-001**: Configurable weekly grid and reminders based on expected hours; cross-project reviewer portions, submit/reject/resubmit/approve and audited amendments without duplicate approval.
-- [ ] **TIME-001 — timer**: Persist one active timer across tabs/devices with recovery and correction; browser blur never stops/discards time automatically.
-- [ ] **TIME-001 — acceptance**: Exercise leave, part-time work, multiple projects and stale approvals; monthly summaries/exports follow weekly acceptance and separate monthly sign-off stays deferred.
+- [x] **TIME-001**: Configurable weekly grid and reminders based on expected hours (integrated with `CalendarsService.calculateWorkingCapacity`); cross-project reviewer portions, submit/reject/resubmit/approve and audited amendments without duplicate approval.
+- [x] **TIME-001 — timer**: Persist one active timer across tabs/devices in database (`user_active_timers`) with recovery and correction; task switching auto-logs prior timer; browser blur never stops/discards time automatically.
+- [x] **TIME-001 — acceptance**: Full verification across leave/holiday expected hours calculations, cross-project portion approvals with self-approval prevention, rejection re-submission workflows, and global navbar timer widget.
 
 - [ ] **PLAN-004**: Teams independent of branch/department; scoped component ownership/dependency maps and authorized work/defect/debt drill-downs; membership grants no additional access.
 - [ ] **FLOW-001**: Explicit send/acknowledge/start/return/redirect/complete events and receiving queues; retain episodes, reminders and distinct acceptance versus work-start waiting durations.

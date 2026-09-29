@@ -5,7 +5,8 @@ import { RecordForm, Row, allRows, errorText } from './EntityManager';
 import { f, ref } from './config';
 import { useListing } from '../../hooks/useListing';
 import { DataGrid } from '../common/DataGrid';
-import { Send, ClipboardCheck, Clock, CheckCircle2, AlertCircle, Calendar } from 'lucide-react';
+import { Send, ClipboardCheck, Clock, CheckCircle2, AlertCircle, Calendar, TableProperties } from 'lucide-react';
+import { WeeklyTimesheetView } from '../timesheets/WeeklyTimesheetView';
 
 const fields = [
   ref('taskId', 'Task', '/tasks', 'title', true),
@@ -24,6 +25,7 @@ const fields = [
 
 export function TimesheetsPage() {
   const { user, hasPermission } = useAuth();
+  const [activeTab, setActiveTab] = useState<'weekly' | 'logs'>('weekly');
   const [error, setError] = useState('');
   const [adding, setAdding] = useState(false);
   const [startDate, setStart] = useState('');
@@ -62,19 +64,49 @@ export function TimesheetsPage() {
 
   return (
     <section className="space-y-6">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-            Timesheets & Effort Approvals
-          </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
-            Track daily worklogs, billable hours, overtime, and manager approvals.
-          </p>
-        </div>
+      {/* View Switcher Tabs */}
+      <div className="flex border-b border-slate-200 dark:border-slate-800 gap-2">
+        <button
+          onClick={() => setActiveTab('weekly')}
+          className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-xs font-semibold transition ${
+            activeTab === 'weekly'
+              ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400'
+              : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
+          }`}
+        >
+          <Clock className="h-4 w-4" />
+          Weekly Timesheet & Portions
+        </button>
+        <button
+          onClick={() => setActiveTab('logs')}
+          className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-xs font-semibold transition ${
+            activeTab === 'logs'
+              ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400'
+              : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
+          }`}
+        >
+          <TableProperties className="h-4 w-4" />
+          Detailed Worklogs
+        </button>
       </div>
 
-      {/* KPI Summary Cards */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      {activeTab === 'weekly' ? (
+        <WeeklyTimesheetView />
+      ) : (
+        <div className="space-y-6">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
+                Detailed Work Logs & Approvals
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Granular worklog entries, billable tags, and individual time log records.
+              </p>
+            </div>
+          </div>
+
+          {/* KPI Summary Cards */}
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
           <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
             <Clock className="h-4 w-4 text-blue-500" />
@@ -295,22 +327,24 @@ export function TimesheetsPage() {
         </div>
       )}
 
-      {reviewing && (
-        <RecordForm
-          fields={[
-            f('status', 'Decision', {
-              required: true,
-              options: ['APPROVED', 'REJECTED'],
-            }),
-            f('remarks', 'Review Remarks', { type: 'textarea' }),
-          ]}
-          onCancel={() => setReviewing(null)}
-          onSave={async (values) => {
-            await api.patch(`/time-logs/${reviewing.id}/review`, values);
-            setReviewing(null);
-            await load();
-          }}
-        />
+          {reviewing && (
+            <RecordForm
+              fields={[
+                f('status', 'Decision', {
+                  required: true,
+                  options: ['APPROVED', 'REJECTED'],
+                }),
+                f('remarks', 'Review Remarks', { type: 'textarea' }),
+              ]}
+              onCancel={() => setReviewing(null)}
+              onSave={async (values) => {
+                await api.patch(`/time-logs/${reviewing.id}/review`, values);
+                setReviewing(null);
+                await load();
+              }}
+            />
+          )}
+        </div>
       )}
     </section>
   );

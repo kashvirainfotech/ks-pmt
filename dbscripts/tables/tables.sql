@@ -598,12 +598,66 @@ CREATE TABLE IF NOT EXISTS task_blocker_episodes (
 );
 
 -- ========================================================
+-- Date & Time: 2026-09-29 14:05:00 (IST)
+-- Description: 21e. Weekly Timesheets (TIME-001)
+-- ========================================================
+CREATE TABLE IF NOT EXISTS weekly_timesheets (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    period_start_date DATE NOT NULL,
+    period_end_date DATE NOT NULL,
+    expected_hours NUMERIC(6, 2) NOT NULL DEFAULT 40.00,
+    total_logged_hours NUMERIC(6, 2) NOT NULL DEFAULT 0.00,
+    total_billable_hours NUMERIC(6, 2) NOT NULL DEFAULT 0.00,
+    total_overtime_hours NUMERIC(6, 2) NOT NULL DEFAULT 0.00,
+    status VARCHAR(20) NOT NULL DEFAULT 'DRAFT' CHECK (status IN ('DRAFT', 'SUBMITTED', 'APPROVED', 'REJECTED')),
+    submitted_at TIMESTAMP WITH TIME ZONE,
+    approved_at TIMESTAMP WITH TIME ZONE,
+    approved_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    rejection_reason TEXT,
+    rejected_at TIMESTAMP WITH TIME ZONE,
+    rejected_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    revision INTEGER NOT NULL DEFAULT 1,
+    submission_notes TEXT,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_user_period UNIQUE (user_id, period_start_date)
+);
+
+-- ========================================================
+-- Date & Time: 2026-09-29 14:05:00 (IST)
+-- Description: 21f. Timesheet Project Portions for Cross-Project Reviewers (TIME-001)
+-- ========================================================
+CREATE TABLE IF NOT EXISTS timesheet_project_portions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    timesheet_id UUID NOT NULL REFERENCES weekly_timesheets(id) ON DELETE CASCADE,
+    project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+    product_id UUID REFERENCES products(id) ON DELETE CASCADE,
+    logged_hours NUMERIC(6, 2) NOT NULL DEFAULT 0.00,
+    billable_hours NUMERIC(6, 2) NOT NULL DEFAULT 0.00,
+    status VARCHAR(20) NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED')),
+    reviewed_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    reviewed_at TIMESTAMP WITH TIME ZONE,
+    review_remarks TEXT,
+    revision INTEGER NOT NULL DEFAULT 1,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ========================================================
 -- 22. Effort Tracking: Task Time Logs / Worklogs
 -- ========================================================
 CREATE TABLE IF NOT EXISTS task_time_logs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     task_id UUID NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    timesheet_id UUID REFERENCES weekly_timesheets(id) ON DELETE SET NULL,
     log_date DATE NOT NULL DEFAULT CURRENT_DATE,
     hours_spent NUMERIC(6, 2) NOT NULL,
     is_billable BOOLEAN NOT NULL DEFAULT TRUE,
@@ -622,6 +676,26 @@ CREATE TABLE IF NOT EXISTS task_time_logs (
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT chk_positive_hours CHECK (hours_spent > 0)
 );
+
+-- ========================================================
+-- Date & Time: 2026-09-29 14:05:00 (IST)
+-- Description: 22a. Persistent Global Active Timer Across Tabs & Devices (TIME-001)
+-- ========================================================
+CREATE TABLE IF NOT EXISTS user_active_timers (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    task_id UUID NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+    started_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    accumulated_seconds INTEGER NOT NULL DEFAULT 0,
+    is_paused BOOLEAN NOT NULL DEFAULT FALSE,
+    paused_at TIMESTAMP WITH TIME ZONE,
+    notes TEXT,
+    is_billable BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_user_active_timer UNIQUE (user_id)
+);
+
 
 -- ========================================================
 -- 23. Task Comments & Collaboration

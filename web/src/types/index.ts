@@ -584,3 +584,103 @@ export interface BulkUpdateTasksResponse {
   failed: Array<{ id: string; taskCode?: string; title?: string; code: string; reason: string }>;
 }
 
+export interface WeeklyTimesheet {
+  id: string;
+  user_id: string;
+  period_start_date: string;
+  period_end_date: string;
+  expected_hours: number;
+  total_logged_hours: number;
+  total_billable_hours: number;
+  total_overtime_hours: number;
+  status: 'DRAFT' | 'SUBMITTED' | 'APPROVED' | 'REJECTED';
+  submission_remarks?: string;
+  submitted_at?: string;
+  rejection_reason?: string;
+  rejected_at?: string;
+  rejected_by?: string;
+  approved_at?: string;
+  approved_by?: string;
+  revision: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TimesheetProjectPortion {
+  id: string;
+  timesheet_id: string;
+  project_id?: string;
+  product_id?: string;
+  project_name?: string;
+  product_name?: string;
+  total_hours: number;
+  billable_hours: number;
+  overtime_hours: number;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  reviewed_by?: string;
+  reviewer_name?: string;
+  reviewed_at?: string;
+  review_remarks?: string;
+}
+
+export interface WeeklyTimesheetGridItem {
+  taskId: string;
+  taskCode: string;
+  taskTitle: string;
+  projectName: string;
+  projectId?: string;
+  productId?: string;
+  statusName?: string;
+  statusColor?: string;
+  isBillable: boolean;
+  dailyHours: {
+    Mon: number;
+    Tue: number;
+    Wed: number;
+    Thu: number;
+    Fri: number;
+    Sat: number;
+    Sun: number;
+  };
+  totalHours: number;
+  logs: any[];
+}
+
+export interface WeeklyTimesheetSummary {
+  periodStart: string;
+  periodEnd: string;
+  expectedHours: number;
+  totalLoggedHours: number;
+  totalBillableHours: number;
+  totalOvertimeHours: number;
+  missingHours: number;
+  isUnderExpected: boolean;
+}
+
+export interface WeeklyTimesheetResponse {
+  timesheet: WeeklyTimesheet;
+  grid: WeeklyTimesheetGridItem[];
+  worklogs: any[];
+  portions: TimesheetProjectPortion[];
+  summary: WeeklyTimesheetSummary;
+}
+
+export interface ActiveTimer {
+  id: string;
+  user_id: string;
+  task_id: string;
+  task_code: string;
+  task_title: string;
+  task_priority?: string;
+  project_id?: string;
+  project_name?: string;
+  started_at: string;
+  accumulated_seconds: number;
+  is_paused: boolean;
+  notes?: string;
+  is_billable: boolean;
+  elapsedSeconds: number;
+  elapsedFormatted: string;
+}
+
+

@@ -278,7 +278,10 @@ BEGIN
         ('BLOCKERS', 'READ', 'BLOCKERS:READ', 'Permission to view active blocker radar and blocker episodes', TRUE, v_admin_id),
         ('BLOCKERS', 'MANAGE', 'BLOCKERS:MANAGE', 'Permission to log, update, and resolve blocker episodes', TRUE, v_admin_id),
         ('SAVED_VIEWS', 'READ', 'SAVED_VIEWS:READ', 'Permission to view personal and team saved views', TRUE, v_admin_id),
-        ('SAVED_VIEWS', 'MANAGE', 'SAVED_VIEWS:MANAGE', 'Permission to create, update, and delete saved views', TRUE, v_admin_id)
+        ('SAVED_VIEWS', 'MANAGE', 'SAVED_VIEWS:MANAGE', 'Permission to create, update, and delete saved views', TRUE, v_admin_id),
+        ('TIMESHEETS', 'READ', 'TIMESHEETS:READ', 'Permission to view own and team weekly timesheets', TRUE, v_admin_id),
+        ('TIMESHEETS', 'SUBMIT', 'TIMESHEETS:SUBMIT', 'Permission to log, edit, and submit weekly timesheets', TRUE, v_admin_id),
+        ('TIMESHEETS', 'APPROVE', 'TIMESHEETS:APPROVE', 'Permission to review, approve, or reject timesheet portions', TRUE, v_admin_id)
     ON CONFLICT (permission_code) DO NOTHING;
 
     INSERT INTO role_permissions (role_id, permission_id, created_by)
@@ -288,7 +291,8 @@ BEGIN
         'CALENDARS:READ', 'CALENDARS:MANAGE', 'LEAVES:MANAGE',
         'SPRINTS:READ', 'SPRINTS:MANAGE', 'MILESTONES:READ', 'MILESTONES:MANAGE',
         'DEPENDENCIES:READ', 'DEPENDENCIES:MANAGE', 'BLOCKERS:READ', 'BLOCKERS:MANAGE',
-        'SAVED_VIEWS:READ', 'SAVED_VIEWS:MANAGE'
+        'SAVED_VIEWS:READ', 'SAVED_VIEWS:MANAGE',
+        'TIMESHEETS:READ', 'TIMESHEETS:SUBMIT', 'TIMESHEETS:APPROVE'
     )
     ON CONFLICT (role_id, permission_id) DO NOTHING;
 

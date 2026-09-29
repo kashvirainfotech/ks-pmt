@@ -27,6 +27,7 @@ import { MilestonesModule } from './modules/milestones/milestones.module';
 import { DependenciesModule } from './modules/dependencies/dependencies.module';
 import { BlockersModule } from './modules/blockers/blockers.module';
 import { SavedViewsModule } from './modules/saved-views/saved-views.module';
+import { TimesheetsModule } from './modules/timesheets/timesheets.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { DynamicRbacGuard } from './modules/rbac/rbac.guard';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
@@ -65,6 +66,7 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
     DependenciesModule,
     BlockersModule,
     SavedViewsModule,
+    TimesheetsModule,
   ],
   providers: [
     {
