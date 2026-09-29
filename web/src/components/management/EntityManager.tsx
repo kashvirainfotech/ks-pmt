@@ -179,24 +179,47 @@ export function RecordForm({
                   checked={!!value}
                   onChange={(e) => update(e.target.checked)}
                 />
+              ) : f.type === 'multi' ? (
+                <div className="mt-1.5 space-y-1.5 rounded-lg border border-slate-200 bg-slate-50/50 p-2.5 dark:border-slate-800 dark:bg-slate-900/50">
+                  <div className="flex flex-wrap gap-1.5">
+                    {choices.map((o) => {
+                      const isSelected = Array.isArray(value) && value.includes(o.value);
+                      return (
+                        <button
+                          key={o.value}
+                          type="button"
+                          onClick={() => {
+                            const current = Array.isArray(value) ? [...value] : [];
+                            const next = isSelected
+                              ? current.filter((x) => x !== o.value)
+                              : [...current, o.value];
+                            update(next);
+                          }}
+                          className={`inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+                            isSelected
+                              ? 'bg-blue-600 text-white shadow-xs'
+                              : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+                          }`}
+                        >
+                          <span className="font-bold">{isSelected ? '✓ ' : '+ '}</span>
+                          {o.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {choices.length === 0 && (
+                    <span className="text-xs text-slate-400">No options available</span>
+                  )}
+                </div>
               ) : f.source || f.options ? (
                 <select
                   aria-label={f.label}
                   className={inputClass}
                   required={f.required}
-                  multiple={f.type === 'multi'}
                   value={value}
-                  onChange={(e) =>
-                    update(
-                      f.type === 'multi'
-                        ? Array.from(e.target.selectedOptions, (o) => o.value)
-                        : e.target.value,
-                    )
-                  }
+                  onChange={(e) => update(e.target.value)}
                 >
-                  {f.type !== 'multi' && (
-                    <option value="">Select {f.label.toLowerCase()}</option>
-                  )}
+                  <option value="">Select {f.label.toLowerCase()}</option>
                   {choices.map((o) => (
                     <option key={o.value} value={o.value}>
                       {o.label}

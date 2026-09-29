@@ -139,6 +139,16 @@ export interface Task {
   planned_due_date?: string;
   actual_start_date?: string;
   actual_completed_date?: string;
+  hierarchy_level?: 'INITIATIVE' | 'EPIC' | 'TASK' | 'SUBTASK';
+  sprint_id?: string;
+  sprint_code?: string;
+  sprint_name?: string;
+  milestone_id?: string;
+  milestone_code?: string;
+  milestone_name?: string;
+  story_points?: number;
+  t_shirt_size?: string;
+  backlog_order?: number;
   created_by_name?: string;
   created_at: string;
   assignees?: TaskAssignee[];
@@ -270,6 +280,141 @@ export interface AuditLogItem {
   created_at: string;
 }
 
+export interface WorkingCalendar {
+  id: string;
+  calendar_code: string;
+  calendar_name: string;
+  branch_id?: string;
+  branch_name?: string;
+  timezone: string;
+  standard_hours_per_day: number;
+  working_days_mask: string;
+  is_default: boolean;
+  description?: string;
+  is_active: boolean;
+  holidays_count?: number;
+  assigned_users_count?: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CalendarHoliday {
+  id: string;
+  calendar_id: string;
+  holiday_name: string;
+  holiday_date: string;
+  is_recurring: boolean;
+  description?: string;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface EmployeeCalendarAssignment {
+  id: string;
+  user_id: string;
+  calendar_id: string;
+  effective_from: string;
+  effective_to?: string;
+  custom_hours_per_day?: number;
+  billable_target_hours_per_week: number;
+  is_contractor: boolean;
+  notes?: string;
+  calendar_code?: string;
+  calendar_name?: string;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface EmployeeLeaveRecord {
+  id: string;
+  user_id: string;
+  employee_name?: string;
+  employee_email?: string;
+  employee_id?: string;
+  leave_type: 'ANNUAL' | 'SICK' | 'CASUAL' | 'MATERNITY' | 'PATERNITY' | 'UNPAID' | 'OTHER';
+  start_date: string;
+  end_date: string;
+  days_count: number;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
+  reason?: string;
+  approved_by?: string;
+  approver_name?: string;
+  approved_at?: string;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface Sprint {
+  id: string;
+  sprint_code: string;
+  sprint_name: string;
+  sprint_goal?: string;
+  entity_type: 'PROJECT' | 'PRODUCT';
+  project_id?: string;
+  project_name?: string;
+  project_code?: string;
+  product_id?: string;
+  product_name?: string;
+  product_code?: string;
+  start_date: string;
+  end_date: string;
+  status: 'PLANNING' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
+  committed_tasks_count: number;
+  committed_story_points: number;
+  committed_hours: number;
+  completed_tasks_count: number;
+  completed_story_points: number;
+  completed_hours: number;
+  total_capacity_hours: number;
+  current_tasks_count?: number;
+  current_story_points?: number;
+  current_estimated_hours?: number;
+  tasks?: Task[];
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Milestone {
+  id: string;
+  milestone_code: string;
+  milestone_name: string;
+  description?: string;
+  entity_type: 'PROJECT' | 'PRODUCT';
+  project_id?: string;
+  project_name?: string;
+  product_id?: string;
+  product_name?: string;
+  target_date?: string;
+  actual_date?: string;
+  status: 'PLANNED' | 'IN_PROGRESS' | 'ACHIEVED' | 'MISSED' | 'CANCELLED';
+  linked_tasks_count?: number;
+  tasks?: Task[];
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SprintTaskScopeLedger {
+  id: string;
+  sprint_id: string;
+  task_id: string;
+  task_code: string;
+  task_title: string;
+  story_points?: number;
+  estimated_hours?: number;
+  is_initial_commitment: boolean;
+  added_at: string;
+  added_by_first_name: string;
+  added_by_last_name: string;
+  removed_at?: string;
+  removed_by_first_name?: string;
+  removed_by_last_name?: string;
+  scope_change_reason?: string;
+  rollover_from_sprint_id?: string;
+  rollover_from_sprint_code?: string;
+}
+
 export interface ApiResponse<T> {
   success: boolean;
   data: T;
@@ -284,3 +429,4 @@ export interface PaginatedResponse<T> {
   limit: number;
   totalPages: number;
 }
+

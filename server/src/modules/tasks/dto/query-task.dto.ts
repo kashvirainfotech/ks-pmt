@@ -75,6 +75,33 @@ export class QueryTaskDto {
   @IsOptional()
   isChargeable?: boolean;
 
+  @ApiPropertyOptional({ description: 'Filter by Sprint UUID' })
+  @IsUUID()
+  @IsOptional()
+  sprintId?: string;
+
+  @ApiPropertyOptional({ description: 'Filter by Milestone UUID' })
+  @IsUUID()
+  @IsOptional()
+  milestoneId?: string;
+
+  @ApiPropertyOptional({
+    example: 'TASK',
+    enum: ['INITIATIVE', 'EPIC', 'TASK', 'SUBTASK'],
+  })
+  @IsString()
+  @IsOptional()
+  @IsIn(['INITIATIVE', 'EPIC', 'TASK', 'SUBTASK'])
+  hierarchyLevel?: string;
+
+  @ApiPropertyOptional({
+    description: 'Filter backlog tasks (tasks without an active sprint assignment)',
+  })
+  @Transform(({ value }) => value === true || value === 'true')
+  @IsBoolean()
+  @IsOptional()
+  isBacklog?: boolean;
+
   @ApiPropertyOptional({ description: 'Search task title or code' })
   @IsString()
   @IsOptional()

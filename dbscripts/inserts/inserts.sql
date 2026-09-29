@@ -237,5 +237,70 @@ BEGIN
     ON CONFLICT (client_code) DO NOTHING;
 END $$;
 
+-- ========================================================
+-- Date & Time: 2026-09-29 11:15:00 (IST)
+-- Description: FND-001 - Seed Calendar Permissions, Default Calendar, and Holidays
+-- ========================================================
+DO $$
+DECLARE
+    v_admin_id UUID := '00000000-0000-0000-0000-000000000001';
+    v_role_super_admin UUID;
+    v_default_cal_id UUID := '88888888-8888-8888-8888-888888888881';
+BEGIN
+    SELECT id INTO v_role_super_admin FROM roles WHERE role_code = 'ROLE_SUPER_ADMIN';
+    IF v_role_super_admin IS NULL THEN
+        v_role_super_admin := '44444444-4444-4444-4444-444444444441';
+    END IF;
+
+    -- Permissions
+    INSERT INTO permissions (module, action, permission_code, description, is_active, created_by)
+    VALUES 
+        ('CALENDARS', 'READ', 'CALENDARS:READ', 'Permission to view working calendars and holidays', TRUE, v_admin_id),
+        ('CALENDARS', 'MANAGE', 'CALENDARS:MANAGE', 'Permission to create/edit working calendars, shifts, and schedules', TRUE, v_admin_id),
+        ('LEAVES', 'MANAGE', 'LEAVES:MANAGE', 'Permission to approve and manage employee leave records', TRUE, v_admin_id),
+        ('SPRINTS', 'READ', 'SPRINTS:READ', 'Permission to view agile sprints and commitment metrics', TRUE, v_admin_id),
+        ('SPRINTS', 'MANAGE', 'SPRINTS:MANAGE', 'Permission to plan, start, close, and manage sprints', TRUE, v_admin_id),
+        ('MILESTONES', 'READ', 'MILESTONES:READ', 'Permission to view project and product delivery milestones', TRUE, v_admin_id),
+        ('MILESTONES', 'MANAGE', 'MILESTONES:MANAGE', 'Permission to create, update, and manage milestones', TRUE, v_admin_id)
+    ON CONFLICT (permission_code) DO NOTHING;
+
+    INSERT INTO role_permissions (role_id, permission_id, created_by)
+    SELECT v_role_super_admin, p.id, v_admin_id
+    FROM permissions p
+    WHERE p.permission_code IN (
+        'CALENDARS:READ', 'CALENDARS:MANAGE', 'LEAVES:MANAGE',
+        'SPRINTS:READ', 'SPRINTS:MANAGE', 'MILESTONES:READ', 'MILESTONES:MANAGE'
+    )
+    ON CONFLICT (role_id, permission_id) DO NOTHING;
+
+    -- Default Corporate Working Calendar (Mon-Fri, 8h/day, Asia/Kolkata)
+    INSERT INTO working_calendars (
+        id, calendar_code, calendar_name, timezone, standard_hours_per_day,
+        working_days_mask, is_default, description, is_active, created_by
+    ) VALUES (
+        v_default_cal_id, 'CAL-CORP-STD', 'Standard Corporate 5-Day Calendar',
+        'Asia/Kolkata', 8.00, '1111100', TRUE,
+        'Default corporate working calendar: Monday to Friday, 8 hours/day', TRUE, v_admin_id
+    ) ON CONFLICT (calendar_code) DO NOTHING;
+
+    -- Seed Common National Holidays for 2026/2027
+    INSERT INTO calendar_holidays (calendar_id, holiday_name, holiday_date, is_recurring, description, is_active, created_by)
+    VALUES
+        (v_default_cal_id, 'Republic Day', '2026-01-26', TRUE, 'National Holiday', TRUE, v_admin_id),
+        (v_default_cal_id, 'Independence Day', '2026-08-15', TRUE, 'National Holiday', TRUE, v_admin_id),
+        (v_default_cal_id, 'Mahatma Gandhi Jayanti', '2026-10-02', TRUE, 'National Holiday', TRUE, v_admin_id),
+        (v_default_cal_id, 'Diwali Festival', '2026-11-08', FALSE, 'Festival Holiday', TRUE, v_admin_id),
+        (v_default_cal_id, 'Christmas Day', '2026-12-25', TRUE, 'Festival Holiday', TRUE, v_admin_id)
+    ON CONFLICT DO NOTHING;
+
+    -- Assign Super Admin to Default Calendar
+    INSERT INTO employee_calendar_assignments (
+        user_id, calendar_id, effective_from, billable_target_hours_per_week, is_contractor, is_active, created_by
+    ) VALUES (
+        v_admin_id, v_default_cal_id, '2026-01-01', 40.00, FALSE, TRUE, v_admin_id
+    ) ON CONFLICT DO NOTHING;
+END $$;
+
+
 
 

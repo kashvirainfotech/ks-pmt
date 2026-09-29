@@ -344,6 +344,67 @@ CREATE TABLE IF NOT EXISTS versions (
 );
 
 -- ========================================================
+-- 16b. Milestones Master (PLAN-001)
+-- ========================================================
+CREATE TABLE IF NOT EXISTS milestones (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    milestone_code VARCHAR(50) NOT NULL, -- e.g. 'MLS-ALPHA', 'MLS-Q3-CORE'
+    milestone_name VARCHAR(150) NOT NULL,
+    description TEXT,
+    entity_type VARCHAR(20) NOT NULL, -- 'PRODUCT' or 'PROJECT'
+    product_id UUID REFERENCES products(id) ON DELETE CASCADE,
+    project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+    target_date DATE,
+    actual_date DATE,
+    status VARCHAR(50) NOT NULL DEFAULT 'PLANNED' CHECK (status IN ('PLANNED', 'IN_PROGRESS', 'ACHIEVED', 'MISSED', 'CANCELLED')),
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_milestone_entity CHECK (
+        (entity_type = 'PRODUCT' AND product_id IS NOT NULL AND project_id IS NULL) OR
+        (entity_type = 'PROJECT' AND project_id IS NOT NULL AND product_id IS NULL)
+    ),
+    CONSTRAINT uq_milestone_code_entity UNIQUE (milestone_code, entity_type, product_id, project_id)
+);
+
+-- ========================================================
+-- 16c. Agile Sprints Master (PLAN-001)
+-- ========================================================
+CREATE TABLE IF NOT EXISTS sprints (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    sprint_code VARCHAR(50) NOT NULL, -- e.g. 'SPR-2026-01'
+    sprint_name VARCHAR(150) NOT NULL,
+    sprint_goal TEXT,
+    entity_type VARCHAR(20) NOT NULL, -- 'PRODUCT' or 'PROJECT'
+    product_id UUID REFERENCES products(id) ON DELETE CASCADE,
+    project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'PLANNING' CHECK (status IN ('PLANNING', 'ACTIVE', 'COMPLETED', 'CANCELLED')),
+    committed_tasks_count INTEGER NOT NULL DEFAULT 0,
+    committed_story_points NUMERIC(8, 2) NOT NULL DEFAULT 0.00,
+    committed_hours NUMERIC(8, 2) NOT NULL DEFAULT 0.00,
+    completed_tasks_count INTEGER NOT NULL DEFAULT 0,
+    completed_story_points NUMERIC(8, 2) NOT NULL DEFAULT 0.00,
+    completed_hours NUMERIC(8, 2) NOT NULL DEFAULT 0.00,
+    total_capacity_hours NUMERIC(8, 2) NOT NULL DEFAULT 0.00,
+    completed_at TIMESTAMP WITH TIME ZONE,
+    completed_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_sprint_entity CHECK (
+        (entity_type = 'PRODUCT' AND product_id IS NOT NULL AND project_id IS NULL) OR
+        (entity_type = 'PROJECT' AND project_id IS NOT NULL AND product_id IS NULL)
+    ),
+    CONSTRAINT chk_sprint_dates CHECK (end_date >= start_date)
+);
+
+-- ========================================================
 -- 17. Dynamic Task Types Master
 -- ========================================================
 CREATE TABLE IF NOT EXISTS task_types (
@@ -408,13 +469,19 @@ CREATE TABLE IF NOT EXISTS tasks (
     custom_field_values JSONB NOT NULL DEFAULT '{}'::jsonb CHECK (jsonb_typeof(custom_field_values) = 'object'),
     title VARCHAR(255) NOT NULL,
     description TEXT,
+    hierarchy_level VARCHAR(20) NOT NULL DEFAULT 'TASK' CHECK (hierarchy_level IN ('INITIATIVE', 'EPIC', 'TASK', 'SUBTASK')),
     task_type_id UUID NOT NULL REFERENCES task_types(id) ON DELETE RESTRICT,
     status_id UUID NOT NULL REFERENCES task_statuses(id) ON DELETE RESTRICT,
     priority VARCHAR(20) NOT NULL DEFAULT 'MEDIUM', -- 'LOW', 'MEDIUM', 'HIGH', 'URGENT', 'CRITICAL'
     project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
     product_id UUID REFERENCES products(id) ON DELETE CASCADE,
     version_id UUID REFERENCES versions(id) ON DELETE SET NULL,
-    parent_task_id UUID REFERENCES tasks(id) ON DELETE CASCADE, -- Hierarchical sub-task
+    sprint_id UUID REFERENCES sprints(id) ON DELETE SET NULL,
+    milestone_id UUID REFERENCES milestones(id) ON DELETE SET NULL,
+    parent_task_id UUID REFERENCES tasks(id) ON DELETE CASCADE, -- Hierarchical parent (Epic for Task, Task for Subtask)
+    backlog_order NUMERIC(12, 4) NOT NULL DEFAULT 0.0000, -- Custom rank ordering in project/product backlog
+    story_points NUMERIC(5, 1) CHECK (story_points >= 0),
+    t_shirt_size VARCHAR(10) CHECK (t_shirt_size IN ('XS', 'S', 'M', 'L', 'XL', 'XXL')),
     planned_start_date TIMESTAMP WITH TIME ZONE,
     planned_end_date TIMESTAMP WITH TIME ZONE,
     actual_start_date TIMESTAMP WITH TIME ZONE,
@@ -452,6 +519,28 @@ CREATE TABLE IF NOT EXISTS task_assignees (
     updated_by UUID,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT uq_task_assignee UNIQUE (task_id, user_id)
+);
+
+-- ========================================================
+-- 21b. Sprint Task Associations & Scope Ledger (PLAN-001)
+-- ========================================================
+CREATE TABLE IF NOT EXISTS sprint_tasks (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    sprint_id UUID NOT NULL REFERENCES sprints(id) ON DELETE CASCADE,
+    task_id UUID NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+    is_initial_commitment BOOLEAN NOT NULL DEFAULT TRUE,
+    added_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    added_by UUID NOT NULL REFERENCES users(id),
+    removed_at TIMESTAMP WITH TIME ZONE,
+    removed_by UUID REFERENCES users(id),
+    scope_change_reason TEXT,
+    rollover_from_sprint_id UUID REFERENCES sprints(id) ON DELETE SET NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_sprint_task_session UNIQUE (sprint_id, task_id, added_at)
 );
 
 -- ========================================================
@@ -632,3 +721,79 @@ CREATE TABLE department_heads (
     updated_by UUID,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+-- ========================================================
+-- Date & Time: 2026-09-29 11:15:00 IST
+-- Description: FND-001 - Working Calendars, Holidays, Employee Schedules & Leave Tracking
+-- ========================================================
+
+-- 29. Company / Branch Working Calendars
+CREATE TABLE IF NOT EXISTS working_calendars (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    calendar_code VARCHAR(50) NOT NULL UNIQUE,
+    calendar_name VARCHAR(150) NOT NULL,
+    branch_id UUID REFERENCES branches(id) ON DELETE SET NULL,
+    timezone VARCHAR(50) NOT NULL DEFAULT 'Asia/Kolkata',
+    standard_hours_per_day NUMERIC(4, 2) NOT NULL DEFAULT 8.00 CHECK (standard_hours_per_day > 0 AND standard_hours_per_day <= 24),
+    working_days_mask VARCHAR(7) NOT NULL DEFAULT '1111100', -- Mon to Sun (1=working, 0=off)
+    is_default BOOLEAN NOT NULL DEFAULT FALSE,
+    description TEXT,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 30. Calendar Holidays Master
+CREATE TABLE IF NOT EXISTS calendar_holidays (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    calendar_id UUID REFERENCES working_calendars(id) ON DELETE CASCADE,
+    holiday_name VARCHAR(150) NOT NULL,
+    holiday_date DATE NOT NULL,
+    is_recurring BOOLEAN NOT NULL DEFAULT FALSE,
+    description TEXT,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 31. Employee Calendar & Schedule Assignments
+CREATE TABLE IF NOT EXISTS employee_calendar_assignments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    calendar_id UUID NOT NULL REFERENCES working_calendars(id) ON DELETE RESTRICT,
+    effective_from DATE NOT NULL,
+    effective_to DATE,
+    custom_hours_per_day NUMERIC(4, 2) CHECK (custom_hours_per_day > 0 AND custom_hours_per_day <= 24),
+    billable_target_hours_per_week NUMERIC(4, 2) NOT NULL DEFAULT 40.00 CHECK (billable_target_hours_per_week >= 0),
+    is_contractor BOOLEAN NOT NULL DEFAULT FALSE,
+    notes TEXT,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 32. Employee Leave & Absence Records
+CREATE TABLE IF NOT EXISTS employee_leave_records (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    leave_type VARCHAR(50) NOT NULL, -- 'ANNUAL', 'SICK', 'CASUAL', 'MATERNITY', 'PATERNITY', 'UNPAID'
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    days_count NUMERIC(4, 1) NOT NULL DEFAULT 1.0 CHECK (days_count > 0),
+    status VARCHAR(20) NOT NULL DEFAULT 'APPROVED' CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED', 'CANCELLED')),
+    reason TEXT,
+    approved_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    approved_at TIMESTAMP WITH TIME ZONE,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+

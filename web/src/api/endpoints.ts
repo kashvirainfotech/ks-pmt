@@ -18,6 +18,13 @@ import {
   NotificationItem,
   AuditLogItem,
   PaginatedResponse,
+  WorkingCalendar,
+  CalendarHoliday,
+  EmployeeCalendarAssignment,
+  EmployeeLeaveRecord,
+  Sprint,
+  Milestone,
+  SprintTaskScopeLedger,
 } from '../types';
 
 // ==========================================
@@ -57,6 +64,9 @@ export const tasksApi = {
 
   updateTask: (id: string, data: any): Promise<{ data: Task }> =>
     api.put(`/tasks/${id}`, data),
+
+  reorderTasks: (items: { taskId: string; backlogOrder: number }[]) =>
+    api.patch('/tasks/reorder', { items }),
 
   patchTask: (id: string, data: any): Promise<{ data: Task }> => api.patch(`/tasks/${id}`, data),
   saveAssignees: (id: string, data: any): Promise<{ data: Task }> => api.put(`/tasks/${id}/assignees`, data),
@@ -244,3 +254,116 @@ export const auditLogsApi = {
   ): Promise<{ data: { auditLogs: AuditLogItem[]; totalCount: number } }> =>
     api.get('/audit-logs', { params }),
 };
+
+// ==========================================
+// Working Calendars, Holidays & Leaves (FND-001)
+// ==========================================
+export const calendarsApi = {
+  getCalendars: (params?: any): Promise<{ data: WorkingCalendar[]; meta?: any }> =>
+    api.get('/calendars', { params }),
+
+  getCalendarById: (id: string): Promise<{ data: WorkingCalendar & { holidays: CalendarHoliday[] } }> =>
+    api.get(`/calendars/${id}`),
+
+  createCalendar: (data: any): Promise<{ data: WorkingCalendar }> =>
+    api.post('/calendars', data),
+
+  updateCalendar: (id: string, data: any): Promise<{ data: WorkingCalendar }> =>
+    api.put(`/calendars/${id}`, data),
+
+  deleteCalendar: (id: string) =>
+    api.delete(`/calendars/${id}`),
+
+  getHolidays: (calendarId: string, year?: number): Promise<{ data: CalendarHoliday[] }> =>
+    api.get(`/calendars/${calendarId}/holidays`, { params: { year } }),
+
+  addHoliday: (data: {
+    calendarId: string;
+    holidayName: string;
+    holidayDate: string;
+    isRecurring?: boolean;
+    description?: string;
+  }): Promise<{ data: CalendarHoliday }> =>
+    api.post('/calendars/holidays', data),
+
+  deleteHoliday: (holidayId: string) =>
+    api.delete(`/calendars/holidays/${holidayId}`),
+
+  assignCalendar: (data: any): Promise<{ data: EmployeeCalendarAssignment }> =>
+    api.post('/calendars/assignments', data),
+
+  getUserAssignments: (userId: string): Promise<{ data: EmployeeCalendarAssignment[] }> =>
+    api.get(`/calendars/assignments/user/${userId}`),
+
+  getEffectiveSchedule: (userId: string, date: string) =>
+    api.get('/calendars/effective-schedule', { params: { userId, date } }),
+
+  checkCapacity: (userId: string, startDate: string, endDate: string) =>
+    api.get('/calendars/capacity-check', { params: { userId, startDate, endDate } }),
+
+  getLeaves: (params?: any): Promise<{ data: EmployeeLeaveRecord[]; meta?: any }> =>
+    api.get('/calendars/leaves', { params }),
+
+  createLeave: (data: any): Promise<{ data: EmployeeLeaveRecord }> =>
+    api.post('/calendars/leaves', data),
+
+  reviewLeave: (id: string, data: { status: string; remarks?: string }) =>
+    api.patch(`/calendars/leaves/${id}/review`, data),
+};
+
+// ==========================================
+// Agile Sprints & Planning (PLAN-001)
+// ==========================================
+export const sprintsApi = {
+  getSprints: (params?: any): Promise<{ data: Sprint[]; meta?: any }> =>
+    api.get('/sprints', { params }),
+
+  getSprintById: (id: string): Promise<{ data: Sprint }> =>
+    api.get(`/sprints/${id}`),
+
+  createSprint: (data: any): Promise<{ data: Sprint }> =>
+    api.post('/sprints', data),
+
+  updateSprint: (id: string, data: any): Promise<{ data: Sprint }> =>
+    api.put(`/sprints/${id}`, data),
+
+  startSprint: (id: string) =>
+    api.post(`/sprints/${id}/start`, {}),
+
+  closeSprint: (id: string, data?: { targetSprintId?: string; rolloverReason?: string }) =>
+    api.post(`/sprints/${id}/close`, data || {}),
+
+  addTasks: (id: string, data: { taskIds: string[]; scopeChangeReason?: string }) =>
+    api.post(`/sprints/${id}/tasks`, data),
+
+  removeTask: (id: string, taskId: string, data?: { scopeChangeReason?: string }) =>
+    api.delete(`/sprints/${id}/tasks/${taskId}`, { data }),
+
+  getScopeLedger: (id: string): Promise<{ data: SprintTaskScopeLedger[] }> =>
+    api.get(`/sprints/${id}/scope-ledger`),
+
+  calculateCapacity: (id: string) =>
+    api.get(`/sprints/${id}/capacity`),
+};
+
+// ==========================================
+// Milestones (PLAN-001)
+// ==========================================
+export const milestonesApi = {
+  getMilestones: (params?: any): Promise<{ data: Milestone[]; meta?: any }> =>
+    api.get('/milestones', { params }),
+
+  getMilestoneById: (id: string): Promise<{ data: Milestone }> =>
+    api.get(`/milestones/${id}`),
+
+  createMilestone: (data: any): Promise<{ data: Milestone }> =>
+    api.post('/milestones', data),
+
+  updateMilestone: (id: string, data: any): Promise<{ data: Milestone }> =>
+    api.put(`/milestones/${id}`, data),
+
+  deleteMilestone: (id: string) =>
+    api.delete(`/milestones/${id}`),
+};
+
+

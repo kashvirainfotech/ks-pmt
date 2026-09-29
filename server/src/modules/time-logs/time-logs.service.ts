@@ -164,6 +164,18 @@ export class TimeLogsService {
       whereClauses.push(`tl.log_date <= $${params.length}`);
     }
 
+    if (query.projectId) {
+      params.push(query.projectId);
+      whereClauses.push(
+        `EXISTS (SELECT 1 FROM tasks scoped WHERE scoped.id=tl.task_id AND scoped.project_id=$${params.length})`,
+      );
+    }
+
+    if (query.approvalStatus) {
+      params.push(query.approvalStatus);
+      whereClauses.push(`tl.approval_status = $${params.length}`);
+    }
+
     const whereSql = `WHERE ${whereClauses.join(' AND ')}`;
 
     const countQuery = `SELECT COUNT(*) AS total FROM task_time_logs tl ${whereSql};`;

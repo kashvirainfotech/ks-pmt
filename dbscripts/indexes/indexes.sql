@@ -93,3 +93,30 @@ CREATE INDEX IF NOT EXISTS idx_time_logs_approval ON task_time_logs(approval_sta
 -- Description: Support department head lookup and user relationship cleanup
 -- ========================================================
 CREATE INDEX idx_department_heads_user ON department_heads(user_id);
+
+-- ========================================================
+-- Date & Time: 2026-09-29 11:15:00 IST
+-- Description: FND-001 - Indexes for Working Calendars, Holidays, Assignments, and Leaves
+-- ========================================================
+CREATE INDEX IF NOT EXISTS idx_working_calendars_branch ON working_calendars(branch_id);
+CREATE INDEX IF NOT EXISTS idx_working_calendars_default ON working_calendars(is_default) WHERE is_default = TRUE;
+CREATE INDEX IF NOT EXISTS idx_calendar_holidays_cal_date ON calendar_holidays(calendar_id, holiday_date);
+CREATE INDEX IF NOT EXISTS idx_emp_cal_assign_user ON employee_calendar_assignments(user_id, effective_from);
+CREATE INDEX IF NOT EXISTS idx_emp_leave_user_dates ON employee_leave_records(user_id, start_date, end_date);
+CREATE INDEX IF NOT EXISTS idx_emp_leave_status ON employee_leave_records(status);
+
+-- ========================================================
+-- Date & Time: 2026-09-29 11:35:00 IST
+-- Description: PLAN-001 - Indexes for Sprints, Milestones, Hierarchy, Backlog Order, and Scope Ledger
+-- ========================================================
+CREATE INDEX IF NOT EXISTS idx_milestones_entity ON milestones(entity_type, product_id, project_id);
+CREATE INDEX IF NOT EXISTS idx_sprints_entity_dates ON sprints(entity_type, product_id, project_id, start_date, end_date);
+CREATE INDEX IF NOT EXISTS idx_sprints_status ON sprints(status);
+CREATE INDEX IF NOT EXISTS idx_tasks_sprint_id ON tasks(sprint_id);
+CREATE INDEX IF NOT EXISTS idx_tasks_milestone_id ON tasks(milestone_id);
+CREATE INDEX IF NOT EXISTS idx_tasks_hierarchy_level ON tasks(hierarchy_level);
+CREATE INDEX IF NOT EXISTS idx_tasks_backlog_order ON tasks(project_id, product_id, backlog_order ASC);
+CREATE INDEX IF NOT EXISTS idx_sprint_tasks_sprint_task ON sprint_tasks(sprint_id, task_id);
+CREATE INDEX IF NOT EXISTS idx_sprint_tasks_rollover ON sprint_tasks(rollover_from_sprint_id);
+
+

@@ -78,6 +78,52 @@ export class CreateTaskDto {
   @IsOptional()
   productId?: string;
 
+  @ApiPropertyOptional({
+    example: 'TASK',
+    enum: ['INITIATIVE', 'EPIC', 'TASK', 'SUBTASK'],
+    default: 'TASK',
+    description: 'Work hierarchy tier (PLAN-001)',
+  })
+  @IsString()
+  @IsOptional()
+  @IsIn(['INITIATIVE', 'EPIC', 'TASK', 'SUBTASK'])
+  hierarchyLevel?: 'INITIATIVE' | 'EPIC' | 'TASK' | 'SUBTASK';
+
+  @ApiPropertyOptional({ description: 'Agile Sprint UUID' })
+  @IsUUID()
+  @IsOptional()
+  sprintId?: string;
+
+  @ApiPropertyOptional({ description: 'Delivery Milestone UUID' })
+  @IsUUID()
+  @IsOptional()
+  milestoneId?: string;
+
+  @ApiPropertyOptional({ example: 5.0, description: 'Agile story points estimate' })
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  storyPoints?: number;
+
+  @ApiPropertyOptional({
+    example: 'M',
+    enum: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
+    description: 'T-shirt sizing estimate alternative',
+  })
+  @IsString()
+  @IsOptional()
+  @IsIn(['XS', 'S', 'M', 'L', 'XL', 'XXL'])
+  tShirtSize?: 'XS' | 'S' | 'M' | 'L' | 'XL' | 'XXL';
+
+  @ApiPropertyOptional({
+    example: 10.0,
+    default: 0.0,
+    description: 'Custom rank order in product or project backlog',
+  })
+  @IsNumber()
+  @IsOptional()
+  backlogOrder?: number;
+
   @ApiPropertyOptional({ description: "Version / Release Milestone UUID" })
   @IsUUID()
   @IsOptional()

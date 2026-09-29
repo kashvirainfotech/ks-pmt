@@ -32,32 +32,28 @@ export class ProductsService {
       INSERT INTO products (
         product_code, product_name, description, category,
         current_version, base_license_price, standard_amc_percentage,
-        currency, product_manager_user_id, is_active, created_by, updated_by
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, TRUE, $10, $10)
+        currency, product_manager_user_id, is_active, tech_stack,
+        documentation_links, subscription_plans, implementation_fee,
+        created_by, updated_by
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, TRUE, $10, $11, $12, $13, $14, $14)
       RETURNING *;
     `;
-    const result = await this.db.writeWithFields(
-      insertQuery,
-      [
-        dto.productCode,
-        dto.productName,
-        dto.description || null,
-        dto.category || null,
-        dto.currentVersion || null,
-        dto.baseLicensePrice || 0.0,
-        dto.standardAmcPercentage ?? 18.0,
-        dto.currency || 'INR',
-        dto.productManagerUserId || null,
-        userId,
-      ],
-      'products',
-      {
-        tech_stack: dto.techStack,
-        documentation_links: dto.documentationLinks,
-        subscription_plans: dto.subscriptionPlans,
-        implementation_fee: dto.implementationFee,
-      },
-    );
+    const result = await this.db.query(insertQuery, [
+      dto.productCode,
+      dto.productName,
+      dto.description || null,
+      dto.category || null,
+      dto.currentVersion || null,
+      dto.baseLicensePrice || 0.0,
+      dto.standardAmcPercentage ?? 18.0,
+      dto.currency || 'INR',
+      dto.productManagerUserId || null,
+      dto.techStack || null,
+      dto.documentationLinks || null,
+      dto.subscriptionPlans || null,
+      dto.implementationFee || 0.0,
+      userId,
+    ]);
 
     return result.rows[0];
   }
@@ -155,34 +151,32 @@ export class ProductsService {
         currency = COALESCE($7, currency),
         product_manager_user_id = COALESCE($8, product_manager_user_id),
         is_active = COALESCE($9, is_active),
-        updated_by = $10,
+        tech_stack = COALESCE($10, tech_stack),
+        documentation_links = COALESCE($11, documentation_links),
+        subscription_plans = COALESCE($12, subscription_plans),
+        implementation_fee = COALESCE($13, implementation_fee),
+        updated_by = $14,
         updated_at = CURRENT_TIMESTAMP
-      WHERE id = $11
+      WHERE id = $15
       RETURNING *;
     `;
-    const result = await this.db.writeWithFields(
-      updateQuery,
-      [
-        dto.productName,
-        dto.description,
-        dto.category,
-        dto.currentVersion,
-        dto.baseLicensePrice,
-        dto.standardAmcPercentage,
-        dto.currency,
-        dto.productManagerUserId,
-        dto.isActive,
-        userId,
-        id,
-      ],
-      'products',
-      {
-        tech_stack: dto.techStack,
-        documentation_links: dto.documentationLinks,
-        subscription_plans: dto.subscriptionPlans,
-        implementation_fee: dto.implementationFee,
-      },
-    );
+    const result = await this.db.query(updateQuery, [
+      dto.productName,
+      dto.description,
+      dto.category,
+      dto.currentVersion,
+      dto.baseLicensePrice,
+      dto.standardAmcPercentage,
+      dto.currency,
+      dto.productManagerUserId,
+      dto.isActive,
+      dto.techStack,
+      dto.documentationLinks,
+      dto.subscriptionPlans,
+      dto.implementationFee,
+      userId,
+      id,
+    ]);
 
     return result.rows[0];
   }
@@ -213,33 +207,29 @@ export class ProductsService {
       INSERT INTO product_client_mappings (
         product_id, client_id, license_type, contract_value,
         amc_amount, currency, license_start_date, license_end_date,
-        amc_renewal_date, status, notes, is_active,
+        amc_renewal_date, status, notes, support_tier, is_active,
         created_by, updated_by
       ) VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, TRUE, $12, $12
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, TRUE, $13, $13
       )
       RETURNING *;
     `;
 
-    const result = await this.db.writeWithFields(
-      insertQuery,
-      [
-        productId,
-        dto.clientId,
-        dto.licenseType,
-        dto.contractValue,
-        dto.amcAmount || 0.0,
-        dto.currency || 'INR',
-        dto.licenseStartDate,
-        dto.licenseEndDate || null,
-        dto.amcRenewalDate || null,
-        dto.status || 'ACTIVE',
-        dto.notes || null,
-        userId,
-      ],
-      'product_client_mappings',
-      { support_tier: dto.supportTier },
-    );
+    const result = await this.db.query(insertQuery, [
+      productId,
+      dto.clientId,
+      dto.licenseType,
+      dto.contractValue,
+      dto.amcAmount || 0.0,
+      dto.currency || 'INR',
+      dto.licenseStartDate,
+      dto.licenseEndDate || null,
+      dto.amcRenewalDate || null,
+      dto.status || 'ACTIVE',
+      dto.notes || null,
+      dto.supportTier || null,
+      userId,
+    ]);
 
     return result.rows[0];
   }
@@ -286,32 +276,29 @@ export class ProductsService {
         amc_renewal_date = COALESCE($7, amc_renewal_date),
         status = COALESCE($8, status),
         notes = COALESCE($9, notes),
-        is_active = COALESCE($10, is_active),
-        updated_by = $11,
+        support_tier = COALESCE($10, support_tier),
+        is_active = COALESCE($11, is_active),
+        updated_by = $12,
         updated_at = CURRENT_TIMESTAMP
-      WHERE id = $12
+      WHERE id = $13
       RETURNING *;
     `;
 
-    const result = await this.db.writeWithFields(
-      updateQuery,
-      [
-        dto.licenseType,
-        dto.contractValue,
-        dto.amcAmount,
-        dto.currency,
-        dto.licenseStartDate,
-        dto.licenseEndDate,
-        dto.amcRenewalDate,
-        dto.status,
-        dto.notes,
-        dto.isActive,
-        userId,
-        mappingId,
-      ],
-      'product_client_mappings',
-      { support_tier: dto.supportTier },
-    );
+    const result = await this.db.query(updateQuery, [
+      dto.licenseType,
+      dto.contractValue,
+      dto.amcAmount,
+      dto.currency,
+      dto.licenseStartDate,
+      dto.licenseEndDate,
+      dto.amcRenewalDate,
+      dto.status,
+      dto.notes,
+      dto.supportTier,
+      dto.isActive,
+      userId,
+      mappingId,
+    ]);
 
     return result.rows[0];
   }

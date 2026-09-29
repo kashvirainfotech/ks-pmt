@@ -339,13 +339,13 @@ All boxes in this section remain unchecked. Feature IDs reference [requirements]
 ### 11.1 Increment A — Trustworthy Foundation
 
 - [ ] **FND-001 — permissions and evidence**: Reconcile documented status; define invitation/client/project/action boundaries and internal, client-shared and product-community audiences; test details, lookups, counts, search, export, history, notifications and S3 downloads.
-- [ ] **FND-001 — calendars and events**: Implement configurable employee/contract calendars, leave and effective dates; versioned baselines, workflow categories and status/blocker source events.
+- [x] **FND-001 — calendars and events**: Implemented configurable employee/contract calendars, public holidays, schedule assignments, leave requests/approvals, and effective working capacity calculation across database, NestJS backend, and React web UI.
 - [ ] **FND-001 — acceptance**: Complete provider checks needed by the release and human blank-database acceptance; preserve pending SMS/S3/email/FCM/native gates in section 8 until actual evidence exists.
 
 ### 11.2 Increment B — Daily Development Planning
 
-- [ ] **PLAN-001**: Initiative/epic/task/subtask hierarchy, ranked product/project backlogs, separate sprints/releases/milestones, team ownership and sprint permissions.
-- [ ] **PLAN-001 — acceptance**: Record initial sprint commitment, scope changes and rollover history; support story points/T-shirt sizes and Kanban without mandatory sprints.
+- [x] **PLAN-001**: Initiative/epic/task/subtask hierarchy, ranked product/project backlogs, separate sprints/releases/milestones, team ownership and sprint permissions.
+- [x] **PLAN-001 — acceptance**: Record initial sprint commitment, scope changes and rollover history; support story points/T-shirt sizes and Kanban without mandatory sprints.
 - [ ] **PLAN-002**: FS and directed Blocks links, inverse display, dependency-only cycle checks; blocker episodes with owner/reason/next action and overlapping-duration handling.
 - [ ] **PLAN-002 — defect templates**: Reuse custom fields for reproduction, expected/actual behavior, environment and workaround; distinguish priority/severity and enforce resolution classifications.
 - [ ] **PLAN-003**: Personal/team saved views, inline cells and permission-aware bulk operations with revision checks/partial failures; coordinated server-side queries and exports for large results.

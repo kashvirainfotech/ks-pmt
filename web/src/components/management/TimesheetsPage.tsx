@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import api from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
-import { RecordForm, Row, errorText } from './EntityManager';
+import { RecordForm, Row, allRows, errorText } from './EntityManager';
 import { f, ref } from './config';
 import { useListing } from '../../hooks/useListing';
 import { DataGrid } from '../common/DataGrid';
-import { Send, ClipboardCheck } from 'lucide-react';
+import { Send, ClipboardCheck, Clock, CheckCircle2, AlertCircle, Calendar } from 'lucide-react';
+
 const fields = [
   ref('taskId', 'Task', '/tasks', 'title', true),
   f('logDate', 'Work date', { type: 'date', required: true }),
@@ -20,13 +21,28 @@ const fields = [
   f('isOvertime', 'Overtime', { type: 'checkbox' }),
   f('isWeekend', 'Weekend work', { type: 'checkbox' }),
 ];
+
 export function TimesheetsPage() {
   const { user, hasPermission } = useAuth();
   const [error, setError] = useState('');
   const [adding, setAdding] = useState(false);
   const [startDate, setStart] = useState('');
   const [endDate, setEnd] = useState('');
+  const [approvalStatus, setApprovalStatus] = useState('');
+  const [selectedUserId, setSelectedUserId] = useState('');
+  const [employees, setEmployees] = useState<Row[]>([]);
   const [reviewing, setReviewing] = useState<Row | null>(null);
+
+  const canApprove = hasPermission('TIMELOGS:APPROVE');
+
+  useEffect(() => {
+    if (canApprove) {
+      allRows('/users')
+        .then(setEmployees)
+        .catch(() => {});
+    }
+  }, [canApprove]);
+
   const {
     rows,
     loading,
@@ -35,36 +51,146 @@ export function TimesheetsPage() {
   } = useListing<Row>('/time-logs', {
     startDate: startDate || undefined,
     endDate: endDate || undefined,
+    approvalStatus: approvalStatus || undefined,
+    userId: selectedUserId || undefined,
   });
+
+  const totalHours = rows.reduce((acc, r) => acc + (Number(r.hours_spent) || 0), 0);
+  const billableHours = rows.filter((r) => r.is_billable).reduce((acc, r) => acc + (Number(r.hours_spent) || 0), 0);
+  const overtimeHours = rows.filter((r) => r.is_overtime).reduce((acc, r) => acc + (Number(r.hours_spent) || 0), 0);
+  const pendingCount = rows.filter((r) => r.approval_status === 'SUBMITTED').length;
+
   return (
-    <section className="space-y-5">
-      <h1 className="text-xl font-bold">Timesheets and approvals</h1>
-      <div className="flex flex-wrap gap-4">
-        <label>
-          From{' '}
+    <section className="space-y-6">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+            Timesheets & Effort Approvals
+          </h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            Track daily worklogs, billable hours, overtime, and manager approvals.
+          </p>
+        </div>
+      </div>
+
+      {/* KPI Summary Cards */}
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+          <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+            <Clock className="h-4 w-4 text-blue-500" />
+            <span className="text-xs font-medium uppercase tracking-wider">Total Hours</span>
+          </div>
+          <div className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">
+            {totalHours.toFixed(1)} <span className="text-xs font-normal text-slate-500">hrs</span>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+          <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+            <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+            <span className="text-xs font-medium uppercase tracking-wider">Billable Hours</span>
+          </div>
+          <div className="mt-2 text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+            {billableHours.toFixed(1)} <span className="text-xs font-normal text-slate-500">hrs</span>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+          <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+            <Calendar className="h-4 w-4 text-purple-500" />
+            <span className="text-xs font-medium uppercase tracking-wider">Overtime</span>
+          </div>
+          <div className="mt-2 text-2xl font-bold text-purple-600 dark:text-purple-400">
+            {overtimeHours.toFixed(1)} <span className="text-xs font-normal text-slate-500">hrs</span>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+          <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+            <AlertCircle className="h-4 w-4 text-amber-500" />
+            <span className="text-xs font-medium uppercase tracking-wider">Pending Review</span>
+          </div>
+          <div className="mt-2 text-2xl font-bold text-amber-600 dark:text-amber-400">
+            {pendingCount} <span className="text-xs font-normal text-slate-500">logs</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Filter Bar */}
+      <div className="flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 dark:border-slate-800 dark:bg-slate-900/60">
+        <label className="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-300">
+          <span>From:</span>
           <input
             aria-label="From date"
-            className="form-control"
+            className="form-control text-xs"
             type="date"
             value={startDate}
-            onChange={(e) => {
-              setStart(e.target.value);
-            }}
+            onChange={(e) => setStart(e.target.value)}
           />
         </label>
-        <label>
-          To{' '}
+
+        <label className="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-300">
+          <span>To:</span>
           <input
             aria-label="To date"
-            className="form-control"
+            className="form-control text-xs"
             type="date"
             value={endDate}
-            onChange={(e) => {
-              setEnd(e.target.value);
-            }}
+            onChange={(e) => setEnd(e.target.value)}
           />
         </label>
+
+        <label className="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-300">
+          <span>Status:</span>
+          <select
+            aria-label="Approval status filter"
+            className="form-control text-xs"
+            value={approvalStatus}
+            onChange={(e) => setApprovalStatus(e.target.value)}
+          >
+            <option value="">All Statuses</option>
+            <option value="DRAFT">Draft (Not submitted)</option>
+            <option value="SUBMITTED">Submitted (Pending review)</option>
+            <option value="APPROVED">Approved</option>
+            <option value="REJECTED">Rejected</option>
+          </select>
+        </label>
+
+        {canApprove && (
+          <label className="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-300">
+            <span>Employee:</span>
+            <select
+              aria-label="Employee filter"
+              className="form-control text-xs"
+              value={selectedUserId}
+              onChange={(e) => setSelectedUserId(e.target.value)}
+            >
+              <option value="">All Employees</option>
+              {employees.map((emp) => (
+                <option key={emp.id} value={emp.id}>
+                  {emp.first_name} {emp.last_name} ({emp.employee_code})
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+
+        {(startDate || endDate || approvalStatus || selectedUserId) && (
+          <button
+            type="button"
+            onClick={() => {
+              setStart('');
+              setEnd('');
+              setApprovalStatus('');
+              setSelectedUserId('');
+            }}
+            className="text-xs text-blue-600 underline hover:text-blue-800 dark:text-blue-400"
+          >
+            Clear filters
+          </button>
+        )}
       </div>
+
       <DataGrid
         title="Timesheets"
         data={rows}
@@ -84,18 +210,48 @@ export function TimesheetsPage() {
           { id: 'task_title', label: 'Task' },
           { id: 'description', label: 'Summary' },
           { id: 'hours_spent', label: 'Hours', type: 'number' },
-          { id: 'is_billable', label: 'Billable' },
+          {
+            id: 'is_billable',
+            label: 'Billable',
+            render: (r) => (
+              <span
+                className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
+                  r.is_billable
+                    ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300'
+                    : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
+                }`}
+              >
+                {r.is_billable ? 'Billable' : 'Non-billable'}
+              </span>
+            ),
+          },
+          {
+            id: 'type_tags',
+            label: 'Type',
+            value: (r) => [r.is_overtime ? 'Overtime' : null, r.is_weekend ? 'Weekend' : null].filter(Boolean).join(', ') || 'Standard',
+          },
           {
             id: 'approval_status',
-            label: 'Status',
-            value: (r) => r.approval_status || 'DRAFT',
+            label: 'Approval Status',
+            render: (r) => {
+              const status = r.approval_status || 'DRAFT';
+              const colors: Record<string, string> = {
+                DRAFT: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
+                SUBMITTED: 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300',
+                APPROVED: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300',
+                REJECTED: 'bg-red-100 text-red-800 dark:bg-red-950/60 dark:text-red-300',
+              };
+              return (
+                <span className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold ${colors[status] || colors.DRAFT}`}>
+                  {status}
+                </span>
+              );
+            },
           },
-          { id: 'review_remarks', label: 'Review remarks' },
+          { id: 'review_remarks', label: 'Review Remarks' },
         ]}
-        onAdd={
-          hasPermission('TIMELOGS:LOG_OWN') ? () => setAdding(true) : undefined
-        }
-        addLabel="Log work"
+        onAdd={hasPermission('TIMELOGS:LOG_OWN') ? () => setAdding(true) : undefined}
+        addLabel="Log Work"
         actions={[
           {
             label: 'Submit',
@@ -104,21 +260,26 @@ export function TimesheetsPage() {
               r.user_id !== user?.id ||
               !['DRAFT', 'REJECTED'].includes(r.approval_status || 'DRAFT'),
             onClick: async (r) => {
-              await api.patch(`/time-logs/${r.id}/submit`);
-              await load();
+              try {
+                await api.patch(`/time-logs/${r.id}/submit`);
+                await load();
+              } catch (e) {
+                setError(errorText(e));
+              }
             },
           },
           {
             label: 'Review',
             icon: ClipboardCheck,
             hidden: (r) =>
-              !hasPermission('TIMELOGS:APPROVE') ||
+              !canApprove ||
               r.user_id === user?.id ||
               r.approval_status !== 'SUBMITTED',
             onClick: (r) => setReviewing(r),
           },
         ]}
       />
+
       {adding && (
         <div className="entity-panel">
           <RecordForm
@@ -133,6 +294,7 @@ export function TimesheetsPage() {
           />
         </div>
       )}
+
       {reviewing && (
         <RecordForm
           fields={[
@@ -140,7 +302,7 @@ export function TimesheetsPage() {
               required: true,
               options: ['APPROVED', 'REJECTED'],
             }),
-            f('remarks', 'Review remarks', { type: 'textarea' }),
+            f('remarks', 'Review Remarks', { type: 'textarea' }),
           ]}
           onCancel={() => setReviewing(null)}
           onSave={async (values) => {

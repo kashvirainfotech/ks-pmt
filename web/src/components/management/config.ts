@@ -251,6 +251,8 @@ export const clientConfig: Entity = {
     'company_name',
     'contact_person',
     'email',
+    'mobile_number',
+    'city',
     'client_type',
     'is_active',
   ],
@@ -290,6 +292,8 @@ export const productConfig: Entity = {
     'category',
     'current_version',
     'base_license_price',
+    'standard_amc_percentage',
+    'currency',
     'is_active',
   ],
   fields: [
@@ -319,6 +323,10 @@ export const projectConfig: Entity = {
     'project_name',
     'client_name',
     'branch_name',
+    'billing_type',
+    'contract_amount',
+    'currency',
+    'budgeted_hours',
     'project_status',
     'is_active',
   ],
@@ -436,6 +444,7 @@ export const memberFields: Field[] = [
 export const taskFields: Field[] = [
   text('title', 'Title', true),
   desc,
+  choice('hierarchyLevel', 'Hierarchy level', ['INITIATIVE', 'EPIC', 'TASK', 'SUBTASK'], 'TASK'),
   type,
   choice(
     'priority',
@@ -447,8 +456,10 @@ export const taskFields: Field[] = [
   { ...project, createOnly: true },
   { ...product, createOnly: true },
   ref('versionId', 'Version', '/versions', 'version_code'),
+  ref('sprintId', 'Sprint', '/sprints', 'sprint_name'),
+  ref('milestoneId', 'Milestone', '/milestones', 'milestone_name'),
   {
-    ...ref('parentTaskId', 'Parent task', '/tasks', 'title'),
+    ...ref('parentTaskId', 'Parent task / Epic', '/tasks', 'title'),
     createOnly: true,
   },
   branch(),
@@ -458,8 +469,155 @@ export const taskFields: Field[] = [
   date('plannedEndDate', 'Planned end'),
   date('actualStartDate', 'Actual start', true),
   date('actualEndDate', 'Actual end', true),
+  num('storyPoints', 'Story points', 0),
+  choice('tShirtSize', 'T-shirt size', ['XS', 'S', 'M', 'L', 'XL', 'XXL']),
   num('estimatedHours', 'Estimated hours', 0),
+  num('backlogOrder', 'Backlog order rank', 0),
   check('isChargeable', 'Chargeable'),
   num('chargeAmount', 'Charge amount', 0),
   currency,
 ];
+
+export const calendarConfig: Entity = {
+  title: 'Working calendars',
+  endpoint: '/calendars',
+  permission: 'CALENDARS:MANAGE',
+  status: true,
+  columns: [
+    'calendar_code',
+    'calendar_name',
+    'branch_name',
+    'timezone',
+    'standard_hours_per_day',
+    'working_days_mask',
+    'is_default',
+    'holidays_count',
+    'is_active',
+  ],
+  fields: [
+    code('calendarCode', 'Calendar code'),
+    text('calendarName', 'Calendar name', true),
+    branch('branchId', 'Branch (Optional)', false),
+    choice(
+      'timezone',
+      'Timezone',
+      ['Asia/Kolkata', 'UTC', 'America/New_York', 'America/Los_Angeles', 'Europe/London', 'Asia/Dubai', 'Asia/Singapore'],
+      'Asia/Kolkata',
+    ),
+    { ...num('standardHoursPerDay', 'Standard hours / day', 8.0), required: true },
+    text('workingDaysMask', 'Working days mask (Mon-Sun e.g. 1111100)', false),
+    check('isDefault', 'Corporate default calendar', false),
+    desc,
+    check('isActive', 'Active', true),
+  ],
+};
+
+export const holidayFields: Field[] = [
+  text('holidayName', 'Holiday title', true),
+  { ...date('holidayDate', 'Holiday date'), required: true },
+  check('isRecurring', 'Annual recurring holiday', false),
+  desc,
+];
+
+export const assignmentFields: Field[] = [
+  user('userId', 'Employee', true),
+  { ...date('effectiveFrom', 'Effective from'), required: true },
+  date('effectiveTo', 'Effective to (Optional)'),
+  num('customHoursPerDay', 'Custom hours / day (overrides standard)'),
+  num('billableTargetHoursPerWeek', 'Billable target hours / week', 40),
+  check('isContractor', 'Is external contractor / vendor', false),
+  text('notes', 'Notes / Remarks'),
+];
+
+export const leaveConfig: Entity = {
+  title: 'Employee leaves',
+  endpoint: '/calendars/leaves',
+  permission: 'LEAVES:MANAGE',
+  status: true,
+  columns: [
+    'employee_name',
+    'leave_type',
+    'start_date',
+    'end_date',
+    'days_count',
+    'status',
+    'approver_name',
+    'reason',
+  ],
+  fields: [
+    user('userId', 'Employee', false),
+    {
+      ...choice('leaveType', 'Leave category', [
+        'ANNUAL',
+        'SICK',
+        'CASUAL',
+        'MATERNITY',
+        'PATERNITY',
+        'UNPAID',
+        'OTHER',
+      ]),
+      required: true,
+    },
+    { ...date('startDate', 'Start date'), required: true },
+    { ...date('endDate', 'End date'), required: true },
+    { ...num('daysCount', 'Days count', 1.0), required: true },
+    desc,
+  ],
+};
+
+export const sprintConfig: Entity = {
+  title: 'Sprints',
+  endpoint: '/sprints',
+  permission: 'SPRINTS:MANAGE',
+  status: true,
+  columns: [
+    'sprint_code',
+    'sprint_name',
+    'project_name',
+    'status',
+    'start_date',
+    'end_date',
+    'current_tasks_count',
+    'current_story_points',
+    'total_capacity_hours',
+  ],
+  fields: [
+    code('sprintCode', 'Sprint code'),
+    text('sprintName', 'Sprint name', true),
+    f('sprintGoal', 'Sprint goal', { type: 'textarea' }),
+    choice('entityType', 'Scope', ['PROJECT', 'PRODUCT'], 'PROJECT'),
+    project,
+    product,
+    { ...date('startDate', 'Start date'), required: true },
+    { ...date('endDate', 'End date'), required: true },
+  ],
+};
+
+export const milestoneConfig: Entity = {
+  title: 'Milestones',
+  endpoint: '/milestones',
+  permission: 'MILESTONES:MANAGE',
+  status: true,
+  columns: [
+    'milestone_code',
+    'milestone_name',
+    'project_name',
+    'target_date',
+    'actual_date',
+    'status',
+    'linked_tasks_count',
+  ],
+  fields: [
+    code('milestoneCode', 'Milestone code'),
+    text('milestoneName', 'Milestone name', true),
+    desc,
+    choice('entityType', 'Scope', ['PROJECT', 'PRODUCT'], 'PROJECT'),
+    project,
+    product,
+    date('targetDate', 'Target date'),
+    date('actualDate', 'Actual date'),
+    choice('status', 'Status', ['PLANNED', 'IN_PROGRESS', 'ACHIEVED', 'MISSED', 'CANCELLED'], 'PLANNED'),
+  ],
+};
+
+

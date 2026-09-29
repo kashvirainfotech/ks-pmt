@@ -21,6 +21,9 @@ import { CommentsModule } from './modules/comments/comments.module';
 import { AttachmentsModule } from './modules/attachments/attachments.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
+import { CalendarsModule } from './modules/calendars/calendars.module';
+import { SprintsModule } from './modules/sprints/sprints.module';
+import { MilestonesModule } from './modules/milestones/milestones.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { DynamicRbacGuard } from './modules/rbac/rbac.guard';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
@@ -53,6 +56,9 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
     AttachmentsModule,
     NotificationsModule,
     AuditLogsModule,
+    CalendarsModule,
+    SprintsModule,
+    MilestonesModule,
   ],
   providers: [
     {

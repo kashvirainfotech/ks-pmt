@@ -35,6 +35,19 @@ export class QueryTimeLogDto {
   @IsOptional()
   userId?: string;
 
+  @ApiPropertyOptional({ description: 'Filter by Project UUID' })
+  @IsUUID()
+  @IsOptional()
+  projectId?: string;
+
+  @ApiPropertyOptional({
+    example: 'SUBMITTED',
+    enum: ['DRAFT', 'SUBMITTED', 'APPROVED', 'REJECTED'],
+    description: 'Filter by timesheet approval status',
+  })
+  @IsOptional()
+  approvalStatus?: string;
+
   @ApiPropertyOptional({ description: 'Page limit' })
   @IsOptional()
   @Type(() => Number)

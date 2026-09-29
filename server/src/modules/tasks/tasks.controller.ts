@@ -25,6 +25,7 @@ import { UpdateTaskDto } from "./dto/update-task.dto";
 import { ChangeTaskStatusDto } from "./dto/change-status.dto";
 import { AssignTaskDto } from "./dto/assign-task.dto";
 import { QueryTaskDto } from "./dto/query-task.dto";
+import { ReorderTasksDto } from "./dto/reorder-tasks.dto";
 import { RequirePermissions } from "../../common/decorators/permissions.decorator";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 
@@ -50,6 +51,16 @@ export function authorizeTaskFields(dto: Record<string, any>, access: any) {
 @Controller("tasks")
 export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
+
+  @Patch("reorder")
+  @RequirePermissions("TASKS:UPDATE")
+  @ApiOperation({ summary: "Reorder tasks in ranked backlog (PLAN-001)" })
+  async reorder(
+    @Body() dto: ReorderTasksDto,
+    @CurrentUser("id") userId: string,
+  ) {
+    return { data: await this.tasksService.reorderTasks(dto.items, userId) };
+  }
 
   @Post(":id/subtasks")
   @RequirePermissions("TASKS:CREATE")

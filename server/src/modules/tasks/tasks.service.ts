@@ -185,14 +185,15 @@ export class TasksService {
     return await this.db.transaction(async (client) => {
       const insertTaskQuery = `
         INSERT INTO tasks (
-          task_code, title, description, task_type_id, status_id,
-          priority, project_id, product_id, version_id, parent_task_id,
+          task_code, title, description, hierarchy_level, task_type_id, status_id,
+          priority, project_id, product_id, version_id, sprint_id, milestone_id,
+          parent_task_id, backlog_order, story_points, t_shirt_size,
           planned_start_date, planned_end_date, estimated_hours,
           is_chargeable, charge_amount, currency, branch_id,
           created_by, updated_by
         ) VALUES (
           $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13,
-          $14, $15, $16, $17, $18, $18
+          $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $24
         )
         RETURNING *;
       `;
@@ -204,13 +205,19 @@ export class TasksService {
           taskCode,
           dto.title,
           dto.description || null,
+          dto.hierarchyLevel || 'TASK',
           dto.taskTypeId,
           initialStatusId,
           dto.priority || "MEDIUM",
           dto.projectId || null,
           dto.productId || null,
           dto.versionId || null,
+          dto.sprintId || null,
+          dto.milestoneId || null,
           dto.parentTaskId || null,
+          dto.backlogOrder || 0.0,
+          dto.storyPoints ?? null,
+          dto.tShirtSize || null,
           dto.plannedStartDate || null,
           dto.plannedEndDate || null,
           dto.estimatedHours || 0.0,
@@ -338,6 +345,25 @@ export class TasksService {
       );
     }
 
+    if (query.sprintId) {
+      params.push(query.sprintId);
+      whereClauses.push(`t.sprint_id = $${params.length}`);
+    }
+
+    if (query.milestoneId) {
+      params.push(query.milestoneId);
+      whereClauses.push(`t.milestone_id = $${params.length}`);
+    }
+
+    if (query.hierarchyLevel) {
+      params.push(query.hierarchyLevel);
+      whereClauses.push(`t.hierarchy_level = $${params.length}`);
+    }
+
+    if (query.isBacklog) {
+      whereClauses.push(`t.sprint_id IS NULL`);
+    }
+
     if (query.search) {
       params.push(`%${query.search.trim()}%`);
       whereClauses.push(
@@ -360,7 +386,9 @@ export class TasksService {
 
     const dataSql = `
       SELECT 
-        t.id, t.task_code, t.title, t.description, t.task_type_id, t.status_id, t.project_id, t.product_id, t.version_id, t.branch_id, t.priority, t.estimated_hours,
+        t.id, t.task_code, t.title, t.description, t.hierarchy_level, t.task_type_id, t.status_id,
+        t.project_id, t.product_id, t.version_id, t.sprint_id, t.milestone_id, t.branch_id,
+        t.priority, t.estimated_hours, t.story_points, t.t_shirt_size, t.backlog_order,
         t.is_chargeable, t.charge_amount, t.currency,
         t.planned_start_date, t.planned_end_date,
         t.actual_start_date, t.actual_end_date,
@@ -368,6 +396,8 @@ export class TasksService {
         tt.type_name, tt.color_hex AS type_color, tt.icon_name AS type_icon,
         ts.status_name, ts.color_hex AS status_color, ts.status_category, ts.is_terminal,
         p.project_name, pr.product_name, v.version_code,
+        sp.sprint_code, sp.sprint_name,
+        m.milestone_code, m.milestone_name,
         COALESCE(
           json_agg(
             json_build_object(
@@ -384,11 +414,15 @@ export class TasksService {
       LEFT JOIN projects p ON t.project_id = p.id
       LEFT JOIN products pr ON t.product_id = pr.id
       LEFT JOIN versions v ON t.version_id = v.id
+      LEFT JOIN sprints sp ON t.sprint_id = sp.id
+      LEFT JOIN milestones m ON t.milestone_id = m.id
       LEFT JOIN task_assignees ta ON t.id = ta.task_id
       LEFT JOIN users u ON ta.user_id = u.id
       ${whereSql}
-      GROUP BY t.id, tt.type_name, tt.color_hex, tt.icon_name, ts.status_name, ts.color_hex, ts.status_category, ts.is_terminal, p.project_name, pr.product_name, v.version_code
-      ORDER BY t.created_at DESC
+      GROUP BY 
+        t.id, tt.type_name, tt.color_hex, tt.icon_name, ts.status_name, ts.color_hex, ts.status_category, ts.is_terminal,
+        p.project_name, pr.product_name, v.version_code, sp.sprint_code, sp.sprint_name, m.milestone_code, m.milestone_name
+      ORDER BY t.backlog_order ASC, t.created_at DESC
       LIMIT $${limitIdx} OFFSET $${offsetIdx};
     `;
 
@@ -842,6 +876,12 @@ export class TasksService {
         priority: "priority",
         severity: "severity",
         versionId: "version_id",
+        sprintId: "sprint_id",
+        milestoneId: "milestone_id",
+        hierarchyLevel: "hierarchy_level",
+        storyPoints: "story_points",
+        tShirtSize: "t_shirt_size",
+        backlogOrder: "backlog_order",
         plannedStartDate: "planned_start_date",
         plannedEndDate: "planned_end_date",
         actualStartDate: "actual_start_date",
@@ -879,6 +919,21 @@ export class TasksService {
         values,
       );
       return result.rows[0];
+    });
+  }
+
+  /**
+   * Reorder tasks in ranked product/project backlog (PLAN-001)
+   */
+  async reorderTasks(items: { taskId: string; backlogOrder: number }[], userId: string) {
+    return await this.db.transaction(async (client) => {
+      for (const item of items) {
+        await client.query(
+          `UPDATE tasks SET backlog_order = $1, updated_by = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3;`,
+          [item.backlogOrder, userId, item.taskId],
+        );
+      }
+      return { success: true, updatedCount: items.length };
     });
   }
 }

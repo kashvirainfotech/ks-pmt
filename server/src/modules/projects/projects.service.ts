@@ -77,39 +77,34 @@ export class ProjectsService {
         project_code, project_name, description, client_id,
         branch_id, project_manager_user_id, billing_type, contract_amount,
         hourly_rate, budgeted_hours, currency, planned_start_date,
-        planned_end_date, project_status, is_active, created_by, updated_by
+        planned_end_date, project_status, is_active, tech_stack,
+        invoicing_milestones, created_by, updated_by
       ) VALUES (
         $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13,
-        $14, TRUE, $15, $15
+        $14, TRUE, $15, $16, $17, $17
       )
       RETURNING *;
     `;
 
-    const result = await this.db.writeWithFields(
-      insertQuery,
-      [
-        dto.projectCode,
-        dto.projectName,
-        dto.description || null,
-        clientId,
-        branchId,
-        projectManagerUserId,
-        billingType,
-        dto.contractAmount || 0.0,
-        dto.hourlyRate || 0.0,
-        budgetedHours,
-        dto.currency || 'INR',
-        dto.plannedStartDate || null,
-        dto.plannedEndDate || null,
-        dto.projectStatus || 'PLANNING',
-        userId,
-      ],
-      'projects',
-      {
-        tech_stack: dto.techStack,
-        invoicing_milestones: dto.invoicingMilestones,
-      },
-    );
+    const result = await this.db.query(insertQuery, [
+      dto.projectCode,
+      dto.projectName,
+      dto.description || null,
+      clientId,
+      branchId,
+      projectManagerUserId,
+      billingType,
+      dto.contractAmount || 0.0,
+      dto.hourlyRate || 0.0,
+      budgetedHours,
+      dto.currency || 'INR',
+      dto.plannedStartDate || null,
+      dto.plannedEndDate || null,
+      dto.projectStatus || 'PLANNING',
+      dto.techStack || null,
+      dto.invoicingMilestones || null,
+      userId,
+    ]);
 
     return result.rows[0];
   }
@@ -263,40 +258,36 @@ export class ProjectsService {
         actual_end_date = COALESCE($14, actual_end_date),
         project_status = COALESCE($15, project_status),
         is_active = COALESCE($16, is_active),
-        updated_by = $17,
+        tech_stack = COALESCE($17, tech_stack),
+        invoicing_milestones = COALESCE($18, invoicing_milestones),
+        updated_by = $19,
         updated_at = CURRENT_TIMESTAMP
-      WHERE id = $18
+      WHERE id = $20
       RETURNING *;
     `;
 
-    const result = await this.db.writeWithFields(
-      updateQuery,
-      [
-        dto.projectName,
-        dto.description,
-        dto.clientId,
-        dto.branchId,
-        dto.projectManagerUserId,
-        dto.billingType,
-        dto.contractAmount,
-        dto.hourlyRate,
-        dto.budgetedHours,
-        dto.currency,
-        dto.plannedStartDate,
-        dto.plannedEndDate,
-        dto.actualStartDate,
-        dto.actualEndDate,
-        dto.projectStatus,
-        dto.isActive,
-        userId,
-        id,
-      ],
-      'projects',
-      {
-        tech_stack: dto.techStack,
-        invoicing_milestones: dto.invoicingMilestones,
-      },
-    );
+    const result = await this.db.query(updateQuery, [
+      dto.projectName,
+      dto.description,
+      dto.clientId,
+      dto.branchId,
+      dto.projectManagerUserId,
+      dto.billingType,
+      dto.contractAmount,
+      dto.hourlyRate,
+      dto.budgetedHours,
+      dto.currency,
+      dto.plannedStartDate,
+      dto.plannedEndDate,
+      dto.actualStartDate,
+      dto.actualEndDate,
+      dto.projectStatus,
+      dto.isActive,
+      dto.techStack,
+      dto.invoicingMilestones,
+      userId,
+      id,
+    ]);
 
     return result.rows[0];
   }
