@@ -683,4 +683,204 @@ export interface ActiveTimer {
   elapsedFormatted: string;
 }
 
+// ==========================================
+// Delivery Teams & Software Components (PLAN-004)
+// ==========================================
+
+export interface DeliveryTeam {
+  id: string;
+  team_code: string;
+  team_name: string;
+  description?: string;
+  lead_user_id?: string;
+  lead_name?: string;
+  lead_email?: string;
+  lead_avatar?: string;
+  member_count: number;
+  components_count: number;
+  projects?: Array<{ id: string; name: string }>;
+  products?: Array<{ id: string; name: string }>;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TeamMember {
+  id: string;
+  team_id: string;
+  user_id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  employee_code?: string;
+  avatar_url?: string;
+  branch_name?: string;
+  role_name?: string;
+  designation_name?: string;
+  role_in_team: 'LEAD' | 'DEVELOPER' | 'QA_ENGINEER' | 'DEVOPS' | 'PRODUCT_OWNER' | 'UI_DESIGNER' | string;
+  joined_date: string;
+  left_date?: string;
+  allocation_percentage: number;
+  is_active: boolean;
+}
+
+export interface SoftwareComponent {
+  id: string;
+  component_code: string;
+  component_name: string;
+  description?: string;
+  entity_type: 'PRODUCT' | 'PROJECT';
+  product_id?: string;
+  project_id?: string;
+  project_name?: string;
+  product_name?: string;
+  owner_team_id?: string;
+  owner_team_name?: string;
+  owner_team_code?: string;
+  tech_lead_user_id?: string;
+  tech_lead_name?: string;
+  tech_lead_email?: string;
+  tech_lead_avatar?: string;
+  technology_stack?: string;
+  documentation_url?: string;
+  repository_url?: string;
+  criticality: 'TIER_1_CRITICAL' | 'TIER_2_CORE' | 'TIER_3_SUPPORTING';
+  task_count?: number;
+  outbound_dep_count?: number;
+  inbound_dep_count?: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  outboundDependencies?: ComponentDependency[];
+  inboundDependencies?: ComponentDependency[];
+}
+
+export interface ComponentDependency {
+  id: string;
+  component_id: string;
+  depends_on_component_id: string;
+  dependency_type: 'CONSUMES_API' | 'CALLS_SERVICE' | 'SHARED_DATABASE' | 'EVENT_PUBSUB' | 'CLIENT_SDK';
+  description?: string;
+  component_code?: string;
+  component_name?: string;
+  criticality?: string;
+  target_team_name?: string;
+  source_team_name?: string;
+}
+
+export interface ComponentDashboardResponse {
+  component: SoftwareComponent;
+  summary: {
+    totalTasksCount: number;
+    activeTasksCount: number;
+    defectsCount: number;
+    techDebtCount: number;
+    criticalIssuesCount: number;
+  };
+  activeTasks: any[];
+  defects: any[];
+  techDebt: any[];
+  allTasks: any[];
+}
+
+export interface ComponentArchitectureMapResponse {
+  nodes: Array<{
+    id: string;
+    component_code: string;
+    component_name: string;
+    criticality: string;
+    technology_stack?: string;
+    owner_team?: string;
+    task_count: number;
+  }>;
+  links: Array<{
+    id: string;
+    source_id: string;
+    target_id: string;
+    dependency_type: string;
+    description?: string;
+  }>;
+}
+
+// ==========================================
+// FLOW-001: Task Handoffs & Waiting Queues
+// ==========================================
+export type HandoffStatus =
+  | 'PENDING'
+  | 'ACCEPTED'
+  | 'IN_PROGRESS'
+  | 'RETURNED_FOR_REWORK'
+  | 'REDIRECTED'
+  | 'COMPLETED'
+  | 'CANCELLED';
+
+export interface DurationMetric {
+  elapsedSeconds: number;
+  elapsedFormatted: string;
+  businessSeconds: number;
+  businessFormatted: string;
+}
+
+export interface TaskHandoff {
+  id: string;
+  task_id: string;
+  task_code?: string;
+  task_title?: string;
+  task_priority?: string;
+  project_name?: string;
+  from_team_id?: string;
+  from_team_name?: string;
+  from_user_id: string;
+  from_user_name?: string;
+  from_user_email?: string;
+  to_team_id?: string;
+  to_team_name?: string;
+  to_user_id?: string;
+  to_user_name?: string;
+  to_user_email?: string;
+  handoff_type: string;
+  status: HandoffStatus;
+  sent_at: string;
+  acknowledged_at?: string;
+  acknowledged_by?: string;
+  acknowledged_by_name?: string;
+  work_started_at?: string;
+  work_started_by?: string;
+  work_started_by_name?: string;
+  completed_at?: string;
+  predecessor_handoff_id?: string;
+  required_context?: string;
+  rejection_or_return_reason?: string;
+  notes?: string;
+  is_ownerless?: boolean;
+  is_overdue?: boolean;
+  timeToAck?: DurationMetric;
+  timeToWorkStart?: DurationMetric;
+  waitingDuration?: DurationMetric;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface HandoffAnalyticsResponse {
+  summary: {
+    totalHandoffs: number;
+    totalReworkCount: number;
+    reworkRatePct: number;
+    redirectedCount: number;
+    avgTimeToAckElapsed: string;
+    avgTimeToWorkStartElapsed: string;
+    ackSampleCount: number;
+    workStartSampleCount: number;
+  };
+  byStage: Array<{
+    stage: string;
+    totalCount: number;
+    reworkCount: number;
+    reworkRatePct: number;
+    avgTimeToAckFormatted: string;
+    avgTimeToWorkStartFormatted: string;
+  }>;
+}
+
+
 

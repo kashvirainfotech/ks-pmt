@@ -299,6 +299,52 @@ CREATE TABLE IF NOT EXISTS projects (
 );
 
 -- ========================================================
+-- 14b. Delivery Teams & Team Members (PLAN-004)
+-- ========================================================
+CREATE TABLE IF NOT EXISTS teams (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    team_code VARCHAR(50) NOT NULL UNIQUE,
+    team_name VARCHAR(150) NOT NULL,
+    description TEXT,
+    lead_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS team_members (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    team_id UUID NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    role_in_team VARCHAR(50) NOT NULL DEFAULT 'DEVELOPER', -- 'LEAD', 'DEVELOPER', 'QA_ENGINEER', 'DEVOPS', 'PRODUCT_OWNER', 'UI_DESIGNER'
+    joined_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    left_date DATE,
+    allocation_percentage NUMERIC(5, 2) NOT NULL DEFAULT 100.00,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_team_member UNIQUE (team_id, user_id)
+);
+
+CREATE TABLE IF NOT EXISTS team_projects (
+    team_id UUID NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
+    project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (team_id, project_id)
+);
+
+CREATE TABLE IF NOT EXISTS team_products (
+    team_id UUID NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
+    product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (team_id, product_id)
+);
+
+-- ========================================================
 -- 15. Project Team Allocations (Project Members)
 -- ========================================================
 CREATE TABLE IF NOT EXISTS project_members (
@@ -479,6 +525,7 @@ CREATE TABLE IF NOT EXISTS tasks (
     sprint_id UUID REFERENCES sprints(id) ON DELETE SET NULL,
     milestone_id UUID REFERENCES milestones(id) ON DELETE SET NULL,
     parent_task_id UUID REFERENCES tasks(id) ON DELETE CASCADE, -- Hierarchical parent (Epic for Task, Task for Subtask)
+    responsible_team_id UUID REFERENCES teams(id) ON DELETE SET NULL,
     backlog_order NUMERIC(12, 4) NOT NULL DEFAULT 0.0000, -- Custom rank ordering in project/product backlog
     story_points NUMERIC(5, 1) CHECK (story_points >= 0),
     t_shirt_size VARCHAR(10) CHECK (t_shirt_size IN ('XS', 'S', 'M', 'L', 'XL', 'XXL')),
@@ -953,3 +1000,96 @@ CREATE TABLE IF NOT EXISTS saved_views (
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+-- ========================================================
+-- Date & Time: 2026-09-29 14:30:00 (IST)
+-- Description: Software Components Catalog, Architecture Dependencies & Task Component Mapping (PLAN-004)
+-- ========================================================
+
+-- 34. Software Components Catalog
+CREATE TABLE IF NOT EXISTS software_components (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    component_code VARCHAR(50) NOT NULL, -- e.g. 'CMP-AUTH-SRV', 'CMP-WEB-CLIENT'
+    component_name VARCHAR(150) NOT NULL,
+    description TEXT,
+    entity_type VARCHAR(20) NOT NULL, -- 'PRODUCT' or 'PROJECT'
+    product_id UUID REFERENCES products(id) ON DELETE CASCADE,
+    project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+    owner_team_id UUID REFERENCES teams(id) ON DELETE SET NULL,
+    tech_lead_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    technology_stack VARCHAR(200), -- e.g. 'Node.js, PostgreSQL', 'React, Vite, Tailwind', 'Flutter'
+    documentation_url TEXT,
+    repository_url TEXT,
+    criticality VARCHAR(30) NOT NULL DEFAULT 'TIER_2_CORE' CHECK (criticality IN ('TIER_1_CRITICAL', 'TIER_2_CORE', 'TIER_3_SUPPORTING')),
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_component_entity CHECK (
+        (entity_type = 'PRODUCT' AND product_id IS NOT NULL AND project_id IS NULL) OR
+        (entity_type = 'PROJECT' AND project_id IS NOT NULL AND product_id IS NULL)
+    ),
+    CONSTRAINT uq_component_code_entity UNIQUE (component_code, entity_type, product_id, project_id)
+);
+
+-- 35. Component Architecture Dependencies (PLAN-004)
+-- Reciprocal links (A calls B, B calls A) are valid architectural communication and distinct from task DAG scheduling.
+CREATE TABLE IF NOT EXISTS component_dependencies (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    component_id UUID NOT NULL REFERENCES software_components(id) ON DELETE CASCADE,
+    depends_on_component_id UUID NOT NULL REFERENCES software_components(id) ON DELETE CASCADE,
+    dependency_type VARCHAR(50) NOT NULL DEFAULT 'CONSUMES_API' CHECK (dependency_type IN ('CONSUMES_API', 'CALLS_SERVICE', 'SHARED_DATABASE', 'EVENT_PUBSUB', 'CLIENT_SDK')),
+    description TEXT,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_component_no_self_dep CHECK (component_id <> depends_on_component_id),
+    CONSTRAINT uq_component_dependency UNIQUE (component_id, depends_on_component_id, dependency_type)
+);
+
+-- 36. Task Components Many-to-Many Mapping (PLAN-004)
+CREATE TABLE IF NOT EXISTS task_components (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    task_id UUID NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+    component_id UUID NOT NULL REFERENCES software_components(id) ON DELETE CASCADE,
+    is_primary BOOLEAN NOT NULL DEFAULT FALSE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_task_component UNIQUE (task_id, component_id)
+);
+-- ========================================================
+-- Date & Time: 2026-09-29 15:15:00 IST
+-- Description: FLOW-001 - Task Handoff Tracking & Waiting Queue Episodes
+-- ========================================================
+
+-- 37. Task Handoffs
+CREATE TABLE IF NOT EXISTS task_handoffs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    task_id UUID NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+    from_team_id UUID REFERENCES teams(id) ON DELETE SET NULL,
+    from_user_id UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    to_team_id UUID REFERENCES teams(id) ON DELETE SET NULL,
+    to_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    handoff_type VARCHAR(50) NOT NULL DEFAULT 'GENERAL',
+    status VARCHAR(30) NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'ACCEPTED', 'IN_PROGRESS', 'RETURNED_FOR_REWORK', 'REDIRECTED', 'COMPLETED', 'CANCELLED')),
+    sent_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    acknowledged_at TIMESTAMP WITH TIME ZONE,
+    acknowledged_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    work_started_at TIMESTAMP WITH TIME ZONE,
+    work_started_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    completed_at TIMESTAMP WITH TIME ZONE,
+    predecessor_handoff_id UUID REFERENCES task_handoffs(id) ON DELETE SET NULL,
+    required_context TEXT,
+    rejection_or_return_reason TEXT,
+    notes TEXT,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_handoff_recipient CHECK (to_team_id IS NOT NULL OR to_user_id IS NOT NULL)
+);

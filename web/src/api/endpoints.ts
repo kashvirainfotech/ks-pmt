@@ -37,6 +37,14 @@ import {
   WeeklyTimesheetResponse,
   TimesheetProjectPortion,
   ActiveTimer,
+  DeliveryTeam,
+  TeamMember,
+  SoftwareComponent,
+  ComponentDependency,
+  ComponentDashboardResponse,
+  ComponentArchitectureMapResponse,
+  TaskHandoff,
+  HandoffAnalyticsResponse,
 } from '../types';
 
 // ==========================================
@@ -257,6 +265,10 @@ export const projectsApi = {
     productId?: string;
     projectId?: string;
   }): Promise<{ data: Version[] }> => api.get('/versions', { params }),
+};
+
+export const productsApi = {
+  getProducts: (): Promise<{ data: Product[] }> => api.get('/products'),
 };
 
 // ==========================================
@@ -535,6 +547,119 @@ export const timesheetsApi = {
   discardTimer: (): Promise<{ data: { message: string } }> =>
     api.delete('/timesheets/timer'),
 };
+
+// ==========================================
+// Delivery Teams & Software Components (PLAN-004)
+// ==========================================
+export const teamsApi = {
+  getAll: (params?: { projectId?: string; productId?: string }): Promise<{ data: DeliveryTeam[] }> =>
+    api.get('/teams', { params }),
+
+  getById: (id: string): Promise<{ data: DeliveryTeam & { members: TeamMember[]; projects: any[]; products: any[]; components: any[] } }> =>
+    api.get(`/teams/${id}`),
+
+  create: (data: any): Promise<{ data: DeliveryTeam }> =>
+    api.post('/teams', data),
+
+  update: (id: string, data: any): Promise<{ data: DeliveryTeam }> =>
+    api.put(`/teams/${id}`, data),
+
+  delete: (id: string) =>
+    api.delete(`/teams/${id}`),
+
+  addMember: (teamId: string, data: any): Promise<{ data: TeamMember }> =>
+    api.post(`/teams/${teamId}/members`, data),
+
+  removeMember: (teamId: string, userId: string) =>
+    api.delete(`/teams/${teamId}/members/${userId}`),
+};
+
+export const componentsApi = {
+  getAll: (params?: { entityType?: string; projectId?: string; productId?: string; ownerTeamId?: string; criticality?: string }): Promise<{ data: SoftwareComponent[] }> =>
+    api.get('/components', { params }),
+
+  getById: (id: string): Promise<{ data: SoftwareComponent }> =>
+    api.get(`/components/${id}`),
+
+  create: (data: any): Promise<{ data: SoftwareComponent }> =>
+    api.post('/components', data),
+
+  update: (id: string, data: any): Promise<{ data: SoftwareComponent }> =>
+    api.put(`/components/${id}`, data),
+
+  delete: (id: string) =>
+    api.delete(`/components/${id}`),
+
+  getDashboard: (id: string): Promise<{ data: ComponentDashboardResponse }> =>
+    api.get(`/components/${id}/dashboard`),
+
+  getArchitectureMap: (entityType: string, entityId: string): Promise<{ data: ComponentArchitectureMapResponse }> =>
+    api.get('/components/architecture-map', { params: { entityType, entityId } }),
+
+  addDependency: (componentId: string, data: any): Promise<{ data: ComponentDependency }> =>
+    api.post(`/components/${componentId}/dependencies`, data),
+
+  removeDependency: (depId: string) =>
+    api.delete(`/components/dependencies/${depId}`),
+
+  getTaskComponents: (taskId: string): Promise<{ data: SoftwareComponent[] }> =>
+    api.get(`/components/task/${taskId}`),
+
+  linkTaskComponents: (taskId: string, data: { componentIds: string[]; primaryComponentId?: string }): Promise<{ data: any[] }> =>
+    api.put(`/components/task/${taskId}`, data),
+};
+
+// ==========================================
+// FLOW-001: Task Handoffs APIs
+// ==========================================
+export const handoffsApi = {
+  getWaitingForMe: (): Promise<{ data: TaskHandoff[] }> =>
+    api.get('/handoffs/waiting-for-me'),
+
+  getWaitingForOthers: (): Promise<{ data: TaskHandoff[] }> =>
+    api.get('/handoffs/waiting-for-others'),
+
+  getAnalytics: (teamId?: string): Promise<{ data: HandoffAnalyticsResponse }> =>
+    api.get('/handoffs/analytics', { params: { teamId } }),
+
+  getTaskHistory: (taskId: string): Promise<{ data: TaskHandoff[] }> =>
+    api.get(`/handoffs/tasks/${taskId}`),
+
+  getById: (id: string): Promise<{ data: TaskHandoff }> =>
+    api.get(`/handoffs/${id}`),
+
+  create: (data: {
+    taskId: string;
+    fromTeamId?: string;
+    toTeamId?: string;
+    toUserId?: string;
+    handoffType?: string;
+    requiredContext?: string;
+    notes?: string;
+  }): Promise<{ data: TaskHandoff }> => api.post('/handoffs', data),
+
+  acknowledge: (id: string, data?: { notes?: string }): Promise<{ data: TaskHandoff }> =>
+    api.post(`/handoffs/${id}/acknowledge`, data || {}),
+
+  startWork: (id: string, data?: { notes?: string }): Promise<{ data: TaskHandoff }> =>
+    api.post(`/handoffs/${id}/start-work`, data || {}),
+
+  returnForRework: (
+    id: string,
+    data: { reason: string; notes?: string },
+  ): Promise<{ data: { returnedHandoff: TaskHandoff; successorHandoff: TaskHandoff } }> =>
+    api.post(`/handoffs/${id}/return`, data),
+
+  redirect: (
+    id: string,
+    data: { toTeamId?: string; toUserId?: string; reason?: string; notes?: string },
+  ): Promise<{ data: { redirectedHandoff: TaskHandoff; successorHandoff: TaskHandoff } }> =>
+    api.post(`/handoffs/${id}/redirect`, data),
+
+  complete: (id: string, data?: { notes?: string }): Promise<{ data: TaskHandoff }> =>
+    api.post(`/handoffs/${id}/complete`, data || {}),
+};
+
 
 
 

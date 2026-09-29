@@ -353,8 +353,8 @@ All boxes in this section remain unchecked. Feature IDs reference [requirements]
 - [x] **TIME-001 — timer**: Persist one active timer across tabs/devices in database (`user_active_timers`) with recovery and correction; task switching auto-logs prior timer; browser blur never stops/discards time automatically.
 - [x] **TIME-001 — acceptance**: Full verification across leave/holiday expected hours calculations, cross-project portion approvals with self-approval prevention, rejection re-submission workflows, and global navbar timer widget.
 
-- [ ] **PLAN-004**: Teams independent of branch/department; scoped component ownership/dependency maps and authorized work/defect/debt drill-downs; membership grants no additional access.
-- [ ] **FLOW-001**: Explicit send/acknowledge/start/return/redirect/complete events and receiving queues; retain episodes, reminders and distinct acceptance versus work-start waiting durations.
+- [x] **PLAN-004**: Teams independent of branch/department; scoped component ownership/dependency maps and authorized work/defect/debt drill-downs; membership grants no additional access.
+- [x] **FLOW-001**: Explicit send/acknowledge/start/return/redirect/complete events and receiving queues; retain episodes, reminders and distinct acceptance versus work-start waiting durations.
 - [ ] **CONFIG-001**: Visual project/product overrides, versioned defaults, required-field/role/manual-gate rules, preview and active-state mapping; identical API/inline/bulk enforcement.
 - [ ] **PLAN-001/002/003 — detail acceptance**: Scope ledger with baseline/reasons, release-readiness workspace, blocker radar and lifecycle alerts, authorized dependency maps, enriched bug context and My Work queues; manual review only.
 

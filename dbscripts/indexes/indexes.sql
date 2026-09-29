@@ -153,3 +153,28 @@ CREATE INDEX IF NOT EXISTS idx_timesheet_portions_project ON timesheet_project_p
 CREATE INDEX IF NOT EXISTS idx_task_time_logs_timesheet ON task_time_logs(timesheet_id);
 CREATE INDEX IF NOT EXISTS idx_user_active_timers_user ON user_active_timers(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_active_timers_task ON user_active_timers(task_id);
+
+-- ========================================================
+-- Date & Time: 2026-09-29 14:35:00 IST
+-- Description: PLAN-004 - Indexes for Delivery Teams, Software Components & Architecture Relationships
+-- ========================================================
+CREATE INDEX IF NOT EXISTS idx_teams_code ON teams(team_code);
+CREATE INDEX IF NOT EXISTS idx_team_members_team ON team_members(team_id, is_active);
+CREATE INDEX IF NOT EXISTS idx_team_members_user ON team_members(user_id, is_active);
+CREATE INDEX IF NOT EXISTS idx_tasks_responsible_team ON tasks(responsible_team_id);
+CREATE INDEX IF NOT EXISTS idx_components_entity ON software_components(entity_type, product_id, project_id);
+CREATE INDEX IF NOT EXISTS idx_components_owner_team ON software_components(owner_team_id);
+CREATE INDEX IF NOT EXISTS idx_component_dep_source ON component_dependencies(component_id);
+CREATE INDEX IF NOT EXISTS idx_component_dep_target ON component_dependencies(depends_on_component_id);
+CREATE INDEX IF NOT EXISTS idx_task_components_task ON task_components(task_id);
+CREATE INDEX IF NOT EXISTS idx_task_components_comp ON task_components(component_id);
+-- ========================================================
+-- Date & Time: 2026-09-29 15:15:00 IST
+-- Description: FLOW-001 - Indexes for Task Handoffs & Queue Lookups
+-- ========================================================
+CREATE INDEX IF NOT EXISTS idx_task_handoffs_task ON task_handoffs(task_id);
+CREATE INDEX IF NOT EXISTS idx_task_handoffs_to_team ON task_handoffs(to_team_id, status);
+CREATE INDEX IF NOT EXISTS idx_task_handoffs_to_user ON task_handoffs(to_user_id, status);
+CREATE INDEX IF NOT EXISTS idx_task_handoffs_from_user ON task_handoffs(from_user_id, status);
+CREATE INDEX IF NOT EXISTS idx_task_handoffs_predecessor ON task_handoffs(predecessor_handoff_id);
+CREATE INDEX IF NOT EXISTS idx_task_handoffs_status ON task_handoffs(status);

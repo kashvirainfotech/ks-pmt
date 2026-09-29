@@ -18,6 +18,9 @@ import { BentoGridDashboard } from './components/dashboard/BentoGridDashboard';
 const TasksView = lazy(() => import('./components/tasks/TasksView').then(module => ({ default: module.TasksView })));
 import { AuditLogsView } from './components/audit/AuditLogsView';
 import { adminScreens, portfolioScreens } from './components/management/screens';
+import { TeamsManagementView } from './components/teams/TeamsManagementView';
+import { ComponentsCatalogView } from './components/components/ComponentsCatalogView';
+import { HandoffsWorkspaceView } from './components/handoffs/HandoffsWorkspaceView';
 
 // Protected Route Wrapper
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
@@ -67,6 +70,9 @@ export const App: React.FC = () => {
         ))}
         <Route path="clients" element={<ClientsPage />} />
         <Route path="timesheets" element={<TimesheetsPage />} />
+        <Route path="teams" element={<TeamsManagementView />} />
+        <Route path="components" element={<ComponentsCatalogView />} />
+        <Route path="handoffs" element={<HandoffsWorkspaceView />} />
         <Route path="admin" element={<Navigate to="/admin/branches" replace />} />
         {adminScreens.map(screen => (
           <Route key={screen.path} path={screen.path} element={<AdminPage key={screen.path} screen={screen} />} />

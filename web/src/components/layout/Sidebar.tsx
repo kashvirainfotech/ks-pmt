@@ -17,6 +17,9 @@ import {
   Bell,
   CalendarDays,
   X,
+  Cpu,
+  Users,
+  ArrowRightLeft,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -44,9 +47,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       ...portfolioScreens.map(screen => ({ label: screen.title, path: screen.path, icon: FolderKanban, show: true })),
       { label: 'Release timeline', path: '/releases', icon: CalendarDays, show: true },
       { label: 'Timesheets', path: '/timesheets', icon: Clock, show: true },
+      { label: 'Work handoffs', path: '/handoffs', icon: ArrowRightLeft, show: true },
+      { label: 'Components', path: '/components', icon: Cpu, show: true },
       { label: 'Clients', path: '/clients', icon: Users2, show: true },
     ]},
     { title: 'Organization', items: [
+      { label: 'Delivery teams', path: '/teams', icon: Users, show: true },
       ...adminScreens.map(screen => ({ label: screen.title, path: screen.path, icon: Settings, show: canViewMasters })),
       { label: 'Audit trail', path: '/audit', icon: ShieldCheck, show: isSuperAdmin || hasPermission('AUDIT_LOGS:VIEW') },
     ]},

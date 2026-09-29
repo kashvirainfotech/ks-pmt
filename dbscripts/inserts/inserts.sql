@@ -281,7 +281,15 @@ BEGIN
         ('SAVED_VIEWS', 'MANAGE', 'SAVED_VIEWS:MANAGE', 'Permission to create, update, and delete saved views', TRUE, v_admin_id),
         ('TIMESHEETS', 'READ', 'TIMESHEETS:READ', 'Permission to view own and team weekly timesheets', TRUE, v_admin_id),
         ('TIMESHEETS', 'SUBMIT', 'TIMESHEETS:SUBMIT', 'Permission to log, edit, and submit weekly timesheets', TRUE, v_admin_id),
-        ('TIMESHEETS', 'APPROVE', 'TIMESHEETS:APPROVE', 'Permission to review, approve, or reject timesheet portions', TRUE, v_admin_id)
+        ('TIMESHEETS', 'APPROVE', 'TIMESHEETS:APPROVE', 'Permission to review, approve, or reject timesheet portions', TRUE, v_admin_id),
+        ('TEAMS', 'READ', 'TEAMS:READ', 'Permission to view delivery teams and team memberships', TRUE, v_admin_id),
+        ('TEAMS', 'MANAGE', 'TEAMS:MANAGE', 'Permission to create and manage delivery teams and member assignments', TRUE, v_admin_id),
+        ('COMPONENTS', 'READ', 'COMPONENTS:READ', 'Permission to view software components and architecture dependency maps', TRUE, v_admin_id),
+        ('COMPONENTS', 'MANAGE', 'COMPONENTS:MANAGE', 'Permission to create and manage software components and architectural links', TRUE, v_admin_id),
+        ('HANDOFFS', 'READ', 'HANDOFFS:READ', 'Permission to view task handoffs and waiting queues', TRUE, v_admin_id),
+        ('HANDOFFS', 'CREATE', 'HANDOFFS:CREATE', 'Permission to initiate and send task handoffs', TRUE, v_admin_id),
+        ('HANDOFFS', 'ACKNOWLEDGE', 'HANDOFFS:ACKNOWLEDGE', 'Permission to acknowledge receipt and start work on handoffs', TRUE, v_admin_id),
+        ('HANDOFFS', 'MANAGE', 'HANDOFFS:MANAGE', 'Permission to return for rework, redirect, and manage handoff episodes', TRUE, v_admin_id)
     ON CONFLICT (permission_code) DO NOTHING;
 
     INSERT INTO role_permissions (role_id, permission_id, created_by)
@@ -292,7 +300,9 @@ BEGIN
         'SPRINTS:READ', 'SPRINTS:MANAGE', 'MILESTONES:READ', 'MILESTONES:MANAGE',
         'DEPENDENCIES:READ', 'DEPENDENCIES:MANAGE', 'BLOCKERS:READ', 'BLOCKERS:MANAGE',
         'SAVED_VIEWS:READ', 'SAVED_VIEWS:MANAGE',
-        'TIMESHEETS:READ', 'TIMESHEETS:SUBMIT', 'TIMESHEETS:APPROVE'
+        'TIMESHEETS:READ', 'TIMESHEETS:SUBMIT', 'TIMESHEETS:APPROVE',
+        'TEAMS:READ', 'TEAMS:MANAGE', 'COMPONENTS:READ', 'COMPONENTS:MANAGE',
+        'HANDOFFS:READ', 'HANDOFFS:CREATE', 'HANDOFFS:ACKNOWLEDGE', 'HANDOFFS:MANAGE'
     )
     ON CONFLICT (role_id, permission_id) DO NOTHING;
 
