@@ -21,6 +21,9 @@ import {
   Users,
   ArrowRightLeft,
   GitMerge,
+  LifeBuoy,
+  UserCheck,
+  ExternalLink,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -51,6 +54,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
       { label: 'Work handoffs', path: '/handoffs', icon: ArrowRightLeft, show: true },
       { label: 'Components', path: '/components', icon: Cpu, show: true },
       { label: 'Clients', path: '/clients', icon: Users2, show: true },
+    ]},
+    { title: 'Client Delivery', items: [
+      { label: 'Intake & Triage', path: '/client-intake', icon: LifeBuoy, show: true },
+      { label: 'Client contacts', path: '/client-contacts', icon: UserCheck, show: true },
+      { label: 'Customer portal', path: '/customer-portal', icon: ExternalLink, show: true },
     ]},
     { title: 'Organization', items: [
       { label: 'Delivery teams', path: '/teams', icon: Users, show: true },

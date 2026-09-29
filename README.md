@@ -108,6 +108,7 @@ The core foundational architecture, enterprise planning engine, and operational 
 | **Delivery Teams & Software Components (`PLAN-004`)** | ✅ Implemented | Independent delivery teams, effective-dated member rosters with capacity allocations, software components catalog, architecture dependency maps, and authorized work/defect/tech debt drill-downs. |
 | **Work Handoff Tracking & Queues (`FLOW-001`)** | ✅ Implemented | Cross-role handoffs (BA → Dev → Review → QA → UAT), inbound ("Waiting for Me") & outbound queues, dual metric tracking (elapsed wall-clock vs business calendar duration), separate acknowledgment vs work start, rework/redirect successor chains, and aggregate queue analytics without individual blame. |
 | **Workflow Schemes & Transition Gates (`CONFIG-001`)** | ✅ Implemented | Visual workflow scheme editor, versioned project & product overrides, transition gate rules (roles, required fields, release association, resolution classification, manual gates), graph reachability validation, active task remapping on publish, and unified server-side gate enforcement across single, drawer, inline, and bulk updates. |
+| **Customer Portal & Intake Triage (`CLIENT-001` & `CLIENT-002`)** | ✅ Implemented | Invitation-only contact activation, RBAC separation (`CLIENT_USER`, `CLIENT_ADMIN`, `CLIENT_APPROVER`), scoped project grants, private ticket intake (bugs, support, change requests) with customer impact assessment, separate internal severity/priority triage, 1-click delivery task conversion, customer-safe status mapping, internal vs public clarification stream, and complete zero-leak cross-client data isolation. |
 | **Web Views & Grid Experience** | ✅ Implemented | Interactive drag-and-drop Kanban board, shared TanStack DataGrid (faceted search, multi-column sorting, nested grouping, CSV/Print export), light/dark theme. |
 | **AWS S3 Cloud Storage** | ✅ Implemented | Direct-to-S3 pre-signed PUT/GET URL generation for attachments, screenshots, and logs; zero binary storage on backend API server. |
 | **Audit Trails & Activity Logs** | ✅ Implemented | Central audit log capturing entity mutations, old/new diffs, timestamps, user IDs, IP addresses, and user-agent tags. |
@@ -124,7 +125,7 @@ All roadmap items are categorized by strategic delivery increment. Each feature 
 ```mermaid
 flowchart LR
     A["Tier A: Foundations & Boundaries (Active)"] --> B["Tier B: Agile Development Planning (Complete)"]
-    B --> C["Tier C: Client Delivery & UAT (Next Up)"]
+    B --> C["Tier C: Client Delivery & UAT (In Progress)"]
     C --> D["Tier D: Product Operations & QA"]
     D --> E["Tier E: Delivery Intelligence"]
     E --> F["Future: Advanced Extensions"]
@@ -143,7 +144,7 @@ flowchart LR
 - **`CONFIG-001` Project-Specific Workflow Overrides & Gates** [✅ Implemented]: Visual workflow editor allowing versioned project/product workflow progression, mandatory custom fields per status transition, role-restricted gates, release & resolution requirements, graph reachability validation, active task remapping on publish, and unified API/inline/bulk enforcement.
 
 ### 📌 Tier C: Client Delivery & Collaboration
-- **`CLIENT-001` & `CLIENT-002` Customer Portal & Intake Triage**: Invited client contacts with role-scoped project access; private support/ticket intake; separation of customer impact/urgency from internal priority; complete cross-client data isolation.
+- **`CLIENT-001` & `CLIENT-002` Customer Portal & Intake Triage** [✅ Implemented]: Invited client contacts with role-scoped project access; invitation token redemption and credential management; private bug, support, and change-request intake; separation of customer impact/urgency from internal technical priority; customer-facing sanitized status mapping; zero-leak internal clarifications vs public customer replies; 1-click delivery task conversion and duplicate linking; strict cross-client data isolation.
 - **`CLIENT-003` Requirements & Acceptance Traceability**: Versioned functional requirements and acceptance criteria directly linked to tasks, manual QA test runs, and client sign-offs.
 - **`CLIENT-004` Scope & Change-Request Approval**: Scope change quotations with effort, cost, and timeline impacts; formal authorized client approval of specific revisions with re-approval triggers for material modifications.
 - **`CLIENT-005` Client UAT & Milestone Sign-Off**: Versioned UAT packages, known issues disclosure, and client approval workflows (`Approve` / `Request Changes` / `Reject`) keeping developer completion, internal QA, and client acceptance strictly distinct.

@@ -22,7 +22,7 @@ export class RbacService {
 
   async enforceBranchScope(request: any) {
     const user = request.user;
-    if (!user || user.roleCode === 'ROLE_SUPER_ADMIN') return;
+    if (!user || user.isClientContact || user.roleCode === 'ROLE_SUPER_ADMIN') return;
     const branches = await this.db.query(
       'SELECT branch_id FROM user_branches WHERE user_id=$1',
       [user.id],

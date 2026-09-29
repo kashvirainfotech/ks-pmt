@@ -35,6 +35,38 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   }
 
   async validate(payload: JwtPayload) {
+    if ((payload as any).isClientContact) {
+      const contactQuery = `
+        SELECT cc.id, cc.client_id, cc.first_name, cc.last_name, cc.email,
+               cc.phone, cc.job_title, cc.portal_role, cc.is_approver,
+               cc.status, cc.is_active,
+               c.company_name, c.client_code
+        FROM client_contacts cc
+        INNER JOIN clients c ON cc.client_id = c.id
+        WHERE cc.id = $1;
+      `;
+      const result = await this.db.query(contactQuery, [payload.sub]);
+      if (result.rowCount === 0 || !result.rows[0].is_active || result.rows[0].status !== 'ACTIVE') {
+        throw new UnauthorizedException('Client contact account is inactive, revoked, or not found');
+      }
+      const row = result.rows[0];
+      return {
+        id: row.id,
+        contactId: row.id,
+        clientId: row.client_id,
+        firstName: row.first_name,
+        lastName: row.last_name,
+        email: row.email,
+        phone: row.phone,
+        jobTitle: row.job_title,
+        portalRole: row.portal_role,
+        isApprover: row.is_approver,
+        companyName: row.company_name,
+        clientCode: row.client_code,
+        isClientContact: true,
+      };
+    }
+
     // Verify user is still active in database
     const userQuery = `
       SELECT u.id, u.employee_code, u.first_name, u.last_name, u.email, 

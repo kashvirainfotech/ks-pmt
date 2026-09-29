@@ -946,5 +946,147 @@ export interface WorkflowValidationResult {
   }>;
 }
 
+// ========================================================
+// CLIENT-001 & CLIENT-002: Client Portal & Intake Types
+// ========================================================
+
+export type ClientPortalRole = 'CLIENT_USER' | 'CLIENT_ADMIN';
+export type ClientContactStatus = 'INVITED' | 'ACTIVE' | 'REVOKED' | 'EXPIRED';
+export type ClientRequestType = 'BUG' | 'SUPPORT' | 'CHANGE_REQUEST';
+export type ClientRequestStatus =
+  | 'SUBMITTED'
+  | 'UNDER_REVIEW'
+  | 'NEEDS_INFORMATION'
+  | 'ACCEPTED'
+  | 'DUPLICATE'
+  | 'DECLINED';
+export type ClientPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+export type TechnicalSeverity = 'TRIVIAL' | 'MINOR' | 'MAJOR' | 'CRITICAL' | 'BLOCKER';
+export type BusinessImpactCategory =
+  | 'OPERATIONS'
+  | 'REVENUE'
+  | 'COMPLIANCE'
+  | 'SECURITY'
+  | 'USABILITY'
+  | 'PERFORMANCE'
+  | 'REPORTING'
+  | 'OTHER';
+export type ImpactBreadth =
+  | 'INTERNAL'
+  | 'SINGLE_USER'
+  | 'ORGANIZATION'
+  | 'MULTIPLE_CLIENTS'
+  | 'ALL_CLIENTS';
+
+export interface ClientContactProjectGrant {
+  grant_id?: string;
+  project_id: string;
+  project_code?: string;
+  project_name?: string;
+  project_status?: string;
+  can_view_milestones: boolean;
+  can_create_requests: boolean;
+  can_approve_scope: boolean;
+  can_approve_uat: boolean;
+}
+
+export interface ClientContact {
+  id: string;
+  client_id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone?: string;
+  job_title?: string;
+  portal_role: ClientPortalRole;
+  is_approver: boolean;
+  status: ClientContactStatus;
+  invitation_sent_at?: string;
+  invitation_accepted_at?: string;
+  last_login_at?: string;
+  company_name?: string;
+  client_code?: string;
+  granted_project_count?: number;
+  projectGrants?: ClientContactProjectGrant[];
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface ClientRequestAttachment {
+  s3Key: string;
+  fileName: string;
+  fileSize: number;
+  mimeType: string;
+}
+
+export interface ClientRequestMessage {
+  id: string;
+  request_id?: string;
+  sender_type: 'CLIENT_CONTACT' | 'INTERNAL_USER';
+  authorName?: string;
+  contact_author_name?: string;
+  staff_author_name?: string;
+  message: string;
+  is_internal_only?: boolean;
+  attachments?: ClientRequestAttachment[];
+  created_at: string;
+}
+
+export interface ClientIntakeRequest {
+  id: string;
+  request_number: string;
+  client_id: string;
+  contact_id: string;
+  project_id?: string;
+  product_id?: string;
+  component_id?: string;
+  request_type: ClientRequestType;
+  title: string;
+  description: string;
+  status: ClientRequestStatus;
+  client_priority: ClientPriority;
+  internal_priority?: ClientPriority;
+  technical_severity?: TechnicalSeverity;
+  business_impact: BusinessImpactCategory;
+  impact_breadth: ImpactBreadth;
+  environment_details?: Record<string, any>;
+  attachments?: ClientRequestAttachment[];
+  rejection_or_decline_reason?: string;
+  duplicate_of_request_id?: string;
+  duplicate_request_number?: string;
+  duplicate_request_title?: string;
+  linked_task_id?: string;
+  linked_task_number?: string;
+  linked_task_title?: string;
+  linked_task_status_name?: string;
+  linked_task_status_category?: string;
+  affected_version?: string;
+  target_fix_version?: string;
+  company_name?: string;
+  client_code?: string;
+  contact_name?: string;
+  contact_email?: string;
+  contact_phone?: string;
+  project_name?: string;
+  project_code?: string;
+  product_name?: string;
+  product_code?: string;
+  component_name?: string;
+  triaged_by_name?: string;
+  customerStatus?: string;
+  customerStatusColor?: string;
+  created_at: string;
+  updated_at: string;
+  messages?: ClientRequestMessage[];
+}
+
+export interface ImpactSummaryStats {
+  byStatus: Array<{ status: string; count: number }>;
+  byBusinessImpact: Array<{ business_impact: string; count: number }>;
+  byImpactBreadth: Array<{ impact_breadth: string; count: number }>;
+  byRequestType: Array<{ request_type: string; count: number }>;
+}
+
+
 
 

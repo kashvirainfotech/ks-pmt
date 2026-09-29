@@ -291,7 +291,11 @@ BEGIN
         ('HANDOFFS', 'ACKNOWLEDGE', 'HANDOFFS:ACKNOWLEDGE', 'Permission to acknowledge receipt and start work on handoffs', TRUE, v_admin_id),
         ('HANDOFFS', 'MANAGE', 'HANDOFFS:MANAGE', 'Permission to return for rework, redirect, and manage handoff episodes', TRUE, v_admin_id),
         ('WORKFLOWS', 'READ', 'WORKFLOWS:READ', 'Permission to view workflow schemes, project overrides, and gate rules', TRUE, v_admin_id),
-        ('WORKFLOWS', 'MANAGE', 'WORKFLOWS:MANAGE', 'Permission to create, configure, validate, and publish workflow overrides and gates', TRUE, v_admin_id)
+        ('WORKFLOWS', 'MANAGE', 'WORKFLOWS:MANAGE', 'Permission to create, configure, validate, and publish workflow overrides and gates', TRUE, v_admin_id),
+        ('CLIENT_PORTAL', 'READ', 'CLIENT_PORTAL:READ', 'Permission to view client portal contacts and their project access grants', TRUE, v_admin_id),
+        ('CLIENT_PORTAL', 'MANAGE', 'CLIENT_PORTAL:MANAGE', 'Permission to invite, manage, and revoke client portal contacts and project grants', TRUE, v_admin_id),
+        ('CLIENT_INTAKE', 'READ', 'CLIENT_INTAKE:READ', 'Permission to view client intake bug, support, and change requests', TRUE, v_admin_id),
+        ('CLIENT_INTAKE', 'TRIAGE', 'CLIENT_INTAKE:TRIAGE', 'Permission to triage, review, accept/decline client intake requests and link to internal tasks', TRUE, v_admin_id)
     ON CONFLICT (permission_code) DO NOTHING;
 
     INSERT INTO role_permissions (role_id, permission_id, created_by)
@@ -305,7 +309,26 @@ BEGIN
         'TIMESHEETS:READ', 'TIMESHEETS:SUBMIT', 'TIMESHEETS:APPROVE',
         'TEAMS:READ', 'TEAMS:MANAGE', 'COMPONENTS:READ', 'COMPONENTS:MANAGE',
         'HANDOFFS:READ', 'HANDOFFS:CREATE', 'HANDOFFS:ACKNOWLEDGE', 'HANDOFFS:MANAGE',
-        'WORKFLOWS:READ', 'WORKFLOWS:MANAGE'
+        'WORKFLOWS:READ', 'WORKFLOWS:MANAGE',
+        'CLIENT_PORTAL:READ', 'CLIENT_PORTAL:MANAGE',
+        'CLIENT_INTAKE:READ', 'CLIENT_INTAKE:TRIAGE'
+    )
+    ON CONFLICT (role_id, permission_id) DO NOTHING;
+
+    INSERT INTO role_permissions (role_id, permission_id, created_by)
+    SELECT v_role_pm, p.id, v_admin_id
+    FROM permissions p
+    WHERE p.permission_code IN (
+        'CLIENT_PORTAL:READ', 'CLIENT_PORTAL:MANAGE',
+        'CLIENT_INTAKE:READ', 'CLIENT_INTAKE:TRIAGE'
+    )
+    ON CONFLICT (role_id, permission_id) DO NOTHING;
+
+    INSERT INTO role_permissions (role_id, permission_id, created_by)
+    SELECT v_role_support, p.id, v_admin_id
+    FROM permissions p
+    WHERE p.permission_code IN (
+        'CLIENT_INTAKE:READ', 'CLIENT_INTAKE:TRIAGE'
     )
     ON CONFLICT (role_id, permission_id) DO NOTHING;
 

@@ -1144,3 +1144,103 @@ CREATE TABLE IF NOT EXISTS workflow_scheme_transitions (
     CONSTRAINT uq_workflow_scheme_transition UNIQUE (scheme_id, from_status_id, to_status_id),
     CONSTRAINT chk_scheme_transition_not_same CHECK (from_status_id <> to_status_id)
 );
+
+-- ========================================================
+-- Date & Time: 2026-09-29 16:00:00 IST
+-- Description: Client Portal Contacts, Project Grants, Intake Requests & Clarification Messages (CLIENT-001, CLIENT-002)
+-- ========================================================
+
+-- 40. Client Contacts & Portal Identity (CLIENT-001)
+CREATE TABLE IF NOT EXISTS client_contacts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    client_id UUID NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    phone VARCHAR(20),
+    job_title VARCHAR(100),
+    password_hash VARCHAR(255),
+    portal_role VARCHAR(30) NOT NULL DEFAULT 'CLIENT_USER' CHECK (portal_role IN ('CLIENT_USER', 'CLIENT_ADMIN')),
+    is_approver BOOLEAN NOT NULL DEFAULT FALSE,
+    status VARCHAR(30) NOT NULL DEFAULT 'INVITED' CHECK (status IN ('INVITED', 'ACTIVE', 'REVOKED', 'EXPIRED')),
+    invitation_token VARCHAR(255) UNIQUE,
+    invitation_sent_at TIMESTAMP WITH TIME ZONE,
+    invitation_accepted_at TIMESTAMP WITH TIME ZONE,
+    invited_by_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    invited_by_contact_id UUID REFERENCES client_contacts(id) ON DELETE SET NULL,
+    last_login_at TIMESTAMP WITH TIME ZONE,
+    last_login_ip VARCHAR(45),
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 41. Client Contact Project Grants (CLIENT-001)
+CREATE TABLE IF NOT EXISTS client_contact_projects (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    contact_id UUID NOT NULL REFERENCES client_contacts(id) ON DELETE CASCADE,
+    project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    can_view_milestones BOOLEAN NOT NULL DEFAULT TRUE,
+    can_create_requests BOOLEAN NOT NULL DEFAULT TRUE,
+    can_approve_scope BOOLEAN NOT NULL DEFAULT FALSE,
+    can_approve_uat BOOLEAN NOT NULL DEFAULT FALSE,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_client_contact_project UNIQUE (contact_id, project_id)
+);
+
+-- 42. Client Intake Requests (CLIENT-002)
+CREATE TABLE IF NOT EXISTS client_intake_requests (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    request_number VARCHAR(50) NOT NULL UNIQUE,
+    client_id UUID NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+    contact_id UUID NOT NULL REFERENCES client_contacts(id) ON DELETE RESTRICT,
+    project_id UUID REFERENCES projects(id) ON DELETE SET NULL,
+    product_id UUID REFERENCES products(id) ON DELETE SET NULL,
+    component_id UUID REFERENCES software_components(id) ON DELETE SET NULL,
+    request_type VARCHAR(30) NOT NULL DEFAULT 'SUPPORT' CHECK (request_type IN ('BUG', 'SUPPORT', 'CHANGE_REQUEST')),
+    title VARCHAR(255) NOT NULL,
+    description TEXT NOT NULL,
+    status VARCHAR(30) NOT NULL DEFAULT 'SUBMITTED' CHECK (status IN ('SUBMITTED', 'UNDER_REVIEW', 'NEEDS_INFORMATION', 'ACCEPTED', 'DUPLICATE', 'DECLINED')),
+    client_priority VARCHAR(20) NOT NULL DEFAULT 'MEDIUM' CHECK (client_priority IN ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL')),
+    internal_priority VARCHAR(20) CHECK (internal_priority IN ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL')),
+    technical_severity VARCHAR(20) CHECK (technical_severity IN ('TRIVIAL', 'MINOR', 'MAJOR', 'CRITICAL', 'BLOCKER')),
+    business_impact VARCHAR(30) NOT NULL DEFAULT 'OPERATIONS' CHECK (business_impact IN ('OPERATIONS', 'REVENUE', 'COMPLIANCE', 'SECURITY', 'USABILITY', 'PERFORMANCE', 'REPORTING', 'OTHER')),
+    impact_breadth VARCHAR(30) NOT NULL DEFAULT 'SINGLE_USER' CHECK (impact_breadth IN ('INTERNAL', 'SINGLE_USER', 'ORGANIZATION', 'MULTIPLE_CLIENTS', 'ALL_CLIENTS')),
+    environment_details JSONB NOT NULL DEFAULT '{}'::jsonb,
+    attachments JSONB NOT NULL DEFAULT '[]'::jsonb,
+    rejection_or_decline_reason TEXT,
+    duplicate_of_request_id UUID REFERENCES client_intake_requests(id) ON DELETE SET NULL,
+    linked_task_id UUID REFERENCES tasks(id) ON DELETE SET NULL,
+    triaged_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    triaged_at TIMESTAMP WITH TIME ZONE,
+    affected_version VARCHAR(50),
+    target_fix_version VARCHAR(50),
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 43. Client Request Clarification Messages (CLIENT-002)
+CREATE TABLE IF NOT EXISTS client_request_messages (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    request_id UUID NOT NULL REFERENCES client_intake_requests(id) ON DELETE CASCADE,
+    sender_type VARCHAR(20) NOT NULL CHECK (sender_type IN ('CLIENT_CONTACT', 'INTERNAL_USER')),
+    contact_id UUID REFERENCES client_contacts(id) ON DELETE SET NULL,
+    user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    message TEXT NOT NULL,
+    is_internal_only BOOLEAN NOT NULL DEFAULT FALSE,
+    attachments JSONB NOT NULL DEFAULT '[]'::jsonb,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);

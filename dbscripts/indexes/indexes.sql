@@ -186,3 +186,24 @@ CREATE INDEX IF NOT EXISTS idx_workflow_schemes_scope ON workflow_schemes(scope,
 CREATE INDEX IF NOT EXISTS idx_workflow_schemes_type ON workflow_schemes(task_type_id, status);
 CREATE INDEX IF NOT EXISTS idx_workflow_transitions_scheme ON workflow_scheme_transitions(scheme_id, is_active);
 CREATE INDEX IF NOT EXISTS idx_workflow_transitions_from_to ON workflow_scheme_transitions(from_status_id, to_status_id);
+
+-- ========================================================
+-- Date & Time: 2026-09-29 16:00:00 IST
+-- Description: CLIENT-001 & CLIENT-002 - Indexes for Client Portal Contacts, Project Grants, Intake Requests & Messages
+-- ========================================================
+CREATE INDEX IF NOT EXISTS idx_client_contacts_client ON client_contacts(client_id, is_active);
+CREATE INDEX IF NOT EXISTS idx_client_contacts_email ON client_contacts(LOWER(email));
+CREATE INDEX IF NOT EXISTS idx_client_contacts_token ON client_contacts(invitation_token) WHERE invitation_token IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_client_contacts_status ON client_contacts(status);
+CREATE INDEX IF NOT EXISTS idx_client_contact_projects_contact ON client_contact_projects(contact_id);
+CREATE INDEX IF NOT EXISTS idx_client_contact_projects_project ON client_contact_projects(project_id);
+CREATE INDEX IF NOT EXISTS idx_client_intake_client ON client_intake_requests(client_id, status);
+CREATE INDEX IF NOT EXISTS idx_client_intake_contact ON client_intake_requests(contact_id);
+CREATE INDEX IF NOT EXISTS idx_client_intake_project ON client_intake_requests(project_id) WHERE project_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_client_intake_product ON client_intake_requests(product_id) WHERE product_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_client_intake_status ON client_intake_requests(status);
+CREATE INDEX IF NOT EXISTS idx_client_intake_type ON client_intake_requests(request_type);
+CREATE INDEX IF NOT EXISTS idx_client_intake_linked_task ON client_intake_requests(linked_task_id) WHERE linked_task_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_client_intake_duplicate ON client_intake_requests(duplicate_of_request_id) WHERE duplicate_of_request_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_client_messages_request ON client_request_messages(request_id, created_at ASC);
+CREATE INDEX IF NOT EXISTS idx_client_messages_internal ON client_request_messages(request_id, is_internal_only);

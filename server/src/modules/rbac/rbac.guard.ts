@@ -19,7 +19,7 @@ export class DynamicRbacGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     await this.rbacService.enforceBranchScope(request);
-    if (request.user?.id)
+    if (request.user?.id && !request.user?.isClientContact)
       request.userEffectivePermissions =
         await this.rbacService.getEffectivePermissions(
           request.user.id,
@@ -44,6 +44,10 @@ export class DynamicRbacGuard implements CanActivate {
 
     if (!user || !user.id) {
       throw new ForbiddenException('User authentication required');
+    }
+
+    if (user.isClientContact) {
+      throw new ForbiddenException('Client contacts are restricted from internal staff resources');
     }
 
     const activeBranchId =

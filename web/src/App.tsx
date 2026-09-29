@@ -22,6 +22,9 @@ import { TeamsManagementView } from './components/teams/TeamsManagementView';
 import { ComponentsCatalogView } from './components/components/ComponentsCatalogView';
 import { HandoffsWorkspaceView } from './components/handoffs/HandoffsWorkspaceView';
 import { WorkflowSchemesEditorView } from './components/workflows/WorkflowSchemesEditorView';
+import { ClientContactsView } from './components/clients/ClientContactsView';
+import { ClientIntakeTriageView } from './components/clients/ClientIntakeTriageView';
+import { CustomerPortalWorkspace } from './components/clients/CustomerPortalWorkspace';
 
 // Protected Route Wrapper
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
@@ -75,6 +78,9 @@ export const App: React.FC = () => {
         <Route path="components" element={<ComponentsCatalogView />} />
         <Route path="handoffs" element={<HandoffsWorkspaceView />} />
         <Route path="workflow-schemes" element={<WorkflowSchemesEditorView />} />
+        <Route path="client-contacts" element={<ClientContactsView />} />
+        <Route path="client-intake" element={<ClientIntakeTriageView />} />
+        <Route path="customer-portal" element={<CustomerPortalWorkspace />} />
         <Route path="admin" element={<Navigate to="/admin/branches" replace />} />
         {adminScreens.map(screen => (
           <Route key={screen.path} path={screen.path} element={<AdminPage key={screen.path} screen={screen} />} />

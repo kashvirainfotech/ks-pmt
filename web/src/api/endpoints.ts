@@ -48,6 +48,9 @@ import {
   WorkflowScheme,
   WorkflowSchemeTransition,
   WorkflowValidationResult,
+  ClientContact,
+  ClientIntakeRequest,
+  ImpactSummaryStats,
 } from '../types';
 
 // ==========================================
@@ -248,6 +251,14 @@ export const mastersApi = {
 // ==========================================
 // Business Modules: Clients, Projects, Products
 // ==========================================
+export const clientsApi = {
+  getAll: (params?: any): Promise<{ data: Client[] }> => api.get('/clients', { params }),
+  getById: (id: string): Promise<{ data: Client }> => api.get(`/clients/${id}`),
+  create: (data: any): Promise<{ data: Client }> => api.post('/clients', data),
+  update: (id: string, data: any): Promise<{ data: Client }> => api.put(`/clients/${id}`, data),
+  convertToActive: (id: string) => api.post(`/clients/${id}/convert-to-active`),
+};
+
 export const projectsApi = {
   getClients: (): Promise<{ data: Client[] }> => api.get('/clients'),
 
@@ -753,6 +764,78 @@ export const workflowSchemesApi = {
   }): Promise<{ data: any[] }> =>
     api.get('/task-workflows/allowed-next-statuses', { params }),
 };
+
+// ==========================================
+// Customer Portal & Client Intake (CLIENT-001 & CLIENT-002)
+// ==========================================
+export const clientPortalApi = {
+  acceptInvite: (data: { invitationToken: string; password: string; phone?: string }) =>
+    api.post('/client-portal/auth/accept-invite', data),
+
+  login: (data: { email: string; password: string }) =>
+    api.post('/client-portal/auth/login', data),
+
+  getMe: () => api.get('/client-portal/auth/me'),
+
+  getPortalContext: () => api.get('/client-portal/context'),
+
+  createRequest: (data: any): Promise<{ data: any; message: string; request: ClientIntakeRequest }> =>
+    api.post('/client-portal/requests', data),
+
+  getClientRequests: (params?: any): Promise<{ data: ClientIntakeRequest[]; meta: any }> =>
+    api.get('/client-portal/requests', { params }),
+
+  getClientRequestById: (id: string): Promise<{ data: ClientIntakeRequest }> =>
+    api.get(`/client-portal/requests/${id}`),
+
+  addClientMessage: (id: string, data: { message: string; attachments?: any[] }) =>
+    api.post(`/client-portal/requests/${id}/messages`, data),
+
+  getContacts: (params?: { clientId?: string; status?: string; search?: string }): Promise<{ data: ClientContact[] }> =>
+    api.get('/client-portal/contacts', { params }),
+
+  getContactById: (id: string): Promise<{ data: ClientContact }> =>
+    api.get(`/client-portal/contacts/${id}`),
+
+  inviteContact: (data: any): Promise<{ data: { contact: ClientContact; invitationToken: string; invitationLink: string } }> =>
+    api.post('/client-portal/contacts/invite', data),
+
+  updateContact: (id: string, data: any): Promise<{ data: ClientContact }> =>
+    api.put(`/client-portal/contacts/${id}`, data),
+
+  revokeContact: (id: string) =>
+    api.post(`/client-portal/contacts/${id}/revoke`),
+
+  resendInvite: (id: string) =>
+    api.post(`/client-portal/contacts/${id}/resend-invite`),
+
+  updateProjectGrants: (contactId: string, data: { grants: any[] }): Promise<{ data: ClientContact }> =>
+    api.post(`/client-portal/contacts/${contactId}/projects`, data),
+};
+
+export const clientIntakeApi = {
+  getRequests: (params?: any): Promise<{ data: ClientIntakeRequest[]; meta: any }> =>
+    api.get('/client-intake/requests', { params }),
+
+  getRequestById: (id: string): Promise<{ data: ClientIntakeRequest }> =>
+    api.get(`/client-intake/requests/${id}`),
+
+  triageRequest: (id: string, data: any): Promise<{ data: ClientIntakeRequest }> =>
+    api.patch(`/client-intake/requests/${id}/triage`, data),
+
+  linkTask: (id: string, taskId: string): Promise<{ message: string; request: ClientIntakeRequest }> =>
+    api.post(`/client-intake/requests/${id}/link-task`, { taskId }),
+
+  createTaskFromRequest: (id: string, data: { projectId: string; taskTypeId?: string; title?: string; priority?: string }): Promise<{ message: string; task: any }> =>
+    api.post(`/client-intake/requests/${id}/convert-to-task`, data),
+
+  addMessage: (id: string, data: { message: string; isInternalOnly?: boolean; attachments?: any[] }) =>
+    api.post(`/client-intake/requests/${id}/messages`, data),
+
+  getImpactSummary: (): Promise<{ data: ImpactSummaryStats }> =>
+    api.get('/client-intake/analytics/impact-summary'),
+};
+
 
 
 
