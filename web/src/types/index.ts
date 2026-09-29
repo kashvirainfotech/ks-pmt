@@ -1503,6 +1503,92 @@ export interface ClientInstalledVersion {
   is_current_active: boolean;
 }
 
+export type ReportOverallHealth = 'ON_TRACK' | 'NEEDS_ATTENTION' | 'AT_RISK';
+export type ReportAudienceScope = 'CLIENT_ALL' | 'CLIENT_APPROVERS_ONLY' | 'INTERNAL_ONLY';
+export type ReportStatus = 'DRAFT' | 'UNDER_REVIEW' | 'PUBLISHED' | 'ARCHIVED';
+
+export interface ClientActionItem {
+  id?: string;
+  title: string;
+  owner?: string;
+  dueDate?: string;
+  status?: string;
+  urgency?: string;
+}
+
+export interface MilestoneForecast {
+  milestoneId?: string;
+  milestoneName: string;
+  committedDate?: string;
+  indicativeForecastDate: string;
+  status?: string;
+  varianceDays?: number;
+  remarks?: string;
+}
+
+export interface SanitizedRisk {
+  id?: string;
+  risk: string;
+  impact?: string;
+  mitigation?: string;
+  status?: string;
+}
+
+export interface CommercialSummary {
+  currency?: string;
+  contractValue?: number;
+  approvedCrValue?: number;
+  invoicedToDate?: number;
+  currentMilestoneBilled?: number;
+}
+
+export interface ClientProgressReportRevision {
+  id: string;
+  report_id: string;
+  revision_number: number;
+  published_content_snapshot: any;
+  revision_reason?: string;
+  published_at: string;
+  published_by_user_id?: string;
+  published_by_name?: string;
+}
+
+export interface ClientProgressReport {
+  id: string;
+  report_code: string;
+  project_id?: string;
+  product_id?: string;
+  project_name?: string;
+  project_code?: string;
+  product_name?: string;
+  product_code?: string;
+  title: string;
+  period_start_date: string;
+  period_end_date: string;
+  report_status: ReportStatus;
+  overall_health: ReportOverallHealth;
+  health_narrative?: string;
+  executive_summary: string;
+  delivered_work_summary?: string;
+  next_steps_summary?: string;
+  decisions_needed_summary?: string;
+  client_action_items?: ClientActionItem[];
+  milestone_forecasts?: MilestoneForecast[];
+  sanitized_risks?: SanitizedRisk[];
+  include_commercials: boolean;
+  commercial_summary?: CommercialSummary | null;
+  audience_scope: ReportAudienceScope;
+  internal_notes?: string;
+  current_revision: number;
+  published_at?: string;
+  published_by_user_id?: string;
+  published_by_name?: string;
+  created_by_name?: string;
+  revisions?: ClientProgressReportRevision[];
+  created_at: string;
+  updated_at: string;
+}
+
 
 
 

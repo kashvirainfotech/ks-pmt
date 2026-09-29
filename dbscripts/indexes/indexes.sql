@@ -259,4 +259,15 @@ CREATE INDEX IF NOT EXISTS idx_uat_items_defect ON uat_checklist_items(linked_de
 CREATE INDEX IF NOT EXISTS idx_client_installed_client ON client_installed_versions(client_id, is_current_active);
 CREATE INDEX IF NOT EXISTS idx_client_installed_version ON client_installed_versions(version_id);
 
+-- ========================================================
+-- Date & Time: 2026-09-29 20:56:00 IST
+-- Description: CLIENT-006 - Indexes for Client Progress Reports & Revisions
+-- ========================================================
+CREATE INDEX IF NOT EXISTS idx_cpr_project ON client_progress_reports(project_id, report_status);
+CREATE INDEX IF NOT EXISTS idx_cpr_product ON client_progress_reports(product_id, report_status) WHERE product_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_cpr_status ON client_progress_reports(report_status);
+CREATE INDEX IF NOT EXISTS idx_cpr_period ON client_progress_reports(period_start_date, period_end_date);
+CREATE INDEX IF NOT EXISTS idx_cpr_health ON client_progress_reports(overall_health);
+CREATE INDEX IF NOT EXISTS idx_cpr_revisions_rep ON client_progress_report_revisions(report_id, revision_number);
+
 

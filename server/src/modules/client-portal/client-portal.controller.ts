@@ -19,6 +19,7 @@ import { ClientDecisionDto } from '../change-requests/dto/client-decision.dto';
 import { UatPackagesService } from '../uat-packages/uat-packages.service';
 import { ClientUatDecisionDto } from '../uat-packages/dto/client-uat-decision.dto';
 import { RecordChecklistProgressDto } from '../uat-packages/dto/record-checklist-progress.dto';
+import { ClientReportsService } from '../client-reports/client-reports.service';
 import { Public } from '../../common/guards/jwt-auth.guard';
 import { ClientContactGuard } from '../../common/guards/client-contact.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -31,13 +32,14 @@ import { CreateIntakeRequestDto } from './dto/create-intake-request.dto';
 import { TriageRequestDto } from './dto/triage-request.dto';
 import { CreateRequestMessageDto, QueryRequestsDto } from './dto/request-message.dto';
 
-@ApiTags('Client Portal & Customer Intake (CLIENT-001, CLIENT-002, CLIENT-003, CLIENT-004, CLIENT-005)')
+@ApiTags('Client Portal & Customer Intake (CLIENT-001, CLIENT-002, CLIENT-003, CLIENT-004, CLIENT-005, CLIENT-006)')
 @Controller()
 export class ClientPortalController {
   constructor(
     private readonly clientPortalService: ClientPortalService,
     private readonly changeRequestsService: ChangeRequestsService,
     private readonly uatPackagesService: UatPackagesService,
+    private readonly clientReportsService: ClientReportsService,
   ) {}
 
   // ========================================================
@@ -518,5 +520,53 @@ export class ClientPortalController {
       data,
     };
   }
+
+  // ========================================================
+  // 9. Client Portal Progress Reports (CLIENT-006)
+  // ========================================================
+
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(ClientContactGuard)
+  @Get('client-portal/progress-reports')
+  @ApiOperation({ summary: 'List customer-safe progress reports for permitted projects' })
+  async getClientProgressReports(
+    @Req() req: any,
+    @Query('projectId') projectId?: string,
+  ) {
+    const data = await this.clientReportsService.getClientPortalReports(req.user, projectId);
+    return {
+      message: 'Client progress reports retrieved successfully',
+      data,
+    };
+  }
+
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(ClientContactGuard)
+  @Get('client-portal/progress-reports/:id')
+  @ApiOperation({ summary: 'Get published progress report detail with zero internal leakage' })
+  async getClientProgressReportDetail(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: any,
+  ) {
+    const data = await this.clientReportsService.getClientPortalReportDetail(id, req.user);
+    return {
+      message: 'Client progress report detail retrieved successfully',
+      data,
+    };
+  }
+
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(ClientContactGuard)
+  @Get('client-portal/progress-reports/:id/digest')
+  @ApiOperation({ summary: 'Generate client digest summary for email/notifications' })
+  async getClientProgressReportDigest(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: any,
+  ) {
+    await this.clientReportsService.getClientPortalReportDetail(id, req.user);
+    const digest = await this.clientReportsService.generateDigest(id);
+    return { digest };
+  }
 }
+
 

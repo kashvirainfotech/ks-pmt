@@ -61,6 +61,8 @@ import {
   UatPackageRevision,
   UatChecklistItem,
   ClientInstalledVersion,
+  ClientProgressReport,
+  ClientProgressReportRevision,
 } from '../types';
 
 // ==========================================
@@ -851,6 +853,15 @@ export const clientPortalApi = {
 
   submitUatDecision: (id: string, rev: number, data: { decision: 'APPROVED' | 'CHANGES_REQUESTED' | 'REJECTED'; remarks?: string }) =>
     api.post(`/client-portal/uat-packages/${id}/revisions/${rev}/decision`, data),
+
+  getProgressReports: (params?: { projectId?: string }): Promise<{ data: ClientProgressReport[] }> =>
+    api.get('/client-portal/progress-reports', { params }),
+
+  getProgressReportDetail: (id: string): Promise<{ data: ClientProgressReport }> =>
+    api.get(`/client-portal/progress-reports/${id}`),
+
+  getProgressReportDigest: (id: string): Promise<{ data: { digest: string } }> =>
+    api.get(`/client-portal/progress-reports/${id}/digest`),
 };
 
 export const clientIntakeApi = {
@@ -986,6 +997,36 @@ export const uatPackagesApi = {
   getInstalledVersions: (clientId: string): Promise<{ data: ClientInstalledVersion[] }> =>
     api.get(`/uat-packages/installed-versions/client/${clientId}`),
 };
+
+// ==========================================
+// Client Progress Updates & Reporting (CLIENT-006)
+// ==========================================
+export const clientReportsApi = {
+  create: (data: any): Promise<{ data: ClientProgressReport }> =>
+    api.post('/client-reports', data),
+
+  getAll: (params?: any): Promise<{ data: { data: ClientProgressReport[]; total: number; page: number; limit: number; totalPages: number } }> =>
+    api.get('/client-reports', { params }),
+
+  getById: (id: string): Promise<{ data: ClientProgressReport }> =>
+    api.get(`/client-reports/${id}`),
+
+  getDigest: (id: string): Promise<{ data: { digest: string } }> =>
+    api.get(`/client-reports/${id}/digest`),
+
+  update: (id: string, data: any): Promise<{ data: ClientProgressReport }> =>
+    api.patch(`/client-reports/${id}`, data),
+
+  submitForReview: (id: string): Promise<{ data: ClientProgressReport }> =>
+    api.post(`/client-reports/${id}/submit-review`),
+
+  publish: (id: string, data: any): Promise<{ data: ClientProgressReport }> =>
+    api.post(`/client-reports/${id}/publish`, data),
+
+  archive: (id: string): Promise<{ data: ClientProgressReport }> =>
+    api.post(`/client-reports/${id}/archive`),
+};
+
 
 
 

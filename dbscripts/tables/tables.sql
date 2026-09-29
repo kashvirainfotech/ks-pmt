@@ -1528,4 +1528,59 @@ CREATE TABLE IF NOT EXISTS client_installed_versions (
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+-- ========================================================
+-- Date & Time: 2026-09-29 20:56:00 IST
+-- Description: Client Progress Reports & Revisions (CLIENT-006)
+-- ========================================================
+
+-- 55. Client Progress Reports (CLIENT-006)
+CREATE TABLE IF NOT EXISTS client_progress_reports (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    report_code VARCHAR(50) NOT NULL UNIQUE,
+    project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+    product_id UUID REFERENCES products(id) ON DELETE SET NULL,
+    title VARCHAR(255) NOT NULL,
+    period_start_date DATE NOT NULL,
+    period_end_date DATE NOT NULL,
+    report_status VARCHAR(30) NOT NULL DEFAULT 'DRAFT' CHECK (report_status IN ('DRAFT', 'UNDER_REVIEW', 'PUBLISHED', 'ARCHIVED')),
+    overall_health VARCHAR(30) NOT NULL DEFAULT 'ON_TRACK' CHECK (overall_health IN ('ON_TRACK', 'NEEDS_ATTENTION', 'AT_RISK')),
+    health_narrative TEXT,
+    executive_summary TEXT NOT NULL,
+    delivered_work_summary TEXT,
+    next_steps_summary TEXT,
+    decisions_needed_summary TEXT,
+    client_action_items JSONB NOT NULL DEFAULT '[]'::jsonb,
+    milestone_forecasts JSONB NOT NULL DEFAULT '[]'::jsonb,
+    sanitized_risks JSONB NOT NULL DEFAULT '[]'::jsonb,
+    include_commercials BOOLEAN NOT NULL DEFAULT FALSE,
+    commercial_summary JSONB,
+    audience_scope VARCHAR(30) NOT NULL DEFAULT 'CLIENT_ALL' CHECK (audience_scope IN ('CLIENT_ALL', 'CLIENT_APPROVERS_ONLY', 'INTERNAL_ONLY')),
+    internal_notes TEXT,
+    current_revision INTEGER NOT NULL DEFAULT 1,
+    published_at TIMESTAMP WITH TIME ZONE,
+    published_by_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 56. Client Progress Report Revisions (CLIENT-006)
+CREATE TABLE IF NOT EXISTS client_progress_report_revisions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    report_id UUID NOT NULL REFERENCES client_progress_reports(id) ON DELETE CASCADE,
+    revision_number INTEGER NOT NULL,
+    published_content_snapshot JSONB NOT NULL,
+    revision_reason TEXT,
+    published_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    published_by_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_report_revision UNIQUE (report_id, revision_number)
+);
+
 

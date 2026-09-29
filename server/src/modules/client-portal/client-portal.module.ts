@@ -3,6 +3,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { DatabaseModule } from '../../database/database.module';
 import { ChangeRequestsModule } from '../change-requests/change-requests.module';
 import { UatPackagesModule } from '../uat-packages/uat-packages.module';
+import { ClientReportsModule } from '../client-reports/client-reports.module';
 import { ClientPortalService } from './client-portal.service';
 import { ClientPortalController } from './client-portal.controller';
 
@@ -12,6 +13,7 @@ import { ClientPortalController } from './client-portal.controller';
     JwtModule.register({}),
     ChangeRequestsModule,
     UatPackagesModule,
+    ClientReportsModule,
   ],
   controllers: [ClientPortalController],
   providers: [ClientPortalService],

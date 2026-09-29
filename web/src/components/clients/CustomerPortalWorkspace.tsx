@@ -22,15 +22,19 @@ import {
   ClipboardCheck,
   ExternalLink,
   Check,
+  Copy,
+  TrendingUp,
+  AlertTriangle,
+  Target,
 } from 'lucide-react';
 import { clientPortalApi } from '../../api/endpoints';
-import { ClientIntakeRequest, ChangeRequest, UatPackage, UatChecklistItem } from '../../types';
+import { ClientIntakeRequest, ChangeRequest, UatPackage, UatChecklistItem, ClientProgressReport } from '../../types';
 
 export const CustomerPortalWorkspace: React.FC = () => {
   const [portalContext, setPortalContext] = useState<any>(null);
   const [requests, setRequests] = useState<ClientIntakeRequest[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [activeTab, setActiveTab] = useState<'REQUESTS' | 'PROJECTS' | 'PRODUCTS' | 'REQUIREMENTS' | 'CHANGE_REQUESTS' | 'UAT_PACKAGES'>('REQUESTS');
+  const [activeTab, setActiveTab] = useState<'REQUESTS' | 'PROJECTS' | 'PRODUCTS' | 'REQUIREMENTS' | 'CHANGE_REQUESTS' | 'UAT_PACKAGES' | 'PROGRESS_REPORTS'>('REQUESTS');
 
   // Requirements & Acceptance state (CLIENT-003)
   const [portalRequirements, setPortalRequirements] = useState<any[]>([]);
@@ -90,6 +94,13 @@ export const CustomerPortalWorkspace: React.FC = () => {
     status: 'PASSED',
     feedback: '',
   });
+
+  // Progress Reports state (CLIENT-006)
+  const [portalReports, setPortalReports] = useState<ClientProgressReport[]>([]);
+  const [selectedPortalReport, setSelectedPortalReport] = useState<ClientProgressReport | null>(null);
+  const [loadingReports, setLoadingReports] = useState<boolean>(false);
+  const [portalDigestModal, setPortalDigestModal] = useState<{ show: boolean; digest: string }>({ show: false, digest: '' });
+  const [portalDigestCopied, setPortalDigestCopied] = useState(false);
 
   // Submit Modal
   const [showSubmitModal, setShowSubmitModal] = useState<boolean>(false);
@@ -291,6 +302,40 @@ export const CustomerPortalWorkspace: React.FC = () => {
     }
   };
 
+  const loadPortalReports = async () => {
+    try {
+      setLoadingReports(true);
+      const res = await clientPortalApi.getProgressReports();
+      setPortalReports(res.data || []);
+      if (res.data && res.data.length > 0 && !selectedPortalReport) {
+        handleOpenPortalReportDetail(res.data[0].id);
+      }
+    } catch (err) {
+      console.error('Failed to load portal progress reports', err);
+    } finally {
+      setLoadingReports(false);
+    }
+  };
+
+  const handleOpenPortalReportDetail = async (reportId: string) => {
+    try {
+      const res = await clientPortalApi.getProgressReportDetail(reportId);
+      setSelectedPortalReport(res.data);
+    } catch (err) {
+      console.error('Failed to load progress report details', err);
+    }
+  };
+
+  const handleOpenPortalDigestModal = async (reportId: string) => {
+    try {
+      const res = await clientPortalApi.getProgressReportDigest(reportId);
+      setPortalDigestModal({ show: true, digest: res.data.digest });
+      setPortalDigestCopied(false);
+    } catch (err) {
+      console.error('Failed to load report digest', err);
+    }
+  };
+
   const handleSubmitRequest = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -447,6 +492,17 @@ export const CustomerPortalWorkspace: React.FC = () => {
             }`}
           >
             UAT & Milestone Acceptance ({portalUatPackages.length})
+          </button>
+          <button
+            onClick={() => {
+              setActiveTab('PROGRESS_REPORTS');
+              loadPortalReports();
+            }}
+            className={`px-3 py-1.5 rounded-lg transition ${
+              activeTab === 'PROGRESS_REPORTS' ? 'bg-white text-indigo-900' : 'text-white/80 hover:bg-white/10'
+            }`}
+          >
+            Progress Reports ({portalReports.length})
           </button>
         </div>
       </div>
@@ -1447,6 +1503,378 @@ export const CustomerPortalWorkspace: React.FC = () => {
                   Select an acceptance package on the left to review its scope, checklist items, and sign-off options.
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Progress Reports Tab (CLIENT-006) */}
+      {activeTab === 'PROGRESS_REPORTS' && (
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
+          <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+            <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <FileText className="w-5 h-5 text-indigo-600" />
+              Project Progress Updates & Delivery Reports
+            </h2>
+            <span className="text-xs text-slate-500">
+              PM-reviewed client-safe status updates, milestone forecasts, and pending client actions
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[600px]">
+            {/* Left Column: Report List */}
+            <div className="lg:col-span-4 border-r border-slate-200 dark:border-slate-700 p-4 space-y-3 overflow-y-auto max-h-[750px]">
+              <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                Published Reports ({portalReports.length})
+              </div>
+              {loadingReports ? (
+                <div className="p-8 text-center text-slate-400 text-xs">Loading progress reports...</div>
+              ) : portalReports.length === 0 ? (
+                <div className="p-8 text-center text-slate-400 text-xs">
+                  No progress reports published for your projects yet.
+                </div>
+              ) : (
+                portalReports.map((rep) => {
+                  const isSelected = selectedPortalReport?.id === rep.id;
+                  return (
+                    <div
+                      key={rep.id}
+                      onClick={() => handleOpenPortalReportDetail(rep.id)}
+                      className={`p-3.5 rounded-xl border cursor-pointer transition text-xs space-y-2 ${
+                        isSelected
+                          ? 'border-indigo-600 bg-indigo-50/50 dark:bg-indigo-950/30 ring-1 ring-indigo-600'
+                          : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-900/50'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-mono font-bold text-indigo-600 dark:text-indigo-400">
+                          {rep.report_code}
+                        </span>
+                        <span
+                          className={`px-2 py-0.5 text-[10px] font-bold rounded ${
+                            rep.overall_health === 'ON_TRACK'
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : rep.overall_health === 'NEEDS_ATTENTION'
+                              ? 'bg-amber-100 text-amber-800'
+                              : 'bg-rose-100 text-rose-800'
+                          }`}
+                        >
+                          {rep.overall_health.replace('_', ' ')}
+                        </span>
+                      </div>
+                      <div className="font-bold text-slate-900 dark:text-white line-clamp-1">
+                        {rep.title}
+                      </div>
+                      <div className="text-[11px] text-slate-500 flex items-center justify-between">
+                        <span>{rep.project_name || rep.product_name}</span>
+                        <span className="font-semibold">Rev {rep.current_revision}</span>
+                      </div>
+                      <div className="text-[11px] text-slate-400">
+                        Period: {rep.period_start_date?.split('T')[0]} &rarr; {rep.period_end_date?.split('T')[0]}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Right Column: Report Detail */}
+            <div className="lg:col-span-8 p-6 overflow-y-auto max-h-[750px]">
+              {selectedPortalReport ? (
+                <div className="space-y-6">
+                  {/* Header Bar */}
+                  <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-700">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono font-bold text-sm text-indigo-600 dark:text-indigo-400">
+                          {selectedPortalReport.report_code}
+                        </span>
+                        <span className="text-xs px-2 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold rounded">
+                          Rev {selectedPortalReport.current_revision}
+                        </span>
+                        <span
+                          className={`px-2 py-0.5 text-xs font-bold rounded ${
+                            selectedPortalReport.overall_health === 'ON_TRACK'
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : selectedPortalReport.overall_health === 'NEEDS_ATTENTION'
+                              ? 'bg-amber-100 text-amber-800'
+                              : 'bg-rose-100 text-rose-800'
+                          }`}
+                        >
+                          {selectedPortalReport.overall_health.replace('_', ' ')}
+                        </span>
+                      </div>
+                      <h2 className="text-lg font-bold text-slate-900 dark:text-white mt-1.5">
+                        {selectedPortalReport.title}
+                      </h2>
+                      <div className="text-xs text-slate-500 mt-1 flex flex-wrap gap-x-3 gap-y-1">
+                        <span>Project: <strong>{selectedPortalReport.project_name || selectedPortalReport.product_name}</strong></span>
+                        <span>Reporting Period: <strong>{selectedPortalReport.period_start_date?.split('T')[0]} to {selectedPortalReport.period_end_date?.split('T')[0]}</strong></span>
+                        {selectedPortalReport.published_at && (
+                          <span>Published: {new Date(selectedPortalReport.published_at).toLocaleDateString()}</span>
+                        )}
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => handleOpenPortalDigestModal(selectedPortalReport.id)}
+                      className="px-3 py-1.5 text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/40 dark:text-indigo-300 rounded-lg border border-indigo-200 inline-flex items-center gap-1.5"
+                    >
+                      <Copy className="w-3.5 h-3.5" />
+                      Digest Summary
+                    </button>
+                  </div>
+
+                  {/* Executive Summary Card */}
+                  <div
+                    className={`p-4 rounded-xl border text-xs space-y-2 ${
+                      selectedPortalReport.overall_health === 'ON_TRACK'
+                        ? 'bg-emerald-50/50 border-emerald-200 dark:bg-emerald-950/20 dark:border-emerald-800'
+                        : selectedPortalReport.overall_health === 'NEEDS_ATTENTION'
+                        ? 'bg-amber-50/50 border-amber-200 dark:bg-amber-950/20 dark:border-amber-800'
+                        : 'bg-rose-50/50 border-rose-200 dark:bg-rose-950/20 dark:border-rose-800'
+                    }`}
+                  >
+                    <div className="font-bold flex items-center justify-between">
+                      <span className="uppercase tracking-wider text-[11px] text-slate-900 dark:text-white">
+                        Executive Summary & Health
+                      </span>
+                      <span className="font-semibold text-slate-700 dark:text-slate-300">
+                        Status: {selectedPortalReport.overall_health.replace('_', ' ')}
+                      </span>
+                    </div>
+                    <p className="text-slate-800 dark:text-slate-200 whitespace-pre-wrap">
+                      {selectedPortalReport.executive_summary}
+                    </p>
+                    {selectedPortalReport.health_narrative && (
+                      <div className="pt-2 border-t border-slate-200/60 dark:border-slate-700/60 italic text-slate-600 dark:text-slate-400">
+                        {selectedPortalReport.health_narrative}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Delivered Work & Next Steps Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-700 text-xs space-y-2">
+                      <h3 className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                        Delivered Work (This Cycle)
+                      </h3>
+                      <p className="text-slate-700 dark:text-slate-300 whitespace-pre-wrap">
+                        {selectedPortalReport.delivered_work_summary || 'No delivered items summarized.'}
+                      </p>
+                    </div>
+
+                    <div className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-700 text-xs space-y-2">
+                      <h3 className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                        <TrendingUp className="w-4 h-4 text-indigo-600" />
+                        Planned Next Steps
+                      </h3>
+                      <p className="text-slate-700 dark:text-slate-300 whitespace-pre-wrap">
+                        {selectedPortalReport.next_steps_summary || 'No next steps outlined.'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Decisions Needed */}
+                  {selectedPortalReport.decisions_needed_summary && (
+                    <div className="p-4 bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 rounded-xl text-xs space-y-1.5">
+                      <div className="font-bold text-amber-900 dark:text-amber-200 flex items-center gap-1.5">
+                        <AlertTriangle className="w-4 h-4 text-amber-600" />
+                        Key Decisions Needed / Client Dependencies
+                      </div>
+                      <p className="text-amber-800 dark:text-amber-300 whitespace-pre-wrap">
+                        {selectedPortalReport.decisions_needed_summary}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Milestone Schedule Forecast Table */}
+                  {selectedPortalReport.milestone_forecasts && selectedPortalReport.milestone_forecasts.length > 0 && (
+                    <div className="space-y-2">
+                      <h3 className="font-bold text-xs text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
+                        <Target className="w-4 h-4 text-indigo-600" />
+                        Milestone Delivery Forecast
+                      </h3>
+                      <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
+                        <table className="w-full text-left text-xs">
+                          <thead className="bg-slate-50 dark:bg-slate-900/50 border-b text-slate-500 font-semibold">
+                            <tr>
+                              <th className="p-3">Milestone</th>
+                              <th className="p-3">Committed Date</th>
+                              <th className="p-3">Forecast Date</th>
+                              <th className="p-3">Status / Remarks</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+                            {selectedPortalReport.milestone_forecasts.map((m, idx) => (
+                              <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-900/30">
+                                <td className="p-3 font-semibold text-slate-900 dark:text-white">
+                                  {m.milestoneName}
+                                </td>
+                                <td className="p-3 font-mono text-slate-600 dark:text-slate-400">
+                                  {m.committedDate || 'Uncommitted'}
+                                </td>
+                                <td className="p-3 font-mono font-bold text-indigo-600 dark:text-indigo-400">
+                                  {m.indicativeForecastDate}
+                                </td>
+                                <td className="p-3 text-slate-600 dark:text-slate-400">
+                                  <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded font-medium mr-2">
+                                    {m.status || 'Active'}
+                                  </span>
+                                  {m.remarks}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Action Items Awaiting Response */}
+                  {selectedPortalReport.client_action_items && selectedPortalReport.client_action_items.length > 0 && (
+                    <div className="space-y-2">
+                      <h3 className="font-bold text-xs text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
+                        <Clock className="w-4 h-4 text-purple-600" />
+                        Pending Client Actions ({selectedPortalReport.client_action_items.length})
+                      </h3>
+                      <div className="space-y-1.5">
+                        {selectedPortalReport.client_action_items.map((act, i) => (
+                          <div
+                            key={i}
+                            className="p-3 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs"
+                          >
+                            <div>
+                              <span className="font-bold text-slate-900 dark:text-white">{act.title}</span>
+                              <div className="text-[11px] text-slate-500 mt-0.5">
+                                Assigned: {act.owner || 'Client Team'}
+                                {act.dueDate && <span> &bull; Target: {act.dueDate}</span>}
+                              </div>
+                            </div>
+                            <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-purple-100 text-purple-800">
+                              {act.status || 'PENDING'}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Commercial Summary (Only for Approvers if Included) */}
+                  {selectedPortalReport.commercial_summary && (
+                    <div className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-700 text-xs space-y-2">
+                      <div className="flex items-center justify-between font-bold">
+                        <span className="text-slate-900 dark:text-white flex items-center gap-1.5">
+                          <DollarSign className="w-4 h-4 text-emerald-600" />
+                          Agreed Commercial Summary (Approvers Only)
+                        </span>
+                        <span className="text-[10px] text-slate-400">
+                          {selectedPortalReport.commercial_summary.currency || 'USD'}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-2">
+                        <div>
+                          <span className="text-slate-400 block text-[11px]">Contract Value:</span>
+                          <span className="font-bold text-slate-900 dark:text-white text-sm">
+                            {selectedPortalReport.commercial_summary.contractValue?.toLocaleString() || 0}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 block text-[11px]">Approved CRs:</span>
+                          <span className="font-bold text-slate-900 dark:text-white text-sm">
+                            +{selectedPortalReport.commercial_summary.approvedCrValue?.toLocaleString() || 0}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 block text-[11px]">Invoiced to Date:</span>
+                          <span className="font-bold text-emerald-600 dark:text-emerald-400 text-sm">
+                            {selectedPortalReport.commercial_summary.invoicedToDate?.toLocaleString() || 0}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 block text-[11px]">Milestone Billed:</span>
+                          <span className="font-bold text-slate-900 dark:text-white text-sm">
+                            {selectedPortalReport.commercial_summary.currentMilestoneBilled?.toLocaleString() || 0}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Revisions History */}
+                  {selectedPortalReport.revisions && selectedPortalReport.revisions.length > 1 && (
+                    <div className="pt-4 border-t space-y-3">
+                      <h4 className="font-bold text-xs text-slate-900 dark:text-white flex items-center gap-1.5">
+                        <History className="w-4 h-4 text-indigo-600" />
+                        Report Revision History ({selectedPortalReport.revisions.length})
+                      </h4>
+                      <div className="space-y-2">
+                        {selectedPortalReport.revisions.slice(1).map((rev) => (
+                          <div
+                            key={rev.id}
+                            className="p-3 rounded-lg border bg-slate-50 dark:bg-slate-900/40 text-xs flex items-center justify-between"
+                          >
+                            <span className="font-bold text-slate-700 dark:text-slate-300">
+                              Revision {rev.revision_number} &bull; {rev.revision_reason || 'Published update'}
+                            </span>
+                            <span className="text-slate-400 text-[11px]">
+                              {new Date(rev.published_at).toLocaleDateString()}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-12 text-center text-slate-400">
+                  Select a progress report on the left to review executive updates, delivered items, and milestone forecasts.
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Customer Portal Digest View */}
+      {portalDigestModal.show && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-2xl w-full border p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-base text-slate-900 dark:text-white">
+                Progress Update Digest Summary
+              </h3>
+              <button
+                onClick={() => setPortalDigestModal({ show: false, digest: '' })}
+                className="text-slate-400 hover:text-slate-600 text-xl font-bold"
+              >
+                &times;
+              </button>
+            </div>
+            <pre className="p-4 bg-slate-900 text-emerald-300 rounded-xl text-xs overflow-x-auto max-h-96 whitespace-pre-wrap font-mono">
+              {portalDigestModal.digest}
+            </pre>
+            <div className="flex justify-end gap-2 pt-2 border-t">
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(portalDigestModal.digest);
+                  setPortalDigestCopied(true);
+                  setTimeout(() => setPortalDigestCopied(false), 2500);
+                }}
+                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-lg inline-flex items-center gap-1.5"
+              >
+                {portalDigestCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                {portalDigestCopied ? 'Copied!' : 'Copy Summary'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setPortalDigestModal({ show: false, digest: '' })}
+                className="px-4 py-2 border rounded-lg text-xs"
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>
