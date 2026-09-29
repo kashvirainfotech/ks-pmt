@@ -289,7 +289,9 @@ BEGIN
         ('HANDOFFS', 'READ', 'HANDOFFS:READ', 'Permission to view task handoffs and waiting queues', TRUE, v_admin_id),
         ('HANDOFFS', 'CREATE', 'HANDOFFS:CREATE', 'Permission to initiate and send task handoffs', TRUE, v_admin_id),
         ('HANDOFFS', 'ACKNOWLEDGE', 'HANDOFFS:ACKNOWLEDGE', 'Permission to acknowledge receipt and start work on handoffs', TRUE, v_admin_id),
-        ('HANDOFFS', 'MANAGE', 'HANDOFFS:MANAGE', 'Permission to return for rework, redirect, and manage handoff episodes', TRUE, v_admin_id)
+        ('HANDOFFS', 'MANAGE', 'HANDOFFS:MANAGE', 'Permission to return for rework, redirect, and manage handoff episodes', TRUE, v_admin_id),
+        ('WORKFLOWS', 'READ', 'WORKFLOWS:READ', 'Permission to view workflow schemes, project overrides, and gate rules', TRUE, v_admin_id),
+        ('WORKFLOWS', 'MANAGE', 'WORKFLOWS:MANAGE', 'Permission to create, configure, validate, and publish workflow overrides and gates', TRUE, v_admin_id)
     ON CONFLICT (permission_code) DO NOTHING;
 
     INSERT INTO role_permissions (role_id, permission_id, created_by)
@@ -302,7 +304,8 @@ BEGIN
         'SAVED_VIEWS:READ', 'SAVED_VIEWS:MANAGE',
         'TIMESHEETS:READ', 'TIMESHEETS:SUBMIT', 'TIMESHEETS:APPROVE',
         'TEAMS:READ', 'TEAMS:MANAGE', 'COMPONENTS:READ', 'COMPONENTS:MANAGE',
-        'HANDOFFS:READ', 'HANDOFFS:CREATE', 'HANDOFFS:ACKNOWLEDGE', 'HANDOFFS:MANAGE'
+        'HANDOFFS:READ', 'HANDOFFS:CREATE', 'HANDOFFS:ACKNOWLEDGE', 'HANDOFFS:MANAGE',
+        'WORKFLOWS:READ', 'WORKFLOWS:MANAGE'
     )
     ON CONFLICT (role_id, permission_id) DO NOTHING;
 

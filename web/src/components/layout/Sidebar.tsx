@@ -20,6 +20,7 @@ import {
   Cpu,
   Users,
   ArrowRightLeft,
+  GitMerge,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -53,6 +54,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     ]},
     { title: 'Organization', items: [
       { label: 'Delivery teams', path: '/teams', icon: Users, show: true },
+      { label: 'Workflow schemes', path: '/workflow-schemes', icon: GitMerge, show: true },
       ...adminScreens.map(screen => ({ label: screen.title, path: screen.path, icon: Settings, show: canViewMasters })),
       { label: 'Audit trail', path: '/audit', icon: ShieldCheck, show: isSuperAdmin || hasPermission('AUDIT_LOGS:VIEW') },
     ]},

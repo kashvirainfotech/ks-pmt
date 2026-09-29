@@ -607,21 +607,31 @@ export class TasksService {
   /**
    * Transition Task Status with workflow state-machine validation
    */
-  async changeStatus(id: string, dto: ChangeTaskStatusDto, userId: string) {
+  async changeStatus(id: string, dto: ChangeTaskStatusDto, userOrId: any) {
     const task = await this.findOne(id);
+    const userObj = typeof userOrId === 'string' ? { id: userOrId, role_code: 'ROLE_DEVELOPER' } : (userOrId || {});
+    const userId = userObj.id || userOrId;
 
-    // 1. Workflow validation: check if transition is allowed
-    const allowedStatuses = await this.workflowsService.getAllowedNextStatuses(
-      task.task_type_id,
-      task.status_id,
-    );
-
-    const isPermitted = allowedStatuses.some((s) => s.id === dto.toStatusId);
-    if (!isPermitted) {
-      const allowedNames = allowedStatuses.map((s) => s.status_name).join(", ");
-      throw new BadRequestException(
-        `Invalid status transition. Allowed next status(es): [${allowedNames}]`,
+    // 1. Workflow validation: check if transition is allowed and validate gate rules (CONFIG-001)
+    if (typeof this.workflowsService.validateTransition === 'function') {
+      await this.workflowsService.validateTransition(
+        task,
+        dto.toStatusId,
+        userObj,
+        dto,
       );
+    } else {
+      const allowedStatuses = await this.workflowsService.getAllowedNextStatuses(
+        task.task_type_id,
+        task.status_id,
+      );
+      const isPermitted = allowedStatuses.some((s: any) => s.id === dto.toStatusId);
+      if (!isPermitted) {
+        const allowedNames = allowedStatuses.map((s: any) => s.status_name).join(', ');
+        throw new BadRequestException(
+          `Invalid status transition. Allowed next status(es): [${allowedNames}]`,
+        );
+      }
     }
 
     // 2. Fetch destination status details
@@ -1091,20 +1101,23 @@ export class TasksService {
           continue;
         }
 
-        // 2. Workflow state machine validation if statusId changed
+        // 2. Workflow state machine & gate rules validation if statusId changed (CONFIG-001)
         if (item.statusId && item.statusId !== task.status_id) {
-          const allowedStatuses = await this.workflowsService.getAllowedNextStatuses(
-            task.task_type_id,
-            task.status_id,
-          );
-          const isAllowed = allowedStatuses.some((s) => s.id === item.statusId);
-          if (!isAllowed) {
+          try {
+            await this.workflowsService.validateTransition(
+              task,
+              item.statusId,
+              { id: userId, role_code: 'ROLE_DEVELOPER' },
+              item,
+            );
+          } catch (err: any) {
+            const reason = err?.response?.message || err?.message || 'Workflow transition gate failed';
             failed.push({
               id: item.id,
               taskCode: task.task_code,
               title: task.title,
               code: 'INVALID_TRANSITION',
-              reason: `Status transition not permitted by workflow state machine`,
+              reason: typeof reason === 'string' ? reason : JSON.stringify(reason),
             });
             continue;
           }

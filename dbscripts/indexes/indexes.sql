@@ -178,3 +178,11 @@ CREATE INDEX IF NOT EXISTS idx_task_handoffs_to_user ON task_handoffs(to_user_id
 CREATE INDEX IF NOT EXISTS idx_task_handoffs_from_user ON task_handoffs(from_user_id, status);
 CREATE INDEX IF NOT EXISTS idx_task_handoffs_predecessor ON task_handoffs(predecessor_handoff_id);
 CREATE INDEX IF NOT EXISTS idx_task_handoffs_status ON task_handoffs(status);
+-- ========================================================
+-- Date & Time: 2026-09-29 15:45:00 IST
+-- Description: CONFIG-001 - Indexes for Workflow Schemes & Transitions
+-- ========================================================
+CREATE INDEX IF NOT EXISTS idx_workflow_schemes_scope ON workflow_schemes(scope, project_id, product_id, status);
+CREATE INDEX IF NOT EXISTS idx_workflow_schemes_type ON workflow_schemes(task_type_id, status);
+CREATE INDEX IF NOT EXISTS idx_workflow_transitions_scheme ON workflow_scheme_transitions(scheme_id, is_active);
+CREATE INDEX IF NOT EXISTS idx_workflow_transitions_from_to ON workflow_scheme_transitions(from_status_id, to_status_id);

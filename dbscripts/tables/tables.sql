@@ -1093,3 +1093,54 @@ CREATE TABLE IF NOT EXISTS task_handoffs (
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT chk_handoff_recipient CHECK (to_team_id IS NOT NULL OR to_user_id IS NOT NULL)
 );
+-- ========================================================
+-- Date & Time: 2026-09-29 15:45:00 IST
+-- Description: CONFIG-001 - Project-Specific Workflow Overrides & Transition Gates
+-- ========================================================
+
+-- 38. Workflow Schemes Master (Global, Project, and Product Overrides)
+CREATE TABLE IF NOT EXISTS workflow_schemes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    scheme_code VARCHAR(50) NOT NULL,
+    scheme_name VARCHAR(150) NOT NULL,
+    description TEXT,
+    scope VARCHAR(20) NOT NULL DEFAULT 'GLOBAL' CHECK (scope IN ('GLOBAL', 'PROJECT', 'PRODUCT')),
+    project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+    product_id UUID REFERENCES products(id) ON DELETE CASCADE,
+    task_type_id UUID REFERENCES task_types(id) ON DELETE CASCADE,
+    status VARCHAR(20) NOT NULL DEFAULT 'DRAFT' CHECK (status IN ('DRAFT', 'PUBLISHED', 'ARCHIVED')),
+    version INTEGER NOT NULL DEFAULT 1 CHECK (version > 0),
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_workflow_scheme_scope CHECK (
+        (scope = 'GLOBAL' AND project_id IS NULL AND product_id IS NULL) OR
+        (scope = 'PROJECT' AND project_id IS NOT NULL AND product_id IS NULL) OR
+        (scope = 'PRODUCT' AND product_id IS NOT NULL AND project_id IS NULL)
+    ),
+    CONSTRAINT uq_workflow_scheme_code_version UNIQUE (scheme_code, version)
+);
+
+-- 39. Workflow Scheme Transitions & Gate Rules
+CREATE TABLE IF NOT EXISTS workflow_scheme_transitions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    scheme_id UUID NOT NULL REFERENCES workflow_schemes(id) ON DELETE CASCADE,
+    from_status_id UUID NOT NULL REFERENCES task_statuses(id) ON DELETE CASCADE,
+    to_status_id UUID NOT NULL REFERENCES task_statuses(id) ON DELETE CASCADE,
+    allowed_roles JSONB NOT NULL DEFAULT '[]'::jsonb,
+    required_fields JSONB NOT NULL DEFAULT '[]'::jsonb,
+    requires_release_association BOOLEAN NOT NULL DEFAULT FALSE,
+    requires_qa_signoff BOOLEAN NOT NULL DEFAULT FALSE,
+    requires_resolution BOOLEAN NOT NULL DEFAULT FALSE,
+    manual_gate_name VARCHAR(100),
+    transition_notes_prompt TEXT,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_workflow_scheme_transition UNIQUE (scheme_id, from_status_id, to_status_id),
+    CONSTRAINT chk_scheme_transition_not_same CHECK (from_status_id <> to_status_id)
+);

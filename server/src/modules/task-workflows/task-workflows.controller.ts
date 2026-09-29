@@ -21,6 +21,13 @@ import { TaskWorkflowsService } from './task-workflows.service';
 import { CreateStatusDto } from './dto/create-status.dto';
 import { UpdateStatusDto } from './dto/update-status.dto';
 import { CreateWorkflowTransitionDto } from './dto/create-workflow-transition.dto';
+import {
+  CloneWorkflowSchemeDto,
+  ConfigureSchemeTransitionsDto,
+  CreateWorkflowSchemeDto,
+  PublishWorkflowSchemeDto,
+  UpdateWorkflowSchemeDto,
+} from './dto/workflow-scheme.dto';
 import { RequirePermissions } from '../../common/decorators/permissions.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
@@ -107,7 +114,7 @@ export class TaskWorkflowsController {
   }
 
   // ----------------------------------------------------
-  // Dynamic Workflow Transitions
+  // Dynamic Workflow Transitions (Legacy / Global Table)
   // ----------------------------------------------------
 
   @Post('transitions')
@@ -144,17 +151,25 @@ export class TaskWorkflowsController {
     summary:
       'Evaluate dynamic workflow and get permitted next statuses for an active task',
     description:
-      'Enforces the dynamic state machine based on task type and current status.',
+      'Enforces the dynamic state machine based on task type, project/product overrides, and current status.',
   })
   @ApiQuery({ name: 'taskTypeId', required: true, type: String })
   @ApiQuery({ name: 'fromStatusId', required: true, type: String })
+  @ApiQuery({ name: 'projectId', required: false, type: String })
+  @ApiQuery({ name: 'productId', required: false, type: String })
   async getAllowedNextStatuses(
     @Query('taskTypeId', ParseUUIDPipe) taskTypeId: string,
     @Query('fromStatusId', ParseUUIDPipe) fromStatusId: string,
+    @Query('projectId') projectId?: string,
+    @Query('productId') productId?: string,
+    @CurrentUser('role_code') userRole?: string,
   ) {
     const data = await this.workflowsService.getAllowedNextStatuses(
       taskTypeId,
       fromStatusId,
+      projectId,
+      productId,
+      userRole,
     );
     return {
       message: 'Permitted next statuses retrieved successfully',
@@ -170,6 +185,146 @@ export class TaskWorkflowsController {
     return {
       message: 'Workflow transition deleted successfully',
       data: { success: true },
+    };
+  }
+
+  // ----------------------------------------------------
+  // Workflow Schemes & Overrides (CONFIG-001)
+  // ----------------------------------------------------
+
+  @Post('schemes')
+  @RequirePermissions('WORKFLOWS:MANAGE')
+  @ApiOperation({ summary: 'Create a new workflow scheme (Global, Project, or Product override)' })
+  async createScheme(
+    @Body() dto: CreateWorkflowSchemeDto,
+    @CurrentUser('id') userId: string,
+  ) {
+    const data = await this.workflowsService.createScheme(dto, userId);
+    return {
+      message: 'Workflow scheme created successfully',
+      data,
+    };
+  }
+
+  @Get('schemes')
+  @RequirePermissions('WORKFLOWS:READ')
+  @ApiOperation({ summary: 'List workflow schemes with optional filters' })
+  async getSchemes(
+    @Query('scope') scope?: string,
+    @Query('projectId') projectId?: string,
+    @Query('productId') productId?: string,
+    @Query('status') status?: string,
+  ) {
+    const data = await this.workflowsService.getSchemes({
+      scope,
+      projectId,
+      productId,
+      status,
+    });
+    return {
+      message: 'Workflow schemes retrieved successfully',
+      data,
+    };
+  }
+
+  @Get('schemes/:id')
+  @RequirePermissions('WORKFLOWS:READ')
+  @ApiOperation({ summary: 'Get workflow scheme with all transitions and gate rules' })
+  async getSchemeById(@Param('id', ParseUUIDPipe) id: string) {
+    const data = await this.workflowsService.getSchemeById(id);
+    return {
+      message: 'Workflow scheme retrieved successfully',
+      data,
+    };
+  }
+
+  @Put('schemes/:id')
+  @RequirePermissions('WORKFLOWS:MANAGE')
+  @ApiOperation({ summary: 'Update workflow scheme details' })
+  async updateScheme(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateWorkflowSchemeDto,
+    @CurrentUser('id') userId: string,
+  ) {
+    const data = await this.workflowsService.updateScheme(id, dto, userId);
+    return {
+      message: 'Workflow scheme updated successfully',
+      data,
+    };
+  }
+
+  @Post('schemes/:id/transitions')
+  @RequirePermissions('WORKFLOWS:MANAGE')
+  @ApiOperation({ summary: 'Configure transitions and gate rules for a workflow scheme' })
+  async configureSchemeTransitions(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: ConfigureSchemeTransitionsDto,
+    @CurrentUser('id') userId: string,
+  ) {
+    const data = await this.workflowsService.configureSchemeTransitions(id, dto, userId);
+    return {
+      message: 'Scheme transitions and gate rules configured successfully',
+      data,
+    };
+  }
+
+  @Get('schemes/:id/validate')
+  @RequirePermissions('WORKFLOWS:READ')
+  @ApiOperation({ summary: 'Validate workflow graph reachability and soundness' })
+  async validateSchemeDraft(@Param('id', ParseUUIDPipe) id: string) {
+    const data = await this.workflowsService.validateWorkflowDraft(id);
+    return {
+      message: 'Workflow validation completed',
+      data,
+    };
+  }
+
+  @Post('schemes/:id/publish')
+  @RequirePermissions('WORKFLOWS:MANAGE')
+  @ApiOperation({ summary: 'Publish workflow scheme with active task remapping' })
+  async publishScheme(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: PublishWorkflowSchemeDto,
+    @CurrentUser('id') userId: string,
+  ) {
+    const data = await this.workflowsService.publishWorkflowScheme(id, dto, userId);
+    return {
+      message: 'Workflow scheme published successfully',
+      data,
+    };
+  }
+
+  @Post('schemes/:id/clone')
+  @RequirePermissions('WORKFLOWS:MANAGE')
+  @ApiOperation({ summary: 'Clone a workflow scheme to another scope' })
+  async cloneScheme(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: CloneWorkflowSchemeDto,
+    @CurrentUser('id') userId: string,
+  ) {
+    const data = await this.workflowsService.cloneScheme(id, dto, userId);
+    return {
+      message: 'Workflow scheme cloned successfully',
+      data,
+    };
+  }
+
+  @Get('effective')
+  @RequirePermissions('WORKFLOWS:READ')
+  @ApiOperation({ summary: 'Inspect the effective workflow resolution and source' })
+  async getEffectiveWorkflow(
+    @Query('taskTypeId', ParseUUIDPipe) taskTypeId: string,
+    @Query('projectId') projectId?: string,
+    @Query('productId') productId?: string,
+  ) {
+    const data = await this.workflowsService.getEffectiveWorkflow({
+      taskTypeId,
+      projectId,
+      productId,
+    });
+    return {
+      message: 'Effective workflow resolved successfully',
+      data,
     };
   }
 }

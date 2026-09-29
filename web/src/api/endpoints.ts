@@ -45,6 +45,9 @@ import {
   ComponentArchitectureMapResponse,
   TaskHandoff,
   HandoffAnalyticsResponse,
+  WorkflowScheme,
+  WorkflowSchemeTransition,
+  WorkflowValidationResult,
 } from '../types';
 
 // ==========================================
@@ -658,6 +661,97 @@ export const handoffsApi = {
 
   complete: (id: string, data?: { notes?: string }): Promise<{ data: TaskHandoff }> =>
     api.post(`/handoffs/${id}/complete`, data || {}),
+};
+
+// ==========================================
+// CONFIG-001: Workflow Schemes & Gate Overrides APIs
+// ==========================================
+export const workflowSchemesApi = {
+  getSchemes: (params?: {
+    scope?: string;
+    projectId?: string;
+    productId?: string;
+    status?: string;
+  }): Promise<{ data: WorkflowScheme[] }> =>
+    api.get('/task-workflows/schemes', { params }),
+
+  getSchemeById: (id: string): Promise<{ data: WorkflowScheme }> =>
+    api.get(`/task-workflows/schemes/${id}`),
+
+  createScheme: (data: {
+    schemeCode: string;
+    schemeName: string;
+    description?: string;
+    scope: string;
+    projectId?: string;
+    productId?: string;
+    taskTypeId?: string;
+  }): Promise<{ data: WorkflowScheme }> =>
+    api.post('/task-workflows/schemes', data),
+
+  updateScheme: (
+    id: string,
+    data: { schemeName?: string; description?: string },
+  ): Promise<{ data: WorkflowScheme }> =>
+    api.put(`/task-workflows/schemes/${id}`, data),
+
+  configureTransitions: (
+    id: string,
+    data: {
+      transitions: Array<{
+        fromStatusId: string;
+        toStatusId: string;
+        allowedRoles?: string[];
+        requiredFields?: string[];
+        requiresReleaseAssociation?: boolean;
+        requiresQaSignoff?: boolean;
+        requiresResolution?: boolean;
+        manualGateName?: string;
+        transitionNotesPrompt?: string;
+      }>;
+    },
+  ): Promise<{ data: WorkflowScheme }> =>
+    api.post(`/task-workflows/schemes/${id}/transitions`, data),
+
+  validateDraft: (id: string): Promise<{ data: WorkflowValidationResult }> =>
+    api.get(`/task-workflows/schemes/${id}/validate`),
+
+  publishScheme: (
+    id: string,
+    data: { activeTaskRemapping?: Record<string, string> },
+  ): Promise<{ data: WorkflowScheme }> =>
+    api.post(`/task-workflows/schemes/${id}/publish`, data),
+
+  cloneScheme: (
+    id: string,
+    data: {
+      targetScope: string;
+      targetProjectId?: string;
+      targetProductId?: string;
+      newSchemeCode: string;
+      newSchemeName: string;
+    },
+  ): Promise<{ data: WorkflowScheme }> =>
+    api.post(`/task-workflows/schemes/${id}/clone`, data),
+
+  getEffectiveWorkflow: (params: {
+    taskTypeId: string;
+    projectId?: string;
+    productId?: string;
+  }): Promise<{
+    data: {
+      scheme: WorkflowScheme | null;
+      effectiveSource: 'PROJECT_OVERRIDE' | 'PRODUCT_OVERRIDE' | 'GLOBAL_DEFAULT' | 'GLOBAL_SYSTEM_FALLBACK';
+    };
+  }> => api.get('/task-workflows/effective', { params }),
+
+  getAllowedNextStatuses: (params: {
+    taskTypeId: string;
+    fromStatusId: string;
+    projectId?: string;
+    productId?: string;
+  }): Promise<{ data: any[] }> =>
+    api.get('/task-workflows/allowed-next-statuses', { params }),
 };
 
 

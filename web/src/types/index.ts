@@ -882,5 +882,69 @@ export interface HandoffAnalyticsResponse {
   }>;
 }
 
+// ==========================================
+// CONFIG-001: Project-Specific Workflow Overrides & Gates
+// ==========================================
+export type WorkflowScope = 'GLOBAL' | 'PROJECT' | 'PRODUCT';
+export type WorkflowSchemeStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+
+export interface WorkflowScheme {
+  id: string;
+  scheme_code: string;
+  scheme_name: string;
+  description?: string;
+  scope: WorkflowScope;
+  project_id?: string;
+  project_name?: string;
+  product_id?: string;
+  product_name?: string;
+  task_type_id?: string;
+  task_type_name?: string;
+  status: WorkflowSchemeStatus;
+  version: number;
+  transitions_count?: number;
+  transitions?: WorkflowSchemeTransition[];
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WorkflowSchemeTransition {
+  id?: string;
+  scheme_id?: string;
+  from_status_id: string;
+  from_status_code?: string;
+  from_status_name?: string;
+  from_status_color?: string;
+  from_status_category?: string;
+  to_status_id: string;
+  to_status_code?: string;
+  to_status_name?: string;
+  to_status_color?: string;
+  to_status_category?: string;
+  to_status_is_terminal?: boolean;
+  allowed_roles: string[];
+  required_fields: string[];
+  requires_release_association: boolean;
+  requires_qa_signoff: boolean;
+  requires_resolution: boolean;
+  manual_gate_name?: string;
+  transition_notes_prompt?: string;
+}
+
+export interface WorkflowValidationResult {
+  isValid: boolean;
+  errors: string[];
+  warnings: string[];
+  totalTransitions: number;
+  statusCount: number;
+  statusList?: Array<{
+    id: string;
+    name: string;
+    category: string;
+    isTerminal: boolean;
+  }>;
+}
+
 
 

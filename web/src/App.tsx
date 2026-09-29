@@ -21,6 +21,7 @@ import { adminScreens, portfolioScreens } from './components/management/screens'
 import { TeamsManagementView } from './components/teams/TeamsManagementView';
 import { ComponentsCatalogView } from './components/components/ComponentsCatalogView';
 import { HandoffsWorkspaceView } from './components/handoffs/HandoffsWorkspaceView';
+import { WorkflowSchemesEditorView } from './components/workflows/WorkflowSchemesEditorView';
 
 // Protected Route Wrapper
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
@@ -73,6 +74,7 @@ export const App: React.FC = () => {
         <Route path="teams" element={<TeamsManagementView />} />
         <Route path="components" element={<ComponentsCatalogView />} />
         <Route path="handoffs" element={<HandoffsWorkspaceView />} />
+        <Route path="workflow-schemes" element={<WorkflowSchemesEditorView />} />
         <Route path="admin" element={<Navigate to="/admin/branches" replace />} />
         {adminScreens.map(screen => (
           <Route key={screen.path} path={screen.path} element={<AdminPage key={screen.path} screen={screen} />} />

@@ -217,9 +217,9 @@ export class TasksController {
   async changeStatus(
     @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: ChangeTaskStatusDto,
-    @CurrentUser("id") userId: string,
+    @CurrentUser() user: any,
   ) {
-    const data = await this.tasksService.changeStatus(id, dto, userId);
+    const data = await this.tasksService.changeStatus(id, dto, user);
     return {
       message: "Task status updated successfully",
       data,

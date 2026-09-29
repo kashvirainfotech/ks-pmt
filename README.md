@@ -107,6 +107,7 @@ The core foundational architecture, enterprise planning engine, and operational 
 | **Weekly Timesheets & Persistent Global Timer (`TIME-001`)** | ✅ Implemented | Monday-to-Sunday weekly effort matrix, calendar expected hours integration with missing hours warnings, cross-project reviewer portion routing with self-approval prevention & rejection resubmission, database-backed persistent global timer across tabs/devices invariant to browser blur with task-switch auto-logging. |
 | **Delivery Teams & Software Components (`PLAN-004`)** | ✅ Implemented | Independent delivery teams, effective-dated member rosters with capacity allocations, software components catalog, architecture dependency maps, and authorized work/defect/tech debt drill-downs. |
 | **Work Handoff Tracking & Queues (`FLOW-001`)** | ✅ Implemented | Cross-role handoffs (BA → Dev → Review → QA → UAT), inbound ("Waiting for Me") & outbound queues, dual metric tracking (elapsed wall-clock vs business calendar duration), separate acknowledgment vs work start, rework/redirect successor chains, and aggregate queue analytics without individual blame. |
+| **Workflow Schemes & Transition Gates (`CONFIG-001`)** | ✅ Implemented | Visual workflow scheme editor, versioned project & product overrides, transition gate rules (roles, required fields, release association, resolution classification, manual gates), graph reachability validation, active task remapping on publish, and unified server-side gate enforcement across single, drawer, inline, and bulk updates. |
 | **Web Views & Grid Experience** | ✅ Implemented | Interactive drag-and-drop Kanban board, shared TanStack DataGrid (faceted search, multi-column sorting, nested grouping, CSV/Print export), light/dark theme. |
 | **AWS S3 Cloud Storage** | ✅ Implemented | Direct-to-S3 pre-signed PUT/GET URL generation for attachments, screenshots, and logs; zero binary storage on backend API server. |
 | **Audit Trails & Activity Logs** | ✅ Implemented | Central audit log capturing entity mutations, old/new diffs, timestamps, user IDs, IP addresses, and user-agent tags. |
@@ -122,8 +123,8 @@ All roadmap items are categorized by strategic delivery increment. Each feature 
 
 ```mermaid
 flowchart LR
-    A["Tier A: Foundations & Boundaries (Active)"] --> B["Tier B: Agile Development Planning (In Progress)"]
-    B --> C["Tier C: Client Delivery & UAT"]
+    A["Tier A: Foundations & Boundaries (Active)"] --> B["Tier B: Agile Development Planning (Complete)"]
+    B --> C["Tier C: Client Delivery & UAT (Next Up)"]
     C --> D["Tier D: Product Operations & QA"]
     D --> E["Tier E: Delivery Intelligence"]
     E --> F["Future: Advanced Extensions"]
@@ -139,7 +140,7 @@ flowchart LR
 - **`TIME-001` Effort & Timesheets with Durable Timer** [✅ Implemented]: Schedule-aware weekly timesheets with cross-project approval and audited amendments; durable single active timer in database across browser tabs that does not stop on window blur; task-switching auto-logging.
 - **`PLAN-004` Delivery Teams & Software Component Ownership** [✅ Implemented]: Dedicated delivery teams and component architecture catalogs; tracking defects and technical debt per component without expanding project access boundaries.
 - **`FLOW-001` Work Handoff Tracking** [✅ Implemented]: Explicit handoffs between roles/teams (e.g., Dev → QA), tracking acknowledgment time, work-start time, return/redirect history, unbroken successor chaining, and queue waiting time analysis.
-- **`CONFIG-001` Project-Specific Workflow Overrides** [Planned]: Visual workflow editor allowing versioned project-level workflow progression, mandatory custom fields per status transition, and manual review gates.
+- **`CONFIG-001` Project-Specific Workflow Overrides & Gates** [✅ Implemented]: Visual workflow editor allowing versioned project/product workflow progression, mandatory custom fields per status transition, role-restricted gates, release & resolution requirements, graph reachability validation, active task remapping on publish, and unified API/inline/bulk enforcement.
 
 ### 📌 Tier C: Client Delivery & Collaboration
 - **`CLIENT-001` & `CLIENT-002` Customer Portal & Intake Triage**: Invited client contacts with role-scoped project access; private support/ticket intake; separation of customer impact/urgency from internal priority; complete cross-client data isolation.
