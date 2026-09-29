@@ -204,4 +204,17 @@ export class CreateTaskDto {
   @IsOptional()
   @IsString()
   severity?: string;
+
+  @ApiPropertyOptional({
+    enum: ["FIXED", "WONT_FIX", "DUPLICATE", "CANNOT_REPRODUCE", "BY_DESIGN"],
+  })
+  @IsString()
+  @IsOptional()
+  @IsIn(["FIXED", "WONT_FIX", "DUPLICATE", "CANNOT_REPRODUCE", "BY_DESIGN"])
+  resolution?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  resolutionDetails?: string;
 }

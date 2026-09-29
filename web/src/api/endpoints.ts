@@ -25,6 +25,14 @@ import {
   Sprint,
   Milestone,
   SprintTaskScopeLedger,
+  TaskDependency,
+  TaskDependencyMap,
+  TaskBlockerEpisode,
+  BlockerRadarData,
+  SavedView,
+  SavedViewPreset,
+  BulkUpdateItem,
+  BulkUpdateTasksResponse,
 } from '../types';
 
 // ==========================================
@@ -69,9 +77,19 @@ export const tasksApi = {
     api.patch('/tasks/reorder', { items }),
 
   patchTask: (id: string, data: any): Promise<{ data: Task }> => api.patch(`/tasks/${id}`, data),
-  saveAssignees: (id: string, data: any): Promise<{ data: Task }> => api.put(`/tasks/${id}/assignees`, data),
-  updateStatus: (id: string, toStatusId: string, remarks?: string, expectedRevision?: number) =>
-    api.patch(`/tasks/${id}/status`, { toStatusId, remarks, expectedRevision }),
+  updateStatus: (
+    id: string,
+    toStatusId: string,
+    remarks?: string,
+    expectedRevision?: number,
+    extra?: { resolution?: string; resolutionDetails?: string },
+  ) =>
+    api.patch(`/tasks/${id}/status`, {
+      toStatusId,
+      remarks,
+      expectedRevision,
+      ...extra,
+    }),
 
   updateAssignees: (
     id: string,
@@ -81,6 +99,9 @@ export const tasksApi = {
       assigneeIds: assignees.map((a) => a.userId),
       primaryAssigneeId: assignees.find((a) => a.isPrimary)?.userId,
     }),
+
+  saveAssignees: (id: string, payload: any) =>
+    api.put(`/tasks/${id}/assignees`, payload),
 
   updateChargeable: (
     id: string,
@@ -98,6 +119,15 @@ export const tasksApi = {
 
   toggleSubtask: (subtaskId: string, isCompleted: boolean) =>
     api.patch(`/tasks/subtasks/${subtaskId}/toggle`, { isCompleted }),
+
+  bulkUpdate: (data: {
+    items: BulkUpdateItem[];
+    remarks?: string;
+  }): Promise<{ data: BulkUpdateTasksResponse }> =>
+    api.post('/tasks/bulk-update', data),
+
+  exportTasks: (params?: any, format: 'csv' | 'json' = 'csv') =>
+    api.get('/tasks/export', { params: { ...params, format } }),
 };
 
 // ==========================================
@@ -365,5 +395,107 @@ export const milestonesApi = {
   deleteMilestone: (id: string) =>
     api.delete(`/milestones/${id}`),
 };
+
+// ==========================================
+// Dependencies & Relationships (PLAN-002)
+// ==========================================
+export const dependenciesApi = {
+  create: (data: {
+    sourceTaskId: string;
+    targetTaskId: string;
+    linkType: string;
+    description?: string;
+  }): Promise<{ data: TaskDependency }> => api.post('/dependencies', data),
+
+  getDependencies: (params?: any): Promise<{ data: TaskDependency[] }> =>
+    api.get('/dependencies', { params }),
+
+  getByTaskId: (
+    taskId: string,
+  ): Promise<{
+    data: {
+      taskId: string;
+      outgoing: TaskDependency[];
+      incoming: TaskDependency[];
+      totalCount: number;
+    };
+  }> => api.get(`/dependencies/task/${taskId}`),
+
+  getDependencyMap: (taskId: string): Promise<{ data: TaskDependencyMap }> =>
+    api.get(`/dependencies/map/${taskId}`),
+
+  remove: (id: string) => api.delete(`/dependencies/${id}`),
+};
+
+// ==========================================
+// Blocker Episodes & Radar (PLAN-002)
+// ==========================================
+export const blockersApi = {
+  create: (data: {
+    taskId: string;
+    ownerUserId?: string;
+    blockingTaskId?: string;
+    reason: string;
+    nextAction?: string;
+    followUpDate?: string;
+    expectedResolutionDate?: string;
+    category?: string;
+    priority?: string;
+    notes?: string;
+  }): Promise<{ data: TaskBlockerEpisode }> => api.post('/blockers', data),
+
+  getRadar: (params?: any): Promise<{ data: BlockerRadarData }> =>
+    api.get('/blockers/radar', { params }),
+
+  getByTaskId: (
+    taskId: string,
+  ): Promise<{
+    data: {
+      taskId: string;
+      totalEpisodesCount: number;
+      activeEpisodesCount: number;
+      isCurrentlyBlocked: boolean;
+      totalNonOverlappingBlockedMinutes: number;
+      episodes: TaskBlockerEpisode[];
+    };
+  }> => api.get(`/blockers/task/${taskId}`),
+
+  resolve: (
+    id: string,
+    data: { status?: 'RESOLVED' | 'DISMISSED'; resolutionNotes?: string },
+  ): Promise<{ data: TaskBlockerEpisode }> =>
+    api.patch(`/blockers/${id}/resolve`, data),
+
+  update: (id: string, data: any): Promise<{ data: TaskBlockerEpisode }> =>
+    api.patch(`/blockers/${id}`, data),
+
+  delete: (id: string) => api.delete(`/blockers/${id}`),
+};
+
+// ==========================================
+// Saved Views & Attention Workspaces (PLAN-003)
+// ==========================================
+export const savedViewsApi = {
+  create: (data: Partial<SavedView>): Promise<{ data: SavedView }> =>
+    api.post('/saved-views', data),
+
+  getPresets: (): Promise<{ data: SavedViewPreset[] }> =>
+    api.get('/saved-views/presets'),
+
+  getAll: (params?: any): Promise<{ data: SavedView[] }> =>
+    api.get('/saved-views', { params }),
+
+  getById: (id: string): Promise<{ data: SavedView }> =>
+    api.get(`/saved-views/${id}`),
+
+  update: (id: string, data: Partial<SavedView>): Promise<{ data: SavedView }> =>
+    api.put(`/saved-views/${id}`, data),
+
+  toggleFavorite: (id: string): Promise<{ data: SavedView }> =>
+    api.patch(`/saved-views/${id}/favorite`),
+
+  delete: (id: string) => api.delete(`/saved-views/${id}`),
+};
+
 
 

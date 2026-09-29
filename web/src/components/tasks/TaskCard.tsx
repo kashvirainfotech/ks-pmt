@@ -22,15 +22,17 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   allowedStatuses = [],
   onQuickStatusChange,
 }) => {
-  const priorityColor =
-    {
-      URGENT:
-        'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400 border-rose-200',
-      HIGH: 'bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-400 border-amber-200',
-      MEDIUM:
-        'bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:text-blue-400 border-blue-200',
-      LOW: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400 border-slate-200',
-    }[task.priority] || 'bg-slate-100 text-slate-700';
+  const priorityColors: Record<string, string> = {
+    CRITICAL:
+      'bg-rose-200 text-rose-800 dark:bg-rose-950 dark:text-rose-300 border-rose-300 font-bold',
+    URGENT:
+      'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400 border-rose-200',
+    HIGH: 'bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-400 border-amber-200',
+    MEDIUM:
+      'bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:text-blue-400 border-blue-200',
+    LOW: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400 border-slate-200',
+  };
+  const priorityColor = priorityColors[task.priority] || 'bg-slate-100 text-slate-700';
 
   return (
     <div

@@ -135,14 +135,25 @@ BEGIN
     ON CONFLICT (employee_code) DO NOTHING;
 
     -- 7. Dynamic Task Types
-    INSERT INTO task_types (id, type_code, type_name, description, color_hex, icon_name, is_chargeable_default, is_active, created_by)
+    INSERT INTO task_types (id, type_code, type_name, description, color_hex, icon_name, is_chargeable_default, custom_fields, is_active, created_by)
     VALUES 
-        (v_tt_new_dev, 'NEW_DEV', 'New Development', 'New feature or greenfield module development', '#3B82F6', 'code', FALSE, TRUE, v_admin_id),
-        (v_tt_bug, 'BUG', 'Bug / Defect', 'Software bug or functional discrepancy', '#EF4444', 'bug', FALSE, TRUE, v_admin_id),
-        (v_tt_issue, 'ISSUE', 'Issue', 'Production or staging environment blockage', '#F59E0B', 'alert-triangle', FALSE, TRUE, v_admin_id),
-        (v_tt_enhancement, 'ENHANCEMENT', 'Enhancement', 'Improvement or optimization to existing feature', '#10B981', 'trending-up', TRUE, TRUE, v_admin_id),
-        (v_tt_training, 'TRAINING', 'Training', 'Client or internal team training session', '#8B5CF6', 'book-open', TRUE, TRUE, v_admin_id),
-        (v_tt_support, 'SUPPORT', 'Support Ticket', 'Ongoing client support or maintenance request', '#EC4899', 'life-buoy', TRUE, TRUE, v_admin_id)
+        (v_tt_new_dev, 'NEW_DEV', 'New Development', 'New feature or greenfield module development', '#3B82F6', 'code', FALSE, '{}'::jsonb, TRUE, v_admin_id),
+        (v_tt_bug, 'BUG', 'Bug / Defect', 'Software bug or functional discrepancy', '#EF4444', 'bug', FALSE, '{
+            "steps_to_reproduce": {"type": "textarea", "label": "Steps to Reproduce", "required": true, "order": 1},
+            "expected_behavior": {"type": "textarea", "label": "Expected Behavior", "required": true, "order": 2},
+            "actual_behavior": {"type": "textarea", "label": "Actual Behavior", "required": true, "order": 3},
+            "environment": {"type": "select", "label": "Environment", "required": true, "options": ["Production", "Staging", "UAT", "QA", "Local Dev"], "order": 4},
+            "workaround": {"type": "textarea", "label": "Workaround / Mitigation", "order": 5},
+            "reproduction_frequency": {"type": "select", "label": "Reproduction Frequency", "options": ["Always", "Often", "Sometimes", "Rare", "Unable to reproduce"], "order": 6},
+            "os_device": {"type": "text", "label": "Operating System / Device", "order": 7},
+            "browser_version": {"type": "text", "label": "Browser / Client Version", "order": 8},
+            "error_message": {"type": "textarea", "label": "Error Message / Stack Trace", "order": 9},
+            "correlation_id": {"type": "text", "label": "Correlation / Request ID", "order": 10}
+        }'::jsonb, TRUE, v_admin_id),
+        (v_tt_issue, 'ISSUE', 'Issue', 'Production or staging environment blockage', '#F59E0B', 'alert-triangle', FALSE, '{}'::jsonb, TRUE, v_admin_id),
+        (v_tt_enhancement, 'ENHANCEMENT', 'Enhancement', 'Improvement or optimization to existing feature', '#10B981', 'trending-up', TRUE, '{}'::jsonb, TRUE, v_admin_id),
+        (v_tt_training, 'TRAINING', 'Training', 'Client or internal team training session', '#8B5CF6', 'book-open', TRUE, '{}'::jsonb, TRUE, v_admin_id),
+        (v_tt_support, 'SUPPORT', 'Support Ticket', 'Ongoing client support or maintenance request', '#EC4899', 'life-buoy', TRUE, '{}'::jsonb, TRUE, v_admin_id)
     ON CONFLICT (type_code) DO NOTHING;
 
     -- 8. Dynamic Task Statuses
@@ -261,7 +272,13 @@ BEGIN
         ('SPRINTS', 'READ', 'SPRINTS:READ', 'Permission to view agile sprints and commitment metrics', TRUE, v_admin_id),
         ('SPRINTS', 'MANAGE', 'SPRINTS:MANAGE', 'Permission to plan, start, close, and manage sprints', TRUE, v_admin_id),
         ('MILESTONES', 'READ', 'MILESTONES:READ', 'Permission to view project and product delivery milestones', TRUE, v_admin_id),
-        ('MILESTONES', 'MANAGE', 'MILESTONES:MANAGE', 'Permission to create, update, and manage milestones', TRUE, v_admin_id)
+        ('MILESTONES', 'MANAGE', 'MILESTONES:MANAGE', 'Permission to create, update, and manage milestones', TRUE, v_admin_id),
+        ('DEPENDENCIES', 'READ', 'DEPENDENCIES:READ', 'Permission to view task dependencies, inverse links, and dependency maps', TRUE, v_admin_id),
+        ('DEPENDENCIES', 'MANAGE', 'DEPENDENCIES:MANAGE', 'Permission to create, update, and remove task dependencies', TRUE, v_admin_id),
+        ('BLOCKERS', 'READ', 'BLOCKERS:READ', 'Permission to view active blocker radar and blocker episodes', TRUE, v_admin_id),
+        ('BLOCKERS', 'MANAGE', 'BLOCKERS:MANAGE', 'Permission to log, update, and resolve blocker episodes', TRUE, v_admin_id),
+        ('SAVED_VIEWS', 'READ', 'SAVED_VIEWS:READ', 'Permission to view personal and team saved views', TRUE, v_admin_id),
+        ('SAVED_VIEWS', 'MANAGE', 'SAVED_VIEWS:MANAGE', 'Permission to create, update, and delete saved views', TRUE, v_admin_id)
     ON CONFLICT (permission_code) DO NOTHING;
 
     INSERT INTO role_permissions (role_id, permission_id, created_by)
@@ -269,7 +286,9 @@ BEGIN
     FROM permissions p
     WHERE p.permission_code IN (
         'CALENDARS:READ', 'CALENDARS:MANAGE', 'LEAVES:MANAGE',
-        'SPRINTS:READ', 'SPRINTS:MANAGE', 'MILESTONES:READ', 'MILESTONES:MANAGE'
+        'SPRINTS:READ', 'SPRINTS:MANAGE', 'MILESTONES:READ', 'MILESTONES:MANAGE',
+        'DEPENDENCIES:READ', 'DEPENDENCIES:MANAGE', 'BLOCKERS:READ', 'BLOCKERS:MANAGE',
+        'SAVED_VIEWS:READ', 'SAVED_VIEWS:MANAGE'
     )
     ON CONFLICT (role_id, permission_id) DO NOTHING;
 

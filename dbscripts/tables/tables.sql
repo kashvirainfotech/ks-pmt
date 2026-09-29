@@ -492,6 +492,11 @@ CREATE TABLE IF NOT EXISTS tasks (
     currency VARCHAR(10) NOT NULL DEFAULT 'INR',
     branch_id UUID REFERENCES branches(id) ON DELETE RESTRICT,
     severity VARCHAR(100),
+    resolution VARCHAR(50) CHECK (resolution IS NULL OR resolution IN ('FIXED', 'WONT_FIX', 'DUPLICATE', 'CANNOT_REPRODUCE', 'BY_DESIGN')),
+    resolution_details TEXT,
+    resolved_at TIMESTAMP WITH TIME ZONE,
+    resolved_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    is_blocked BOOLEAN NOT NULL DEFAULT FALSE,
     created_by UUID NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_by UUID,
@@ -541,6 +546,55 @@ CREATE TABLE IF NOT EXISTS sprint_tasks (
     updated_by UUID,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT uq_sprint_task_session UNIQUE (sprint_id, task_id, added_at)
+);
+
+-- ========================================================
+-- 21c. Task Dependencies & Relationships (PLAN-002)
+-- ========================================================
+CREATE TABLE IF NOT EXISTS task_dependencies (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    source_task_id UUID NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+    target_task_id UUID NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+    link_type VARCHAR(50) NOT NULL CHECK (link_type IN (
+        'FINISH_TO_START', 'BLOCKS', 'RELATED_TO', 'DUPLICATE_OF', 
+        'CAUSES', 'FIXED_BY', 'TESTED_BY', 'RELEASED_IN'
+    )),
+    description TEXT,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_no_self_dependency CHECK (source_task_id <> target_task_id),
+    CONSTRAINT uq_task_dependency UNIQUE (source_task_id, target_task_id, link_type)
+);
+
+-- ========================================================
+-- 21d. Task Blocker Episodes (PLAN-002)
+-- ========================================================
+CREATE TABLE IF NOT EXISTS task_blocker_episodes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    task_id UUID NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+    owner_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    blocking_task_id UUID REFERENCES tasks(id) ON DELETE SET NULL,
+    reason TEXT NOT NULL,
+    next_action TEXT,
+    follow_up_date TIMESTAMP WITH TIME ZONE,
+    expected_resolution_date TIMESTAMP WITH TIME ZONE,
+    category VARCHAR(50) NOT NULL DEFAULT 'TECHNICAL' CHECK (category IN (
+        'TECHNICAL', 'DEPENDENCY', 'CLIENT', 'ENVIRONMENT', 'SPECIFICATION', 'THIRD_PARTY', 'RESOURCE', 'OTHER'
+    )),
+    priority VARCHAR(20) NOT NULL DEFAULT 'MEDIUM' CHECK (priority IN ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL')),
+    notes TEXT,
+    started_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    resolved_at TIMESTAMP WITH TIME ZONE,
+    resolved_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    resolution_notes TEXT,
+    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE', 'RESOLVED', 'DISMISSED')),
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- ========================================================
@@ -790,6 +844,34 @@ CREATE TABLE IF NOT EXISTS employee_leave_records (
     reason TEXT,
     approved_by UUID REFERENCES users(id) ON DELETE SET NULL,
     approved_at TIMESTAMP WITH TIME ZONE,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ========================================================
+-- Date & Time: 2026-09-29 13:20:00 (IST)
+-- Description: 33. Saved Views & Attention Workspaces (PLAN-003)
+-- ========================================================
+CREATE TABLE IF NOT EXISTS saved_views (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    view_name VARCHAR(150) NOT NULL,
+    entity_type VARCHAR(50) NOT NULL DEFAULT 'TASK' CHECK (entity_type IN ('TASK', 'DEFECT', 'SPRINT', 'PROJECT', 'PORTFOLIO', 'MY_WORK')),
+    scope VARCHAR(20) NOT NULL DEFAULT 'PERSONAL' CHECK (scope IN ('PERSONAL', 'TEAM', 'PROJECT', 'GLOBAL')),
+    project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+    product_id UUID REFERENCES products(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    is_default BOOLEAN NOT NULL DEFAULT FALSE,
+    is_favorite BOOLEAN NOT NULL DEFAULT FALSE,
+    icon VARCHAR(50) DEFAULT 'bookmark',
+    color VARCHAR(30) DEFAULT 'blue',
+    filters JSONB NOT NULL DEFAULT '{}'::jsonb,
+    columns JSONB NOT NULL DEFAULT '[]'::jsonb,
+    sort JSONB NOT NULL DEFAULT '[]'::jsonb,
+    group_by VARCHAR(50),
+    view_mode VARCHAR(30) NOT NULL DEFAULT 'LIST' CHECK (view_mode IN ('LIST', 'KANBAN', 'CALENDAR', 'TIMELINE')),
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_by UUID NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,

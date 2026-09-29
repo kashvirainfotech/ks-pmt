@@ -620,4 +620,43 @@ export const milestoneConfig: Entity = {
   ],
 };
 
+export const blockerConfig: Entity = {
+  title: 'Blocker radar',
+  endpoint: '/blockers',
+  permission: 'BLOCKERS:MANAGE',
+  status: true,
+  columns: [
+    'task_code',
+    'reason',
+    'category',
+    'priority',
+    'owner_name',
+    'status',
+    'started_at',
+    'follow_up_date',
+    'expected_resolution_date',
+  ],
+  fields: [
+    ref('taskId', 'Blocked task', '/tasks', 'title', true),
+    user('ownerUserId', 'Owner / Accountable person'),
+    ref('blockingTaskId', 'Blocking task (Optional)', '/tasks', 'title'),
+    { ...f('reason', 'Blocker reason', { type: 'textarea' }), required: true },
+    f('nextAction', 'Next action / Mitigation', { type: 'textarea' }),
+    choice('category', 'Category', [
+      'TECHNICAL',
+      'DEPENDENCY',
+      'CLIENT',
+      'ENVIRONMENT',
+      'SPECIFICATION',
+      'THIRD_PARTY',
+      'RESOURCE',
+      'OTHER',
+    ], 'TECHNICAL'),
+    choice('priority', 'Priority', ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'], 'MEDIUM'),
+    date('followUpDate', 'Follow-up date'),
+    date('expectedResolutionDate', 'Expected resolution date'),
+    f('notes', 'Notes / Context', { type: 'textarea' }),
+  ],
+};
+
 

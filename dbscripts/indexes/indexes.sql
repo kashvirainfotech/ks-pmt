@@ -119,4 +119,25 @@ CREATE INDEX IF NOT EXISTS idx_tasks_backlog_order ON tasks(project_id, product_
 CREATE INDEX IF NOT EXISTS idx_sprint_tasks_sprint_task ON sprint_tasks(sprint_id, task_id);
 CREATE INDEX IF NOT EXISTS idx_sprint_tasks_rollover ON sprint_tasks(rollover_from_sprint_id);
 
+-- ========================================================
+-- Date & Time: 2026-09-29 12:05:00 IST
+-- Description: PLAN-002 - Indexes for Task Dependencies, Inverse Lookups, and Blocker Episodes
+-- ========================================================
+CREATE INDEX IF NOT EXISTS idx_task_dep_source ON task_dependencies(source_task_id, link_type);
+CREATE INDEX IF NOT EXISTS idx_task_dep_target ON task_dependencies(target_task_id, link_type);
+CREATE INDEX IF NOT EXISTS idx_task_dep_type ON task_dependencies(link_type);
+CREATE INDEX IF NOT EXISTS idx_blockers_task_status ON task_blocker_episodes(task_id, status);
+CREATE INDEX IF NOT EXISTS idx_blockers_owner ON task_blocker_episodes(owner_user_id) WHERE status = 'ACTIVE';
+CREATE INDEX IF NOT EXISTS idx_blockers_blocking_item ON task_blocker_episodes(blocking_task_id);
+CREATE INDEX IF NOT EXISTS idx_blockers_started_at ON task_blocker_episodes(started_at);
+CREATE INDEX IF NOT EXISTS idx_blockers_radar ON task_blocker_episodes(category, priority, started_at) WHERE status = 'ACTIVE';
+CREATE INDEX IF NOT EXISTS idx_tasks_is_blocked ON tasks(is_blocked) WHERE is_blocked = TRUE;
 
+-- ========================================================
+-- Date & Time: 2026-09-29 13:21:00 IST
+-- Description: PLAN-003 - Indexes for Saved Views, Multi-Column Sorting and Server-Side Attention Filters
+-- ========================================================
+CREATE INDEX IF NOT EXISTS idx_saved_views_user ON saved_views(user_id, scope, is_active);
+CREATE INDEX IF NOT EXISTS idx_saved_views_project ON saved_views(project_id, scope, is_active);
+CREATE INDEX IF NOT EXISTS idx_saved_views_favorite ON saved_views(user_id, is_favorite) WHERE is_active = TRUE;
+CREATE INDEX IF NOT EXISTS idx_tasks_sorting_priority_due ON tasks(priority, planned_due_date ASC);

@@ -5,6 +5,7 @@ export const portfolioScreens = [
   { path: '/versions', title: 'Versions', description: 'Plan versions and track release dates.' },
   { path: '/sprints', title: 'Sprints', description: 'Plan agile iterations, commitment baselines, capacity and rollovers.' },
   { path: '/milestones', title: 'Milestones', description: 'Track major project and product delivery milestones.' },
+  { path: '/blockers', title: 'Blocker radar', description: 'Monitor active blockers, aging breaches, and resolution episodes.' },
 ] as const;
 
 export const adminScreens = [

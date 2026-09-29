@@ -79,6 +79,8 @@ export interface TaskWorkflowStatus {
   is_initial: boolean;
   is_completed: boolean;
   is_cancelled: boolean;
+  is_terminal?: boolean;
+  status_category?: string;
 }
 
 export interface TaskAssignee {
@@ -130,7 +132,7 @@ export interface Task {
   status_code?: string;
   status_name?: string;
   status_color?: string;
-  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT' | 'CRITICAL';
   estimated_hours?: number;
   spent_hours?: number;
   is_chargeable: boolean;
@@ -149,6 +151,11 @@ export interface Task {
   story_points?: number;
   t_shirt_size?: string;
   backlog_order?: number;
+  is_blocked?: boolean;
+  resolution?: string;
+  resolution_details?: string;
+  resolved_at?: string;
+  resolved_by?: string;
   created_by_name?: string;
   created_at: string;
   assignees?: TaskAssignee[];
@@ -428,5 +435,152 @@ export interface PaginatedResponse<T> {
   page: number;
   limit: number;
   totalPages: number;
+}
+
+export interface TaskDependency {
+  id: string;
+  source_task_id: string;
+  target_task_id: string;
+  link_type: string;
+  description?: string;
+  source_task_code?: string;
+  source_task_title?: string;
+  source_status_name?: string;
+  source_status_color?: string;
+  target_task_code?: string;
+  target_task_title?: string;
+  target_status_name?: string;
+  target_status_color?: string;
+  related_task_id?: string;
+  related_task_code?: string;
+  related_task_title?: string;
+  related_task_priority?: string;
+  status_name?: string;
+  status_color?: string;
+  is_terminal?: boolean;
+  status_category?: string;
+  direction?: 'OUTGOING' | 'INCOMING';
+  display_label?: string;
+  created_at: string;
+}
+
+export interface TaskBlockerEpisode {
+  id: string;
+  task_id: string;
+  task_code?: string;
+  task_title?: string;
+  task_code_title?: string;
+  owner_user_id?: string;
+  owner_name?: string;
+  owner_avatar?: string;
+  blocking_task_id?: string;
+  blocking_task_code?: string;
+  blocking_task_title?: string;
+  reason: string;
+  next_action?: string;
+  follow_up_date?: string;
+  expected_resolution_date?: string;
+  category: string;
+  priority: string;
+  notes?: string;
+  started_at: string;
+  resolved_at?: string;
+  resolved_by_name?: string;
+  resolution_notes?: string;
+  status: 'ACTIVE' | 'RESOLVED' | 'DISMISSED';
+  duration_minutes?: number;
+  age_days?: number;
+  age_hours?: number;
+  is_age_breached?: boolean;
+  is_follow_up_due?: boolean;
+  project_id?: string;
+  product_id?: string;
+  sprint_id?: string;
+  project_name?: string;
+  product_name?: string;
+  sprint_name?: string;
+}
+
+export interface BlockerRadarData {
+  totalActiveBlockers: number;
+  criticalCount: number;
+  breachedCount: number;
+  oldestAgeDays: number;
+  groupedByCategory: Record<string, number>;
+  groupedByPriority: Record<string, number>;
+  activeBlockers: TaskBlockerEpisode[];
+}
+
+export interface TaskDependencyMap {
+  rootTask: any;
+  prerequisites: any[];
+  downstreamImpact: any[];
+  prerequisiteCount: number;
+  downstreamCount: number;
+  hasOverduePrerequisites: boolean;
+  hasStaleBlockingFlags: boolean;
+}
+
+export interface SavedView {
+  id: string;
+  view_name: string;
+  entity_type: string;
+  scope: 'PERSONAL' | 'TEAM' | 'PROJECT' | 'GLOBAL';
+  project_id?: string;
+  product_id?: string;
+  user_id: string;
+  owner_name?: string;
+  project_name?: string;
+  is_default: boolean;
+  is_favorite: boolean;
+  icon?: string;
+  color?: string;
+  filters: Record<string, any>;
+  columns?: any[];
+  sort?: any[];
+  group_by?: string;
+  view_mode: 'LIST' | 'KANBAN' | 'CALENDAR' | 'TIMELINE';
+  is_active: boolean;
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface SavedViewPreset {
+  id: string;
+  viewName: string;
+  entityType: string;
+  icon: string;
+  color: string;
+  filters: Record<string, any>;
+  columns?: any[];
+  sort?: any[];
+  groupBy?: string;
+  viewMode: 'LIST' | 'KANBAN' | 'CALENDAR' | 'TIMELINE';
+  isPreset: boolean;
+  description: string;
+}
+
+export interface BulkUpdateItem {
+  id: string;
+  expectedRevision: number;
+  statusId?: string;
+  priority?: string;
+  assigneeIds?: string[];
+  sprintId?: string | null;
+  milestoneId?: string | null;
+  storyPoints?: number;
+  tShirtSize?: string;
+  plannedDueDate?: string;
+  resolution?: string;
+  resolutionDetails?: string;
+  isBlocked?: boolean;
+}
+
+export interface BulkUpdateTasksResponse {
+  total: number;
+  succeededCount: number;
+  failedCount: number;
+  succeeded: Array<{ id: string; taskCode?: string; title?: string }>;
+  failed: Array<{ id: string; taskCode?: string; title?: string; code: string; reason: string }>;
 }
 

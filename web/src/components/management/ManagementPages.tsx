@@ -29,13 +29,32 @@ import {
   leaveConfig,
   sprintConfig,
   milestoneConfig,
+  blockerConfig,
   f,
 } from './config';
+import { blockersApi } from '../../api/endpoints';
+import type { BlockerRadarData, TaskBlockerEpisode } from '../../types';
 import { useAuth } from '../../context/AuthContext';
 import type { AdminScreen, PortfolioScreen } from './screens';
 import { DataGrid } from '../common/DataGrid';
 import { useListing } from '../../hooks/useListing';
-import { Pencil, Trash2, Power, UserCheck, Plus, Play, CheckCircle2, History, Gauge, ArrowRight } from 'lucide-react';
+import {
+  Pencil,
+  Trash2,
+  Power,
+  UserCheck,
+  Plus,
+  Play,
+  CheckCircle2,
+  History,
+  Gauge,
+  ArrowRight,
+  AlertTriangle,
+  ShieldAlert,
+  AlertOctagon,
+  Check,
+  Clock,
+} from 'lucide-react';
 
 function RelatedRecords({
   row,
@@ -973,7 +992,556 @@ function MilestoneRelatedRecords({ row }: { row: Row }) {
   );
 }
 
+function BlockerRadarView() {
+  const [radar, setRadar] = useState<BlockerRadarData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [priorityFilter, setPriorityFilter] = useState('');
+  const [minAgeDays, setMinAgeDays] = useState<number | ''>('');
+
+  // Resolve Blocker Modal State
+  const [resolveTarget, setResolveTarget] = useState<TaskBlockerEpisode | null>(null);
+  const [resolveOutcome, setResolveOutcome] = useState<'RESOLVED' | 'DISMISSED'>('RESOLVED');
+  const [resolveNotes, setResolveNotes] = useState('');
+  const [resolving, setResolving] = useState(false);
+
+  // New Blocker Modal State
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [availableTasks, setAvailableTasks] = useState<any[]>([]);
+  const [createTaskId, setCreateTaskId] = useState('');
+  const [createReason, setCreateReason] = useState('');
+  const [createCategory, setCreateCategory] = useState('TECHNICAL');
+  const [createPriority, setCreatePriority] = useState('MEDIUM');
+  const [createNextAction, setCreateNextAction] = useState('');
+  const [createExpectedDate, setCreateExpectedDate] = useState('');
+  const [createFollowUpDate, setCreateFollowUpDate] = useState('');
+  const [creating, setCreating] = useState(false);
+
+  const fetchRadar = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const params: any = {};
+      if (categoryFilter) params.category = categoryFilter;
+      if (priorityFilter) params.priority = priorityFilter;
+      if (minAgeDays !== '') params.minAgeDays = Number(minAgeDays);
+      const res = await blockersApi.getRadar(params);
+      setRadar(res.data);
+    } catch (e: any) {
+      setError(errorText(e));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchRadar();
+  }, [categoryFilter, priorityFilter, minAgeDays]);
+
+  const loadTasks = async () => {
+    try {
+      const res = await api.get('/tasks', { params: { limit: 100 } });
+      setAvailableTasks(res.data?.data || []);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleOpenCreateModal = () => {
+    loadTasks();
+    setShowCreateModal(true);
+  };
+
+  const handleCreateBlocker = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!createTaskId || !createReason.trim()) return;
+    setCreating(true);
+    try {
+      await blockersApi.create({
+        taskId: createTaskId,
+        reason: createReason.trim(),
+        category: createCategory,
+        priority: createPriority,
+        nextAction: createNextAction.trim() || undefined,
+        expectedResolutionDate: createExpectedDate ? new Date(createExpectedDate).toISOString() : undefined,
+        followUpDate: createFollowUpDate ? new Date(createFollowUpDate).toISOString() : undefined,
+      });
+      setShowCreateModal(false);
+      setCreateTaskId('');
+      setCreateReason('');
+      setCreateNextAction('');
+      setCreateExpectedDate('');
+      setCreateFollowUpDate('');
+      fetchRadar();
+    } catch (e: any) {
+      alert(errorText(e));
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const handleResolveBlocker = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resolveTarget) return;
+    setResolving(true);
+    try {
+      await blockersApi.resolve(resolveTarget.id, {
+        status: resolveOutcome,
+        resolutionNotes: resolveNotes.trim() || undefined,
+      });
+      setResolveTarget(null);
+      setResolveNotes('');
+      fetchRadar();
+    } catch (e: any) {
+      alert(errorText(e));
+    } finally {
+      setResolving(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Blocker Radar KPI Summary */}
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-2xs dark:border-slate-800 dark:bg-slate-900">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Active Blockers</span>
+            <AlertOctagon className="h-5 w-5 text-rose-500" />
+          </div>
+          <p className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">
+            {radar?.totalActiveBlockers ?? 0}
+          </p>
+          <span className="text-[11px] text-slate-500">Impacting active delivery</span>
+        </div>
+
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-2xs dark:border-slate-800 dark:bg-slate-900">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Critical Blockers</span>
+            <AlertTriangle className="h-5 w-5 text-amber-500" />
+          </div>
+          <p className="mt-2 text-2xl font-bold text-amber-600 dark:text-amber-400">
+            {radar?.criticalCount ?? 0}
+          </p>
+          <span className="text-[11px] text-slate-500">Immediate attention needed</span>
+        </div>
+
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-2xs dark:border-slate-800 dark:bg-slate-900">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Age Breaches</span>
+            <ShieldAlert className="h-5 w-5 text-red-600" />
+          </div>
+          <p className="mt-2 text-2xl font-bold text-red-600 dark:text-red-400">
+            {radar?.breachedCount ?? 0}
+          </p>
+          <span className="text-[11px] text-slate-500">&gt;3 days or SLA overdue</span>
+        </div>
+
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-2xs dark:border-slate-800 dark:bg-slate-900">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Oldest Blocker</span>
+            <Clock className="h-5 w-5 text-indigo-500" />
+          </div>
+          <p className="mt-2 text-2xl font-bold text-indigo-600 dark:text-indigo-400">
+            {radar?.oldestAgeDays ?? 0} <span className="text-xs font-normal text-slate-500">days</span>
+          </p>
+          <span className="text-[11px] text-slate-500">Longest unresolved</span>
+        </div>
+      </div>
+
+      {/* Control Bar: Filters & Actions */}
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+        <div className="flex flex-wrap items-center gap-2">
+          <select
+            className="form-control text-xs"
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+          >
+            <option value="">All Categories</option>
+            <option value="TECHNICAL">Technical</option>
+            <option value="DEPENDENCY">Dependency</option>
+            <option value="CLIENT">Client</option>
+            <option value="ENVIRONMENT">Environment</option>
+            <option value="SPECIFICATION">Specification</option>
+            <option value="THIRD_PARTY">Third Party</option>
+            <option value="RESOURCE">Resource</option>
+            <option value="OTHER">Other</option>
+          </select>
+
+          <select
+            className="form-control text-xs"
+            value={priorityFilter}
+            onChange={(e) => setPriorityFilter(e.target.value)}
+          >
+            <option value="">All Priorities</option>
+            <option value="CRITICAL">Critical</option>
+            <option value="HIGH">High</option>
+            <option value="MEDIUM">Medium</option>
+            <option value="LOW">Low</option>
+          </select>
+
+          <input
+            type="number"
+            placeholder="Min age (days)"
+            className="form-control w-28 text-xs"
+            value={minAgeDays}
+            onChange={(e) => setMinAgeDays(e.target.value === '' ? '' : Number(e.target.value))}
+          />
+        </div>
+
+        <button
+          type="button"
+          className="btn-primary flex items-center gap-1.5"
+          onClick={handleOpenCreateModal}
+        >
+          <Plus size={14} aria-hidden="true" />
+          Log Blocker Episode
+        </button>
+      </div>
+
+      {/* Category Distribution Chips */}
+      {radar?.groupedByCategory && Object.keys(radar.groupedByCategory).length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {Object.entries(radar.groupedByCategory).map(([cat, count]) => (
+            <span
+              key={cat}
+              className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-700 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-300"
+            >
+              <span>{cat.replace(/_/g, ' ')}</span>
+              <span className="rounded-full bg-slate-200 px-1.5 py-0.2 text-[10px] font-bold dark:bg-slate-700">
+                {count}
+              </span>
+            </span>
+          ))}
+        </div>
+      )}
+
+      {/* Active Blockers Table */}
+      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xs dark:border-slate-800 dark:bg-slate-900">
+        <div className="border-b border-slate-200 p-4 dark:border-slate-800">
+          <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+            Active Blocker Radar ({radar?.activeBlockers?.length ?? 0})
+          </h3>
+          <p className="text-xs text-slate-500">
+            Real-time queue of all active delivery impediments with SLA age breaches and ownership.
+          </p>
+        </div>
+
+        {loading ? (
+          <div className="p-8 text-center text-xs text-slate-500">Loading blocker radar data...</div>
+        ) : error ? (
+          <div role="alert" className="p-6 text-center text-xs font-semibold text-rose-600">{error}</div>
+        ) : !radar?.activeBlockers || radar.activeBlockers.length === 0 ? (
+          <div className="p-8 text-center text-xs text-slate-400 italic">
+            Zero active blockers detected! All delivery tracks running smoothly.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="border-b border-slate-200 bg-slate-50 text-[11px] font-semibold text-slate-600 dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-400">
+                <tr>
+                  <th className="px-4 py-3">Priority</th>
+                  <th className="px-4 py-3">Task</th>
+                  <th className="px-4 py-3">Blocker Reason & Next Action</th>
+                  <th className="px-4 py-3">Category</th>
+                  <th className="px-4 py-3">Owner</th>
+                  <th className="px-4 py-3">Age / Breach</th>
+                  <th className="px-4 py-3">Expected Date</th>
+                  <th className="px-4 py-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                {radar.activeBlockers.map((b) => (
+                  <tr key={b.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40">
+                    <td className="px-4 py-3 font-semibold">
+                      <span
+                        className={`rounded px-1.5 py-0.5 text-[10px] uppercase ${
+                          b.priority === 'CRITICAL'
+                            ? 'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300 font-bold'
+                            : b.priority === 'HIGH'
+                              ? 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300'
+                              : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
+                        }`}
+                      >
+                        {b.priority}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="font-semibold text-slate-900 dark:text-white">
+                        {b.task_code}
+                      </div>
+                      <div className="max-w-[180px] truncate text-[11px] text-slate-500">
+                        {b.task_title}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="max-w-xs font-medium text-slate-800 dark:text-slate-200">
+                        {b.reason}
+                      </div>
+                      {b.next_action && (
+                        <div className="mt-0.5 max-w-xs text-[11px] text-indigo-600 dark:text-indigo-400">
+                          Next: {b.next_action}
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
+                      {b.category.replace(/_/g, ' ')}
+                    </td>
+                    <td className="px-4 py-3 text-slate-700 dark:text-slate-300">
+                      {b.owner_name || <span className="text-slate-400 italic">Unassigned</span>}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-semibold">{b.age_days}d ({b.age_hours}h)</span>
+                        {b.is_age_breached && (
+                          <span className="rounded bg-rose-100 px-1 py-0.2 text-[9px] font-bold text-rose-700 dark:bg-rose-950 dark:text-rose-300">
+                            BREACH
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-slate-500">
+                      {b.expected_resolution_date ? String(b.expected_resolution_date).slice(0, 10) : '—'}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <button
+                        type="button"
+                        className="rounded-md bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950 dark:text-emerald-300"
+                        onClick={() => {
+                          setResolveTarget(b);
+                          setResolveOutcome('RESOLVED');
+                          setResolveNotes('');
+                        }}
+                      >
+                        Resolve
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Log Blocker Episode Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl bg-white p-6 text-slate-900 dark:bg-slate-900 dark:text-white">
+            <h3 className="mb-2 text-lg font-bold">Log New Blocker Episode</h3>
+            <p className="mb-4 text-xs text-slate-500">
+              Record a delivery blockage. The selected task will automatically transition to blocked status.
+            </p>
+
+            <form onSubmit={handleCreateBlocker} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  Target Task *
+                </label>
+                <select
+                  className="form-control mt-1 w-full text-xs"
+                  required
+                  value={createTaskId}
+                  onChange={(e) => setCreateTaskId(e.target.value)}
+                >
+                  <option value="">Select task...</option>
+                  {availableTasks.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.task_code} — {t.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  Blocker Reason *
+                </label>
+                <textarea
+                  className="form-control mt-1 w-full text-xs"
+                  rows={3}
+                  required
+                  placeholder="Describe the exact blocker or impediment..."
+                  value={createReason}
+                  onChange={(e) => setCreateReason(e.target.value)}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Category
+                  </label>
+                  <select
+                    className="form-control mt-1 w-full text-xs"
+                    value={createCategory}
+                    onChange={(e) => setCreateCategory(e.target.value)}
+                  >
+                    <option value="TECHNICAL">Technical</option>
+                    <option value="DEPENDENCY">Dependency</option>
+                    <option value="CLIENT">Client</option>
+                    <option value="ENVIRONMENT">Environment</option>
+                    <option value="SPECIFICATION">Specification</option>
+                    <option value="THIRD_PARTY">Third Party</option>
+                    <option value="RESOURCE">Resource</option>
+                    <option value="OTHER">Other</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Priority
+                  </label>
+                  <select
+                    className="form-control mt-1 w-full text-xs"
+                    value={createPriority}
+                    onChange={(e) => setCreatePriority(e.target.value)}
+                  >
+                    <option value="CRITICAL">Critical</option>
+                    <option value="HIGH">High</option>
+                    <option value="MEDIUM">Medium</option>
+                    <option value="LOW">Low</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  Next Action / Mitigation
+                </label>
+                <input
+                  type="text"
+                  className="form-control mt-1 w-full text-xs"
+                  placeholder="Immediate next step to resolve..."
+                  value={createNextAction}
+                  onChange={(e) => setCreateNextAction(e.target.value)}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Expected Resolution Date
+                  </label>
+                  <input
+                    type="date"
+                    className="form-control mt-1 w-full text-xs"
+                    value={createExpectedDate}
+                    onChange={(e) => setCreateExpectedDate(e.target.value)}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Follow-Up Date
+                  </label>
+                  <input
+                    type="date"
+                    className="form-control mt-1 w-full text-xs"
+                    value={createFollowUpDate}
+                    onChange={(e) => setCreateFollowUpDate(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="mt-6 flex justify-end gap-2">
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => setShowCreateModal(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="btn-primary"
+                  disabled={creating}
+                >
+                  {creating ? 'Logging...' : 'Log Blocker'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Resolve Blocker Modal */}
+      {resolveTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md rounded-xl bg-white p-6 text-slate-900 dark:bg-slate-900 dark:text-white">
+            <h3 className="mb-2 text-lg font-bold">Resolve Blocker Episode</h3>
+            <p className="mb-4 text-xs text-slate-500">
+              For: <span className="font-semibold">{resolveTarget.task_code}</span> — {resolveTarget.reason}
+            </p>
+
+            <form onSubmit={handleResolveBlocker} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  Resolution Outcome
+                </label>
+                <select
+                  className="form-control mt-1 w-full text-xs"
+                  value={resolveOutcome}
+                  onChange={(e: any) => setResolveOutcome(e.target.value)}
+                >
+                  <option value="RESOLVED">Resolved (Impediment cleared)</option>
+                  <option value="DISMISSED">Dismissed (No longer applicable / false alarm)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  Resolution Notes
+                </label>
+                <textarea
+                  className="form-control mt-1 w-full text-xs"
+                  rows={3}
+                  placeholder="Explain how this blocker was cleared..."
+                  value={resolveNotes}
+                  onChange={(e) => setResolveNotes(e.target.value)}
+                />
+              </div>
+
+              <div className="mt-6 flex justify-end gap-2">
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => setResolveTarget(null)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="btn-primary bg-emerald-600 hover:bg-emerald-700"
+                  disabled={resolving}
+                >
+                  {resolving ? 'Submitting...' : 'Confirm Resolution'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function PortfolioPage({ screen }: { screen: PortfolioScreen }) {
+  if (screen.title === 'Blocker radar') {
+    return (
+      <div className="space-y-6">
+        <div className="page-intro">
+          <div>
+            <p className="page-eyebrow mb-2">Portfolio</p>
+            <h1>{screen.title}</h1>
+            <p className="page-description">{screen.description}</p>
+          </div>
+        </div>
+        <BlockerRadarView />
+      </div>
+    );
+  }
+
   const config =
     screen.title === 'Projects'
       ? {

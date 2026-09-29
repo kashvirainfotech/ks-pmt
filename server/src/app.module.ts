@@ -24,6 +24,9 @@ import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
 import { CalendarsModule } from './modules/calendars/calendars.module';
 import { SprintsModule } from './modules/sprints/sprints.module';
 import { MilestonesModule } from './modules/milestones/milestones.module';
+import { DependenciesModule } from './modules/dependencies/dependencies.module';
+import { BlockersModule } from './modules/blockers/blockers.module';
+import { SavedViewsModule } from './modules/saved-views/saved-views.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { DynamicRbacGuard } from './modules/rbac/rbac.guard';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
@@ -59,6 +62,9 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
     CalendarsModule,
     SprintsModule,
     MilestonesModule,
+    DependenciesModule,
+    BlockersModule,
+    SavedViewsModule,
   ],
   providers: [
     {

@@ -18,6 +18,12 @@ import { UpdateTaskDto } from "./dto/update-task.dto";
 import { ChangeTaskStatusDto } from "./dto/change-status.dto";
 import { AssignTaskDto } from "./dto/assign-task.dto";
 import { QueryTaskDto } from "./dto/query-task.dto";
+import {
+  BulkUpdateTasksDto,
+  BulkUpdateTasksResponse,
+  BulkUpdateResultItem,
+  BulkUpdateFailedItem,
+} from "./dto/bulk-update-tasks.dto";
 
 @Injectable()
 export class TasksService {
@@ -364,6 +370,28 @@ export class TasksService {
       whereClauses.push(`t.sprint_id IS NULL`);
     }
 
+    if (query.isBlocked !== undefined) {
+      params.push(query.isBlocked);
+      whereClauses.push(`t.is_blocked = $${params.length}`);
+    }
+
+    if (query.unassignedOnly) {
+      whereClauses.push(
+        `NOT EXISTS (SELECT 1 FROM task_assignees ta_check WHERE ta_check.task_id = t.id)`,
+      );
+    }
+
+    if (query.isCompleted !== undefined) {
+      whereClauses.push(
+        query.isCompleted ? `ts.is_terminal = TRUE` : `ts.is_terminal = FALSE`,
+      );
+    }
+
+    if (query.statusCategory) {
+      params.push(query.statusCategory);
+      whereClauses.push(`ts.status_category = $${params.length}`);
+    }
+
     if (query.search) {
       params.push(`%${query.search.trim()}%`);
       whereClauses.push(
@@ -374,10 +402,45 @@ export class TasksService {
     const whereSql =
       whereClauses.length > 0 ? `WHERE ${whereClauses.join(" AND ")}` : "";
 
-    const countSql = `SELECT COUNT(t.id) AS total FROM tasks t ${whereSql};`;
+    const countSql = `
+      SELECT COUNT(DISTINCT t.id) AS total 
+      FROM tasks t
+      INNER JOIN task_statuses ts ON t.status_id = ts.id
+      ${whereSql};
+    `;
     const countResult = await this.db.query(countSql, params);
-    const totalRecords = parseInt(countResult.rows[0].total, 10);
+    const totalRecords = parseInt(countResult.rows[0]?.total || "0", 10);
     const totalPages = Math.ceil(totalRecords / limit);
+
+    let orderBySql = 'ORDER BY t.backlog_order ASC, t.created_at DESC';
+    if (query.sort) {
+      const allowedCols: Record<string, string> = {
+        priority: 't.priority',
+        title: 't.title',
+        task_code: 't.task_code',
+        created_at: 't.created_at',
+        due_date: 't.planned_end_date',
+        planned_end_date: 't.planned_end_date',
+        estimated_hours: 't.estimated_hours',
+        story_points: 't.story_points',
+        backlog_order: 't.backlog_order',
+        status_name: 'ts.status_name',
+        project_name: 'p.project_name',
+      };
+      const orderParts: string[] = [];
+      const parts = query.sort.split(',');
+      for (const part of parts) {
+        const [col, dir] = part.trim().split(':');
+        const dbCol = allowedCols[col?.toLowerCase()];
+        if (dbCol) {
+          const direction = dir?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
+          orderParts.push(`${dbCol} ${direction}`);
+        }
+      }
+      if (orderParts.length > 0) {
+        orderBySql = `ORDER BY ${orderParts.join(', ')}`;
+      }
+    }
 
     params.push(limit);
     const limitIdx = params.length;
@@ -388,7 +451,8 @@ export class TasksService {
       SELECT 
         t.id, t.task_code, t.title, t.description, t.hierarchy_level, t.task_type_id, t.status_id,
         t.project_id, t.product_id, t.version_id, t.sprint_id, t.milestone_id, t.branch_id,
-        t.priority, t.estimated_hours, t.story_points, t.t_shirt_size, t.backlog_order,
+        t.priority, t.severity, t.is_blocked, t.resolution, t.resolution_details, t.resolved_at, t.resolved_by,
+        t.estimated_hours, t.story_points, t.t_shirt_size, t.backlog_order,
         t.is_chargeable, t.charge_amount, t.currency,
         t.planned_start_date, t.planned_end_date,
         t.actual_start_date, t.actual_end_date,
@@ -422,7 +486,7 @@ export class TasksService {
       GROUP BY 
         t.id, tt.type_name, tt.color_hex, tt.icon_name, ts.status_name, ts.color_hex, ts.status_category, ts.is_terminal,
         p.project_name, pr.product_name, v.version_code, sp.sprint_code, sp.sprint_name, m.milestone_code, m.milestone_name
-      ORDER BY t.backlog_order ASC, t.created_at DESC
+      ${orderBySql}
       LIMIT $${limitIdx} OFFSET $${offsetIdx};
     `;
 
@@ -578,9 +642,41 @@ export class TasksService {
     }
 
     // If entering terminal state (e.g. Closed)
-    if (!destStatus.is_terminal) actualEndUpdate = `, actual_end_date = NULL`;
-    if (destStatus.is_terminal && !task.actual_end_date) {
-      actualEndUpdate = `, actual_end_date = CURRENT_TIMESTAMP`;
+    let resolutionUpdate = "";
+    if (destStatus.is_terminal) {
+      if (task.type_name === "Bug / Defect" || task.type_code === "BUG") {
+        const finalResolution = dto.resolution || task.resolution;
+        if (!finalResolution) {
+          throw new BadRequestException(
+            "Resolution classification (FIXED, WONT_FIX, DUPLICATE, CANNOT_REPRODUCE, BY_DESIGN) is required when closing a Bug / Defect",
+          );
+        }
+      }
+      if (!task.actual_end_date) {
+        actualEndUpdate = `, actual_end_date = CURRENT_TIMESTAMP`;
+      }
+      if (dto.resolution) {
+        if (
+          ![
+            "FIXED",
+            "WONT_FIX",
+            "DUPLICATE",
+            "CANNOT_REPRODUCE",
+            "BY_DESIGN",
+          ].includes(dto.resolution)
+        ) {
+          throw new BadRequestException("Invalid resolution classification");
+        }
+        const sanitizedDetails = dto.resolutionDetails
+          ? `'${dto.resolutionDetails.replace(/'/g, "''")}'`
+          : "NULL";
+        resolutionUpdate = `, resolution = '${dto.resolution}', resolution_details = ${sanitizedDetails}, resolved_at = CURRENT_TIMESTAMP, resolved_by = '${userId}'`;
+      }
+    } else {
+      actualEndUpdate = `, actual_end_date = NULL`;
+      if (task.resolution) {
+        resolutionUpdate = `, resolution = NULL, resolution_details = NULL, resolved_at = NULL, resolved_by = NULL`;
+      }
     }
 
     const autoUser = await this.assignmentService.evaluateAutoAssignment(
@@ -595,7 +691,7 @@ export class TasksService {
       await this.lockTask(client, id, dto.expectedRevision ?? task.revision);
       const result = await client.query(
         `UPDATE tasks SET status_id=$1, updated_by=$2
-        ${actualStartUpdate} ${actualEndUpdate} WHERE id=$3 RETURNING *`,
+        ${actualStartUpdate} ${actualEndUpdate} ${resolutionUpdate} WHERE id=$3 RETURNING *`,
         [dto.toStatusId, userId, id],
       );
       if (autoUser)
@@ -890,6 +986,8 @@ export class TasksService {
         isChargeable: "is_chargeable",
         chargeAmount: "charge_amount",
         currency: "currency",
+        resolution: "resolution",
+        resolutionDetails: "resolution_details",
       };
       const values: any[] = [userId, id];
       const sets = ["updated_by=$1"];
@@ -897,6 +995,17 @@ export class TasksService {
         if (dto[key] !== undefined) {
           values.push(key === "title" ? dto[key].trim() : dto[key]);
           sets.push(`${column}=$${values.length}`);
+        }
+      }
+      if (dto.resolution !== undefined) {
+        if (dto.resolution) {
+          values.push(new Date());
+          sets.push(`resolved_at=$${values.length}`);
+          values.push(userId);
+          sets.push(`resolved_by=$${values.length}`);
+        } else {
+          sets.push("resolved_at=NULL");
+          sets.push("resolved_by=NULL");
         }
       }
       if (dto.assigneeIds !== undefined)
@@ -935,5 +1044,370 @@ export class TasksService {
       }
       return { success: true, updatedCount: items.length };
     });
+  }
+
+  /**
+   * Bulk update tasks with workflow validation, optimistic revision checks,
+   * and partial failure reporting (PLAN-003)
+   */
+  async bulkUpdateTasks(
+    dto: BulkUpdateTasksDto,
+    userId: string,
+    access?: any,
+  ): Promise<BulkUpdateTasksResponse> {
+    const succeeded: BulkUpdateResultItem[] = [];
+    const failed: BulkUpdateFailedItem[] = [];
+
+    for (const item of dto.items) {
+      try {
+        const taskRes = await this.db.query(
+          `SELECT t.*, ts.status_name, ts.status_category, ts.is_terminal, tt.type_name
+           FROM tasks t
+           INNER JOIN task_statuses ts ON t.status_id = ts.id
+           INNER JOIN task_types tt ON t.task_type_id = tt.id
+           WHERE t.id = $1`,
+          [item.id],
+        );
+
+        const task = taskRes.rows[0];
+        if (!task) {
+          failed.push({
+            id: item.id,
+            code: 'NOT_FOUND',
+            reason: 'Task not found',
+          });
+          continue;
+        }
+
+        // 1. Optimistic concurrency revision check
+        if (item.expectedRevision !== undefined && task.revision !== item.expectedRevision) {
+          failed.push({
+            id: item.id,
+            taskCode: task.task_code,
+            title: task.title,
+            code: 'REVISION_CONFLICT',
+            reason: `Revision conflict: expected revision ${item.expectedRevision}, but task has revision ${task.revision}. Reload latest data.`,
+          });
+          continue;
+        }
+
+        // 2. Workflow state machine validation if statusId changed
+        if (item.statusId && item.statusId !== task.status_id) {
+          const allowedStatuses = await this.workflowsService.getAllowedNextStatuses(
+            task.task_type_id,
+            task.status_id,
+          );
+          const isAllowed = allowedStatuses.some((s) => s.id === item.statusId);
+          if (!isAllowed) {
+            failed.push({
+              id: item.id,
+              taskCode: task.task_code,
+              title: task.title,
+              code: 'INVALID_TRANSITION',
+              reason: `Status transition not permitted by workflow state machine`,
+            });
+            continue;
+          }
+
+          // Check if bug closing requires resolution
+          const destStatus = await this.workflowsService.findOneStatus(item.statusId);
+          if (destStatus.is_terminal && (task.type_name === 'Bug / Defect' || task.task_type_id === 'BUG')) {
+            const finalRes = item.resolution || task.resolution;
+            if (!finalRes) {
+              failed.push({
+                id: item.id,
+                taskCode: task.task_code,
+                title: task.title,
+                code: 'VALIDATION_ERROR',
+                reason: 'Resolution classification is mandatory when closing a Bug / Defect',
+              });
+              continue;
+            }
+          }
+        }
+
+        // 3. Execute updates in a transaction for this task
+        await this.db.transaction(async (client) => {
+          const updates: string[] = [
+            'revision = revision + 1',
+            'updated_by = $2',
+            'updated_at = CURRENT_TIMESTAMP',
+          ];
+          const updateParams: any[] = [item.id, userId];
+
+          if (item.statusId) {
+            updateParams.push(item.statusId);
+            updates.push(`status_id = $${updateParams.length}`);
+
+            const dest = await this.workflowsService.findOneStatus(item.statusId);
+            if (dest.status_category === 'IN_PROGRESS' && !task.actual_start_date) {
+              updates.push(`actual_start_date = CURRENT_TIMESTAMP`);
+            }
+            if (dest.is_terminal) {
+              if (!task.actual_end_date) {
+                updates.push(`actual_end_date = CURRENT_TIMESTAMP`);
+              }
+              if (item.resolution) {
+                updateParams.push(item.resolution);
+                updates.push(`resolution = $${updateParams.length}`);
+                updateParams.push(userId);
+                updates.push(`resolved_by = $${updateParams.length}`);
+                updates.push(`resolved_at = CURRENT_TIMESTAMP`);
+              }
+              if (item.resolutionDetails !== undefined) {
+                updateParams.push(item.resolutionDetails);
+                updates.push(`resolution_details = $${updateParams.length}`);
+              }
+            } else {
+              updates.push(`actual_end_date = NULL`);
+              if (task.resolution) {
+                updates.push(`resolution = NULL, resolution_details = NULL, resolved_at = NULL, resolved_by = NULL`);
+              }
+            }
+          }
+
+          if (item.priority) {
+            updateParams.push(item.priority);
+            updates.push(`priority = $${updateParams.length}`);
+          }
+          if (item.sprintId !== undefined) {
+            updateParams.push(item.sprintId || null);
+            updates.push(`sprint_id = $${updateParams.length}`);
+          }
+          if (item.milestoneId !== undefined) {
+            updateParams.push(item.milestoneId || null);
+            updates.push(`milestone_id = $${updateParams.length}`);
+          }
+          if (item.storyPoints !== undefined) {
+            updateParams.push(item.storyPoints);
+            updates.push(`story_points = $${updateParams.length}`);
+          }
+          if (item.tShirtSize !== undefined) {
+            updateParams.push(item.tShirtSize);
+            updates.push(`t_shirt_size = $${updateParams.length}`);
+          }
+          if (item.plannedDueDate !== undefined) {
+            updateParams.push(item.plannedDueDate);
+            updates.push(`planned_end_date = $${updateParams.length}`);
+          }
+          if (item.isBlocked !== undefined) {
+            updateParams.push(item.isBlocked);
+            updates.push(`is_blocked = $${updateParams.length}`);
+          }
+
+          await client.query(
+            `UPDATE tasks SET ${updates.join(', ')} WHERE id = $1`,
+            updateParams,
+          );
+
+          if (item.assigneeIds !== undefined) {
+            await this.replaceAssignees(
+              client,
+              item.id,
+              { assigneeIds: item.assigneeIds, primaryAssigneeId: item.assigneeIds[0] },
+              userId,
+              task.branch_id,
+            );
+          }
+
+          await taskEvent(
+            client,
+            item.id,
+            userId,
+            'BULK_UPDATE',
+            'Task updated via bulk action',
+            dto.remarks || 'Bulk update',
+          );
+        });
+
+        succeeded.push({
+          id: item.id,
+          taskCode: task.task_code,
+          title: task.title,
+        });
+      } catch (err: any) {
+        failed.push({
+          id: item.id,
+          code: 'VALIDATION_ERROR',
+          reason: err.message || 'Failed to update task',
+        });
+      }
+    }
+
+    return {
+      total: dto.items.length,
+      succeededCount: succeeded.length,
+      failedCount: failed.length,
+      succeeded,
+      failed,
+    };
+  }
+
+  /**
+   * Coordinated server-side query and export for large datasets (PLAN-003)
+   */
+  async exportTasks(query: QueryTaskDto, format: 'csv' | 'json' = 'csv') {
+    const params: any[] = [];
+    const whereClauses: string[] = [];
+
+    if (query.projectId) {
+      params.push(query.projectId);
+      whereClauses.push(`t.project_id = $${params.length}`);
+    }
+    if (query.productId) {
+      params.push(query.productId);
+      whereClauses.push(`t.product_id = $${params.length}`);
+    }
+    if (query.versionId) {
+      params.push(query.versionId);
+      whereClauses.push(`t.version_id = $${params.length}`);
+    }
+    if (query.taskTypeId) {
+      params.push(query.taskTypeId);
+      whereClauses.push(`t.task_type_id = $${params.length}`);
+    }
+    if (query.statusId) {
+      params.push(query.statusId);
+      whereClauses.push(`t.status_id = $${params.length}`);
+    }
+    if (query.priority) {
+      params.push(query.priority);
+      whereClauses.push(`t.priority = $${params.length}`);
+    }
+    if (query.branchId) {
+      params.push(query.branchId);
+      whereClauses.push(`t.branch_id = $${params.length}`);
+    }
+    if (query.isChargeable !== undefined) {
+      params.push(query.isChargeable);
+      whereClauses.push(`t.is_chargeable = $${params.length}`);
+    }
+    if (query.assigneeUserId) {
+      params.push(query.assigneeUserId);
+      whereClauses.push(
+        `EXISTS (SELECT 1 FROM task_assignees ta WHERE ta.task_id = t.id AND ta.user_id = $${params.length})`,
+      );
+    }
+    if (query.sprintId) {
+      params.push(query.sprintId);
+      whereClauses.push(`t.sprint_id = $${params.length}`);
+    }
+    if (query.milestoneId) {
+      params.push(query.milestoneId);
+      whereClauses.push(`t.milestone_id = $${params.length}`);
+    }
+    if (query.hierarchyLevel) {
+      params.push(query.hierarchyLevel);
+      whereClauses.push(`t.hierarchy_level = $${params.length}`);
+    }
+    if (query.isBacklog) {
+      whereClauses.push(`t.sprint_id IS NULL`);
+    }
+    if (query.isBlocked !== undefined) {
+      params.push(query.isBlocked);
+      whereClauses.push(`t.is_blocked = $${params.length}`);
+    }
+    if (query.unassignedOnly) {
+      whereClauses.push(
+        `NOT EXISTS (SELECT 1 FROM task_assignees ta_check WHERE ta_check.task_id = t.id)`,
+      );
+    }
+    if (query.isCompleted !== undefined) {
+      whereClauses.push(
+        query.isCompleted ? `ts.is_terminal = TRUE` : `ts.is_terminal = FALSE`,
+      );
+    }
+    if (query.statusCategory) {
+      params.push(query.statusCategory);
+      whereClauses.push(`ts.status_category = $${params.length}`);
+    }
+    if (query.search) {
+      params.push(`%${query.search.trim()}%`);
+      whereClauses.push(
+        `(t.task_code ILIKE $${params.length} OR t.title ILIKE $${params.length})`,
+      );
+    }
+
+    const whereSql =
+      whereClauses.length > 0 ? `WHERE ${whereClauses.join(" AND ")}` : "";
+
+    const sql = `
+      SELECT 
+        t.task_code, t.title, t.hierarchy_level, tt.type_name, ts.status_name,
+        t.priority, t.severity, p.project_name, pr.product_name,
+        sp.sprint_name, m.milestone_name,
+        t.estimated_hours, t.story_points, t.t_shirt_size,
+        t.planned_end_date, t.is_blocked, t.resolution,
+        t.created_at,
+        COALESCE(string_agg(DISTINCT CONCAT(u.first_name, ' ', u.last_name), '; '), '') as assignees_text
+      FROM tasks t
+      INNER JOIN task_types tt ON t.task_type_id = tt.id
+      INNER JOIN task_statuses ts ON t.status_id = ts.id
+      LEFT JOIN projects p ON t.project_id = p.id
+      LEFT JOIN products pr ON t.product_id = pr.id
+      LEFT JOIN sprints sp ON t.sprint_id = sp.id
+      LEFT JOIN milestones m ON t.milestone_id = m.id
+      LEFT JOIN task_assignees ta ON t.id = ta.task_id
+      LEFT JOIN users u ON ta.user_id = u.id
+      ${whereSql}
+      GROUP BY 
+        t.id, t.task_code, t.title, t.hierarchy_level, tt.type_name, ts.status_name,
+        t.priority, t.severity, p.project_name, pr.product_name,
+        sp.sprint_name, m.milestone_name,
+        t.estimated_hours, t.story_points, t.t_shirt_size,
+        t.planned_end_date, t.is_blocked, t.resolution, t.created_at
+      ORDER BY t.backlog_order ASC, t.created_at DESC
+    `;
+
+    const result = await this.db.query(sql, params);
+    if (format === 'json') {
+      return { data: result.rows, totalRecords: result.rows.length };
+    }
+
+    const headers = [
+      'Task Code', 'Title', 'Hierarchy', 'Type', 'Status', 'Priority', 'Severity',
+      'Project', 'Product', 'Sprint', 'Milestone', 'Estimated Hours', 'Story Points',
+      'T-Shirt', 'Due Date', 'Blocked', 'Resolution', 'Assignees', 'Created At'
+    ];
+
+    const escapeCsv = (val: any) => {
+      if (val === null || val === undefined) return '';
+      const str = String(val);
+      if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    };
+
+    const lines = [
+      headers.join(','),
+      ...result.rows.map((r: any) => [
+        escapeCsv(r.task_code),
+        escapeCsv(r.title),
+        escapeCsv(r.hierarchy_level),
+        escapeCsv(r.type_name),
+        escapeCsv(r.status_name),
+        escapeCsv(r.priority),
+        escapeCsv(r.severity),
+        escapeCsv(r.project_name),
+        escapeCsv(r.product_name),
+        escapeCsv(r.sprint_name),
+        escapeCsv(r.milestone_name),
+        escapeCsv(r.estimated_hours),
+        escapeCsv(r.story_points),
+        escapeCsv(r.t_shirt_size),
+        escapeCsv(r.planned_end_date),
+        escapeCsv(r.is_blocked ? 'YES' : 'NO'),
+        escapeCsv(r.resolution),
+        escapeCsv(r.assignees_text),
+        escapeCsv(r.created_at),
+      ].join(',')),
+    ];
+
+    return {
+      csv: lines.join('\n'),
+      totalRecords: result.rows.length,
+      filename: `tasks_export_${new Date().toISOString().slice(0, 10)}.csv`,
+    };
   }
 }

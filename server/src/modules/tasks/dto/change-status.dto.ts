@@ -22,4 +22,20 @@ export class ChangeTaskStatusDto {
   @IsString()
   @IsOptional()
   remarks?: string;
+
+  @ApiPropertyOptional({
+    enum: ["FIXED", "WONT_FIX", "DUPLICATE", "CANNOT_REPRODUCE", "BY_DESIGN"],
+    description: "Resolution classification when transitioning to a closed status",
+  })
+  @IsString()
+  @IsOptional()
+  resolution?: string;
+
+  @ApiPropertyOptional({
+    description: "Explanation or resolution rationale",
+  })
+  @IsString()
+  @IsOptional()
+  resolutionDetails?: string;
 }
+

@@ -346,9 +346,9 @@ All boxes in this section remain unchecked. Feature IDs reference [requirements]
 
 - [x] **PLAN-001**: Initiative/epic/task/subtask hierarchy, ranked product/project backlogs, separate sprints/releases/milestones, team ownership and sprint permissions.
 - [x] **PLAN-001 — acceptance**: Record initial sprint commitment, scope changes and rollover history; support story points/T-shirt sizes and Kanban without mandatory sprints.
-- [ ] **PLAN-002**: FS and directed Blocks links, inverse display, dependency-only cycle checks; blocker episodes with owner/reason/next action and overlapping-duration handling.
-- [ ] **PLAN-002 — defect templates**: Reuse custom fields for reproduction, expected/actual behavior, environment and workaround; distinguish priority/severity and enforce resolution classifications.
-- [ ] **PLAN-003**: Personal/team saved views, inline cells and permission-aware bulk operations with revision checks/partial failures; coordinated server-side queries and exports for large results.
+- [x] **PLAN-002**: FS and directed Blocks links, inverse display, dependency-only cycle checks; blocker episodes with owner/reason/next action and overlapping-duration handling.
+- [x] **PLAN-002 — defect templates**: Reuse custom fields for reproduction, expected/actual behavior, environment and workaround; distinguish priority/severity and enforce resolution classifications.
+- [x] **PLAN-003**: Personal/team saved views, inline cells and permission-aware bulk operations with revision checks/partial failures; coordinated server-side queries and exports for large results.
 - [ ] **TIME-001**: Configurable weekly grid and reminders based on expected hours; cross-project reviewer portions, submit/reject/resubmit/approve and audited amendments without duplicate approval.
 - [ ] **TIME-001 — timer**: Persist one active timer across tabs/devices with recovery and correction; browser blur never stops/discards time automatically.
 - [ ] **TIME-001 — acceptance**: Exercise leave, part-time work, multiple projects and stale approvals; monthly summaries/exports follow weekly acceptance and separate monthly sign-off stays deferred.

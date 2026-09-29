@@ -26,6 +26,7 @@ import { ChangeTaskStatusDto } from "./dto/change-status.dto";
 import { AssignTaskDto } from "./dto/assign-task.dto";
 import { QueryTaskDto } from "./dto/query-task.dto";
 import { ReorderTasksDto } from "./dto/reorder-tasks.dto";
+import { BulkUpdateTasksDto } from "./dto/bulk-update-tasks.dto";
 import { RequirePermissions } from "../../common/decorators/permissions.decorator";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 
@@ -60,6 +61,36 @@ export class TasksController {
     @CurrentUser("id") userId: string,
   ) {
     return { data: await this.tasksService.reorderTasks(dto.items, userId) };
+  }
+
+  @Post("bulk-update")
+  @RequirePermissions("TASKS:UPDATE")
+  @ApiOperation({
+    summary:
+      "Bulk update tasks with permission validation, workflow checks, optimistic revision checks, and partial failure reporting (PLAN-003)",
+  })
+  async bulkUpdate(
+    @Body() dto: BulkUpdateTasksDto,
+    @CurrentUser("id") userId: string,
+    @Req() request: any,
+  ) {
+    return {
+      data: await this.tasksService.bulkUpdateTasks(
+        dto,
+        userId,
+        request.userEffectivePermissions,
+      ),
+    };
+  }
+
+  @Get("export")
+  @RequirePermissions("TASKS:READ")
+  @ApiOperation({ summary: "Export filtered tasks to CSV or JSON (PLAN-003)" })
+  async export(
+    @Query() query: QueryTaskDto,
+    @Query("format") format: "csv" | "json" = "csv",
+  ) {
+    return await this.tasksService.exportTasks(query, format);
   }
 
   @Post(":id/subtasks")

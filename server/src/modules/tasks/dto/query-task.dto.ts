@@ -106,4 +106,37 @@ export class QueryTaskDto {
   @IsString()
   @IsOptional()
   search?: string;
+
+  @ApiPropertyOptional({ description: 'Filter blocked tasks (PLAN-002)' })
+  @Transform(({ value }) => value === true || value === 'true')
+  @IsBoolean()
+  @IsOptional()
+  isBlocked?: boolean;
+
+  @ApiPropertyOptional({ description: 'Filter unassigned tasks (PLAN-003)' })
+  @Transform(({ value }) => value === true || value === 'true')
+  @IsBoolean()
+  @IsOptional()
+  unassignedOnly?: boolean;
+
+  @ApiPropertyOptional({ description: 'Filter tasks by completion status' })
+  @Transform(({ value }) => value === true || value === 'true')
+  @IsBoolean()
+  @IsOptional()
+  isCompleted?: boolean;
+
+  @ApiPropertyOptional({ description: 'Filter by status category (e.g. TESTING, REVIEW, IN_PROGRESS, COMPLETED)' })
+  @IsString()
+  @IsOptional()
+  statusCategory?: string;
+
+  @ApiPropertyOptional({ description: 'Multi-column sort expression e.g. priority:desc,planned_due_date:asc' })
+  @IsString()
+  @IsOptional()
+  sort?: string;
+
+  @ApiPropertyOptional({ description: 'Group by field name' })
+  @IsString()
+  @IsOptional()
+  groupBy?: string;
 }
