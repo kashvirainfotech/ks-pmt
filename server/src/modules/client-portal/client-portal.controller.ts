@@ -16,6 +16,9 @@ import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagg
 import { ClientPortalService } from './client-portal.service';
 import { ChangeRequestsService } from '../change-requests/change-requests.service';
 import { ClientDecisionDto } from '../change-requests/dto/client-decision.dto';
+import { UatPackagesService } from '../uat-packages/uat-packages.service';
+import { ClientUatDecisionDto } from '../uat-packages/dto/client-uat-decision.dto';
+import { RecordChecklistProgressDto } from '../uat-packages/dto/record-checklist-progress.dto';
 import { Public } from '../../common/guards/jwt-auth.guard';
 import { ClientContactGuard } from '../../common/guards/client-contact.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -28,12 +31,13 @@ import { CreateIntakeRequestDto } from './dto/create-intake-request.dto';
 import { TriageRequestDto } from './dto/triage-request.dto';
 import { CreateRequestMessageDto, QueryRequestsDto } from './dto/request-message.dto';
 
-@ApiTags('Client Portal & Customer Intake (CLIENT-001, CLIENT-002, CLIENT-003, CLIENT-004)')
+@ApiTags('Client Portal & Customer Intake (CLIENT-001, CLIENT-002, CLIENT-003, CLIENT-004, CLIENT-005)')
 @Controller()
 export class ClientPortalController {
   constructor(
     private readonly clientPortalService: ClientPortalService,
     private readonly changeRequestsService: ChangeRequestsService,
+    private readonly uatPackagesService: UatPackagesService,
   ) {}
 
   // ========================================================
@@ -439,6 +443,78 @@ export class ClientPortalController {
     const data = await this.changeRequestsService.recordClientDecision(id, rev, dto, req.user);
     return {
       message: 'Client decision recorded successfully',
+      data,
+    };
+  }
+
+  // ========================================================
+  // 8. Client Portal UAT Packages & Milestone Sign-Off (CLIENT-005)
+  // ========================================================
+
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(ClientContactGuard)
+  @Get('client-portal/uat-packages')
+  @ApiOperation({ summary: 'List customer-safe UAT packages for permitted projects' })
+  async getClientUatPackages(
+    @Req() req: any,
+    @Query('projectId') projectId?: string,
+  ) {
+    const data = await this.uatPackagesService.getClientPortalUatPackages(req.user, projectId);
+    return {
+      message: 'UAT packages retrieved successfully',
+      data,
+    };
+  }
+
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(ClientContactGuard)
+  @Get('client-portal/uat-packages/:id')
+  @ApiOperation({ summary: 'Get UAT package details with customer-safe checklist and revisions' })
+  async getClientUatPackageDetail(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: any,
+  ) {
+    const data = await this.uatPackagesService.getClientPortalUatPackageDetail(id, req.user);
+    return {
+      message: 'UAT package details retrieved successfully',
+      data,
+    };
+  }
+
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(ClientContactGuard)
+  @Patch('client-portal/uat-packages/checklist-items/:itemId/test')
+  @ApiOperation({ summary: 'Client tester updates checklist item test status and feedback' })
+  async testChecklistItem(
+    @Param('itemId', ParseUUIDPipe) itemId: string,
+    @Body() dto: RecordChecklistProgressDto,
+    @Req() req: any,
+  ) {
+    const data = await this.uatPackagesService.updateChecklistItem(
+      itemId,
+      dto,
+      undefined,
+      req.user.contactId,
+    );
+    return {
+      message: 'Checklist item test status recorded successfully',
+      data,
+    };
+  }
+
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(ClientContactGuard)
+  @Post('client-portal/uat-packages/:id/revisions/:rev/decision')
+  @ApiOperation({ summary: 'Client approver records milestone acceptance, changes requested, or rejection on UAT package' })
+  async submitClientUatDecision(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('rev', ParseIntPipe) rev: number,
+    @Body() dto: ClientUatDecisionDto,
+    @Req() req: any,
+  ) {
+    const data = await this.uatPackagesService.recordClientDecision(id, rev, dto, req.user);
+    return {
+      message: 'Client UAT sign-off decision recorded successfully',
       data,
     };
   }

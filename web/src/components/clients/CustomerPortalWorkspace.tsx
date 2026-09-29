@@ -19,15 +19,18 @@ import {
   User,
   DollarSign,
   History,
+  ClipboardCheck,
+  ExternalLink,
+  Check,
 } from 'lucide-react';
 import { clientPortalApi } from '../../api/endpoints';
-import { ClientIntakeRequest, ChangeRequest } from '../../types';
+import { ClientIntakeRequest, ChangeRequest, UatPackage, UatChecklistItem } from '../../types';
 
 export const CustomerPortalWorkspace: React.FC = () => {
   const [portalContext, setPortalContext] = useState<any>(null);
   const [requests, setRequests] = useState<ClientIntakeRequest[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [activeTab, setActiveTab] = useState<'REQUESTS' | 'PROJECTS' | 'PRODUCTS' | 'REQUIREMENTS' | 'CHANGE_REQUESTS'>('REQUESTS');
+  const [activeTab, setActiveTab] = useState<'REQUESTS' | 'PROJECTS' | 'PRODUCTS' | 'REQUIREMENTS' | 'CHANGE_REQUESTS' | 'UAT_PACKAGES'>('REQUESTS');
 
   // Requirements & Acceptance state (CLIENT-003)
   const [portalRequirements, setPortalRequirements] = useState<any[]>([]);
@@ -59,6 +62,33 @@ export const CustomerPortalWorkspace: React.FC = () => {
     cr: null,
     decision: 'APPROVED',
     remarks: '',
+  });
+
+  // UAT Packages & Milestone Acceptance state (CLIENT-005)
+  const [portalUatPackages, setPortalUatPackages] = useState<UatPackage[]>([]);
+  const [selectedUatPkg, setSelectedUatPkg] = useState<UatPackage | null>(null);
+  const [loadingUats, setLoadingUats] = useState<boolean>(false);
+  const [uatDecisionModal, setUatDecisionModal] = useState<{
+    show: boolean;
+    pkg: UatPackage | null;
+    decision: 'APPROVED' | 'CHANGES_REQUESTED' | 'REJECTED';
+    remarks: string;
+  }>({
+    show: false,
+    pkg: null,
+    decision: 'APPROVED',
+    remarks: '',
+  });
+  const [uatItemTestModal, setUatItemTestModal] = useState<{
+    show: boolean;
+    item: UatChecklistItem | null;
+    status: 'PASSED' | 'FAILED';
+    feedback: string;
+  }>({
+    show: false,
+    item: null,
+    status: 'PASSED',
+    feedback: '',
   });
 
   // Submit Modal
@@ -192,6 +222,72 @@ export const CustomerPortalWorkspace: React.FC = () => {
       loadPortalChangeRequests();
     } catch (err: any) {
       alert(err.response?.data?.message || 'Failed to submit decision');
+    }
+  };
+
+  const loadPortalUatPackages = async () => {
+    try {
+      setLoadingUats(true);
+      const res = await clientPortalApi.getUatPackages();
+      setPortalUatPackages(res.data || []);
+      if (res.data && res.data.length > 0 && !selectedUatPkg) {
+        handleOpenUatDetail(res.data[0].id);
+      }
+    } catch (err) {
+      console.error('Failed to load portal UAT packages', err);
+    } finally {
+      setLoadingUats(false);
+    }
+  };
+
+  const handleOpenUatDetail = async (pkgId: string) => {
+    try {
+      const res = await clientPortalApi.getUatPackageDetail(pkgId);
+      setSelectedUatPkg(res.data);
+    } catch (err) {
+      console.error('Failed to load UAT package details', err);
+    }
+  };
+
+  const handleUatDecisionSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!uatDecisionModal.pkg) return;
+    try {
+      await clientPortalApi.submitUatDecision(
+        uatDecisionModal.pkg.id,
+        uatDecisionModal.pkg.current_revision,
+        {
+          decision: uatDecisionModal.decision,
+          remarks: uatDecisionModal.remarks,
+        },
+      );
+      alert(`Milestone / UAT Decision recorded as ${uatDecisionModal.decision} for ${uatDecisionModal.pkg.package_code} (Rev ${uatDecisionModal.pkg.current_revision})`);
+      setUatDecisionModal({ show: false, pkg: null, decision: 'APPROVED', remarks: '' });
+      if (selectedUatPkg) {
+        handleOpenUatDetail(selectedUatPkg.id);
+      }
+      loadPortalUatPackages();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to submit UAT decision');
+    }
+  };
+
+  const handleItemTestSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!uatItemTestModal.item || !selectedUatPkg) return;
+    try {
+      await clientPortalApi.testChecklistItem(
+        uatItemTestModal.item.id,
+        {
+          clientStatus: uatItemTestModal.status,
+          clientFeedback: uatItemTestModal.feedback,
+        },
+      );
+      alert(`Item test result recorded as ${uatItemTestModal.status}`);
+      setUatItemTestModal({ show: false, item: null, status: 'PASSED', feedback: '' });
+      handleOpenUatDetail(selectedUatPkg.id);
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to record test feedback');
     }
   };
 
@@ -340,6 +436,17 @@ export const CustomerPortalWorkspace: React.FC = () => {
             }`}
           >
             Change Requests & Quotations ({portalChangeRequests.length})
+          </button>
+          <button
+            onClick={() => {
+              setActiveTab('UAT_PACKAGES');
+              loadPortalUatPackages();
+            }}
+            className={`px-3 py-1.5 rounded-lg transition ${
+              activeTab === 'UAT_PACKAGES' ? 'bg-white text-indigo-900' : 'text-white/80 hover:bg-white/10'
+            }`}
+          >
+            UAT & Milestone Acceptance ({portalUatPackages.length})
           </button>
         </div>
       </div>
@@ -940,6 +1047,411 @@ export const CustomerPortalWorkspace: React.FC = () => {
         </div>
       )}
 
+      {/* UAT & Acceptance Packages Tab (CLIENT-005) */}
+      {activeTab === 'UAT_PACKAGES' && (
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
+          <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+            <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <ClipboardCheck className="w-5 h-5 text-indigo-600" />
+              Client Acceptance & Milestone Sign-Off (UAT)
+            </h2>
+            <span className="text-xs text-slate-500">
+              Tri-state verification (Dev-Done &rarr; QA-Verified &rarr; Client-Accepted) with formal milestone sign-off
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[600px]">
+            {/* Left Column: Package List */}
+            <div className="lg:col-span-4 border-r border-slate-200 dark:border-slate-700 p-4 space-y-3 overflow-y-auto max-h-[750px]">
+              <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                Available Acceptance Packages ({portalUatPackages.length})
+              </div>
+              {loadingUats ? (
+                <div className="p-8 text-center text-slate-400 text-xs">Loading acceptance packages...</div>
+              ) : portalUatPackages.length === 0 ? (
+                <div className="p-8 text-center text-slate-400 text-xs">
+                  No UAT packages published for acceptance testing yet.
+                </div>
+              ) : (
+                portalUatPackages.map((pkg) => {
+                  const isSelected = selectedUatPkg?.id === pkg.id;
+                  return (
+                    <div
+                      key={pkg.id}
+                      onClick={() => handleOpenUatDetail(pkg.id)}
+                      className={`p-3.5 rounded-xl border cursor-pointer transition text-xs space-y-2 ${
+                        isSelected
+                          ? 'border-indigo-600 bg-indigo-50/50 dark:bg-indigo-950/30 ring-1 ring-indigo-600'
+                          : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-900/50'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-mono font-bold text-indigo-600 dark:text-indigo-400">
+                          {pkg.package_code}
+                        </span>
+                        <span
+                          className={`px-2 py-0.5 text-[10px] font-bold rounded ${
+                            pkg.status === 'ACCEPTED'
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : pkg.status === 'READY_FOR_CLIENT'
+                              ? 'bg-blue-100 text-blue-800'
+                              : pkg.status === 'CHANGES_REQUESTED'
+                              ? 'bg-amber-100 text-amber-800'
+                              : pkg.status === 'REJECTED'
+                              ? 'bg-rose-100 text-rose-800'
+                              : 'bg-slate-100 text-slate-700'
+                          }`}
+                        >
+                          {pkg.status}
+                        </span>
+                      </div>
+                      <div className="font-bold text-slate-900 dark:text-white line-clamp-1">
+                        {pkg.title}
+                      </div>
+                      <div className="text-[11px] text-slate-500 flex items-center justify-between">
+                        <span>{pkg.project_name || pkg.product_name}</span>
+                        <span className="font-semibold">Rev {pkg.current_revision}</span>
+                      </div>
+                      {pkg.environment_url && (
+                        <div className="text-[11px] text-slate-400 flex items-center gap-1">
+                          <span>Env: {pkg.environment_url}</span>
+                          {pkg.milestone_name && <span>&bull; {pkg.milestone_name}</span>}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Right Column: Package Detail & Checklist */}
+            <div className="lg:col-span-8 p-6 overflow-y-auto max-h-[750px]">
+              {selectedUatPkg ? (
+                <div className="space-y-6">
+                  {/* Header Bar */}
+                  <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-700">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono font-bold text-sm text-indigo-600 dark:text-indigo-400">
+                          {selectedUatPkg.package_code}
+                        </span>
+                        <span className="text-xs px-2 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold rounded">
+                          Rev {selectedUatPkg.current_revision}
+                        </span>
+                        <span
+                          className={`px-2 py-0.5 text-xs font-bold rounded ${
+                            selectedUatPkg.status === 'ACCEPTED'
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : selectedUatPkg.status === 'READY_FOR_CLIENT'
+                              ? 'bg-blue-100 text-blue-800'
+                              : selectedUatPkg.status === 'CHANGES_REQUESTED'
+                              ? 'bg-amber-100 text-amber-800'
+                              : selectedUatPkg.status === 'REJECTED'
+                              ? 'bg-rose-100 text-rose-800'
+                              : 'bg-slate-100 text-slate-700'
+                          }`}
+                        >
+                          {selectedUatPkg.status}
+                        </span>
+                      </div>
+                      <h2 className="text-lg font-bold text-slate-900 dark:text-white mt-1.5">
+                        {selectedUatPkg.title}
+                      </h2>
+                      <div className="text-xs text-slate-500 mt-1 flex flex-wrap gap-x-3 gap-y-1">
+                        <span>Project/Product: <strong>{selectedUatPkg.project_name || selectedUatPkg.product_name}</strong></span>
+                        {selectedUatPkg.milestone_name && <span>Milestone: <strong>{selectedUatPkg.milestone_name}</strong></span>}
+                        {selectedUatPkg.environment_url && <span>Target Env: <strong>{selectedUatPkg.environment_url}</strong></span>}
+                      </div>
+                    </div>
+
+                    {/* Approver Action Buttons */}
+                    {portalContext?.contact?.isApprover && selectedUatPkg.status === 'READY_FOR_CLIENT' && (
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() =>
+                            setUatDecisionModal({
+                              show: true,
+                              pkg: selectedUatPkg,
+                              decision: 'CHANGES_REQUESTED',
+                              remarks: '',
+                            })
+                          }
+                          className="px-3 py-1.5 text-xs font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 dark:text-amber-300 rounded-lg border border-amber-200"
+                        >
+                          Request Changes
+                        </button>
+                        <button
+                          onClick={() =>
+                            setUatDecisionModal({
+                              show: true,
+                              pkg: selectedUatPkg,
+                              decision: 'APPROVED',
+                              remarks: '',
+                            })
+                          }
+                          className="px-3 py-1.5 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm"
+                        >
+                          Sign-Off & Accept
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Active Revision Details & Testing Credentials Box */}
+                  {selectedUatPkg.revisions && selectedUatPkg.revisions.length > 0 && (
+                    (() => {
+                      const currentRev = selectedUatPkg.revisions[0];
+                      return (
+                        <div className="space-y-4">
+                          {/* Test Environment & Build Meta */}
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-700 text-xs">
+                            <div>
+                              <span className="text-slate-500 block">Test Environment URL:</span>
+                              {selectedUatPkg.environment_url ? (
+                                <a
+                                  href={selectedUatPkg.environment_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-indigo-600 dark:text-indigo-400 font-medium hover:underline inline-flex items-center gap-1 mt-0.5 break-all"
+                                >
+                                  {selectedUatPkg.environment_url}
+                                  <ExternalLink className="w-3 h-3 shrink-0" />
+                                </a>
+                              ) : (
+                                <span className="text-slate-400">Not specified</span>
+                              )}
+                            </div>
+                            <div>
+                              <span className="text-slate-500 block">Build / Version:</span>
+                              <span className="font-mono text-slate-800 dark:text-slate-200">
+                                {selectedUatPkg.build_number || selectedUatPkg.version_name || 'Latest Release Candidate'}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="text-slate-500 block">Sign-Off Decision:</span>
+                              <span className="font-semibold text-slate-800 dark:text-slate-200">
+                                {currentRev.client_decision || 'Pending Review'}
+                              </span>
+                              {currentRev.decided_at && (
+                                <div className="text-[11px] text-slate-400">
+                                  {new Date(currentRev.decided_at).toLocaleString()}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Revision Notes */}
+                          {currentRev.revision_notes && (
+                            <div className="text-xs space-y-1">
+                              <span className="font-semibold text-slate-700 dark:text-slate-300">
+                                Revision Notes (Rev {currentRev.revision_number}):
+                              </span>
+                              <div className="p-3 bg-white dark:bg-slate-900 rounded-lg border text-slate-700 dark:text-slate-300 whitespace-pre-wrap">
+                                {currentRev.revision_notes}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Disclosed Known Issues */}
+                          {currentRev.known_issues && currentRev.known_issues.length > 0 && (
+                            <div className="text-xs space-y-2">
+                              <span className="font-semibold text-amber-700 dark:text-amber-400 flex items-center gap-1">
+                                Disclosed Known Issues ({currentRev.known_issues.length}):
+                              </span>
+                              <div className="space-y-1.5">
+                                {currentRev.known_issues.map((ki, i) => (
+                                  <div key={i} className="p-2.5 bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 rounded-lg text-amber-900 dark:text-amber-200">
+                                    <div className="font-bold flex items-center justify-between">
+                                      <span>{ki.title}</span>
+                                      {ki.severity && (
+                                        <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 bg-amber-200/50 rounded">
+                                          {ki.severity}
+                                        </span>
+                                      )}
+                                    </div>
+                                    {ki.workaround && (
+                                      <div className="text-[11px] mt-0.5 text-amber-800 dark:text-amber-300">
+                                        Workaround: {ki.workaround}
+                                      </div>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Interactive Acceptance Checklist */}
+                          <div className="space-y-3 pt-2">
+                            <div className="flex items-center justify-between">
+                              <h3 className="font-bold text-xs text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
+                                <CheckCircle2 className="w-4 h-4 text-indigo-600" />
+                                Acceptance Checklist Items ({currentRev.checklistItems?.length || 0})
+                              </h3>
+                              <span className="text-[11px] text-slate-500">
+                                Verify each test scenario below
+                              </span>
+                            </div>
+
+                            <div className="space-y-2">
+                              {currentRev.checklistItems && currentRev.checklistItems.length > 0 ? (
+                                currentRev.checklistItems.map((item: UatChecklistItem, idx: number) => (
+                                  <div
+                                    key={item.id}
+                                    className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs space-y-2"
+                                  >
+                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
+                                      <div className="flex items-center gap-2">
+                                        <span className="font-mono text-slate-400 font-bold">
+                                          #{idx + 1}
+                                        </span>
+                                        <span className="font-bold text-slate-900 dark:text-white">
+                                          {item.title}
+                                        </span>
+                                        {item.criteria_code && (
+                                          <span className="font-mono text-[10px] px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded">
+                                            {item.criteria_code}
+                                          </span>
+                                        )}
+                                      </div>
+
+                                      {/* Tri-State Indicators & Test Action */}
+                                      <div className="flex items-center gap-3">
+                                        <div className="flex items-center gap-1.5 text-[11px]">
+                                          <span className="text-slate-400">Dev:</span>
+                                          <span className={item.developer_done ? 'text-emerald-600 font-bold' : 'text-slate-300'}>
+                                            {item.developer_done ? 'Done' : 'Pending'}
+                                          </span>
+                                        </div>
+                                        <div className="flex items-center gap-1.5 text-[11px]">
+                                          <span className="text-slate-400">QA:</span>
+                                          <span className={item.qa_verified ? 'text-emerald-600 font-bold' : 'text-slate-300'}>
+                                            {item.qa_verified ? 'Verified' : 'Pending'}
+                                          </span>
+                                        </div>
+                                        <div className="flex items-center gap-1.5">
+                                          <span
+                                            className={`px-2 py-0.5 text-[10px] font-bold rounded ${
+                                              item.client_status === 'PASSED'
+                                                ? 'bg-emerald-100 text-emerald-800'
+                                                : item.client_status === 'FAILED'
+                                                ? 'bg-rose-100 text-rose-800'
+                                                : item.client_status === 'WAIVED'
+                                                ? 'bg-purple-100 text-purple-800'
+                                                : 'bg-amber-100 text-amber-800'
+                                            }`}
+                                          >
+                                            {item.client_status}
+                                          </span>
+                                        </div>
+
+                                        {/* Feedback Buttons */}
+                                        {selectedUatPkg.status === 'READY_FOR_CLIENT' && (
+                                          <div className="flex items-center gap-1 pl-2 border-l border-slate-200 dark:border-slate-700">
+                                            <button
+                                              onClick={() =>
+                                                setUatItemTestModal({
+                                                  show: true,
+                                                  item,
+                                                  status: 'PASSED',
+                                                  feedback: item.client_feedback || '',
+                                                })
+                                              }
+                                              title="Mark Passed"
+                                              className="p-1 hover:bg-emerald-50 text-emerald-600 rounded transition"
+                                            >
+                                              <Check className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                              onClick={() =>
+                                                setUatItemTestModal({
+                                                  show: true,
+                                                  item,
+                                                  status: 'FAILED',
+                                                  feedback: item.client_feedback || '',
+                                                })
+                                              }
+                                              title="Mark Failed / Report Defect"
+                                              className="p-1 hover:bg-rose-50 text-rose-600 rounded transition"
+                                            >
+                                              <AlertCircle className="w-4 h-4" />
+                                            </button>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+
+                                    {item.instructions && (
+                                      <p className="text-slate-600 dark:text-slate-400 pl-6">
+                                        {item.instructions}
+                                      </p>
+                                    )}
+
+                                    {item.expected_outcome && (
+                                      <div className="pl-6 text-[11px] text-slate-500">
+                                        <span className="font-semibold text-slate-600 dark:text-slate-400">Expected: </span>
+                                        {item.expected_outcome}
+                                      </div>
+                                    )}
+
+                                    {item.client_feedback && (
+                                      <div className="pl-6 text-[11px] italic text-rose-600 dark:text-rose-400 bg-rose-50/50 dark:bg-rose-950/20 p-2 rounded">
+                                        <strong>Client Feedback: </strong>"{item.client_feedback}"
+                                      </div>
+                                    )}
+                                  </div>
+                                ))
+                              ) : (
+                                <div className="text-xs text-slate-400 italic p-4 text-center">
+                                  No checklist items defined in this package revision.
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Historical Revisions */}
+                          {selectedUatPkg.revisions.length > 1 && (
+                            <div className="pt-4 border-t space-y-3">
+                              <h4 className="font-bold text-xs text-slate-900 dark:text-white flex items-center gap-1.5">
+                                <History className="w-4 h-4 text-indigo-600" />
+                                Material Revision Audit History ({selectedUatPkg.revisions.length})
+                              </h4>
+                              <div className="space-y-2">
+                                {selectedUatPkg.revisions.slice(1).map((hist) => (
+                                  <div key={hist.id} className="p-3 rounded-lg border bg-slate-50 dark:bg-slate-900/40 text-xs">
+                                    <div className="flex items-center justify-between">
+                                      <span className="font-bold text-slate-700 dark:text-slate-300">
+                                        Revision {hist.revision_number} &bull; {hist.status}
+                                      </span>
+                                      <span className="text-slate-400 text-[11px]">
+                                        Decision: {hist.client_decision || 'N/A'}
+                                      </span>
+                                    </div>
+                                    {hist.revision_notes && (
+                                      <div className="text-slate-500 mt-1">Notes: {hist.revision_notes}</div>
+                                    )}
+                                    {hist.client_signoff_remarks && (
+                                      <div className="text-slate-600 italic mt-0.5">Client Remarks: "{hist.client_signoff_remarks}"</div>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()
+                  )}
+                </div>
+              ) : (
+                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-12 text-center text-slate-400">
+                  Select an acceptance package on the left to review its scope, checklist items, and sign-off options.
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Modal: Client CR Decision */}
       {crDecisionModal.show && crDecisionModal.cr && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
@@ -987,6 +1499,140 @@ export const CustomerPortalWorkspace: React.FC = () => {
                   }`}
                 >
                   Submit Decision
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Client UAT Milestone Decision */}
+      {uatDecisionModal.show && uatDecisionModal.pkg && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-md w-full border border-slate-200 dark:border-slate-700 p-6 space-y-4">
+            <h3 className="font-bold text-base text-slate-900 dark:text-white">
+              {uatDecisionModal.decision === 'APPROVED' ? 'Sign-Off & Accept Milestone' : 'Request Changes on UAT Package'}
+            </h3>
+            <p className="text-xs text-slate-500">
+              Package: <strong className="font-mono">{uatDecisionModal.pkg.package_code}</strong> (Rev {uatDecisionModal.pkg.current_revision})
+            </p>
+
+            <form onSubmit={handleUatDecisionSubmit} className="space-y-3 text-xs">
+              <div>
+                <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Sign-Off Remarks / Justification *
+                </label>
+                <textarea
+                  rows={3}
+                  required
+                  placeholder={
+                    uatDecisionModal.decision === 'APPROVED'
+                      ? 'e.g. All critical acceptance scenarios have been verified and approved for milestone release.'
+                      : 'Please specify the defects or missing acceptance criteria requiring resolution.'
+                  }
+                  value={uatDecisionModal.remarks}
+                  onChange={(e) => setUatDecisionModal({ ...uatDecisionModal, remarks: e.target.value })}
+                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-slate-900 dark:text-white"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-700">
+                <button
+                  type="button"
+                  onClick={() => setUatDecisionModal({ show: false, pkg: null, decision: 'APPROVED', remarks: '' })}
+                  className="px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className={`px-4 py-2 text-white font-medium rounded-lg ${
+                    uatDecisionModal.decision === 'APPROVED'
+                      ? 'bg-emerald-600 hover:bg-emerald-700'
+                      : 'bg-amber-600 hover:bg-amber-700'
+                  }`}
+                >
+                  Confirm Sign-Off Decision
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Client Item Feedback / Test Verification */}
+      {uatItemTestModal.show && uatItemTestModal.item && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-md w-full border border-slate-200 dark:border-slate-700 p-6 space-y-4">
+            <h3 className="font-bold text-base text-slate-900 dark:text-white">
+              Record Item Test Verification
+            </h3>
+            <p className="text-xs text-slate-500">
+              Item: <strong>{uatItemTestModal.item.title}</strong>
+            </p>
+
+            <form onSubmit={handleItemTestSubmit} className="space-y-3 text-xs">
+              <div>
+                <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Verification Status *
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setUatItemTestModal({ ...uatItemTestModal, status: 'PASSED' })}
+                    className={`py-2 px-3 rounded-lg border font-bold text-center ${
+                      uatItemTestModal.status === 'PASSED'
+                        ? 'border-emerald-600 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300'
+                        : 'border-slate-200 dark:border-slate-700 text-slate-600'
+                    }`}
+                  >
+                    Passed
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setUatItemTestModal({ ...uatItemTestModal, status: 'FAILED' })}
+                    className={`py-2 px-3 rounded-lg border font-bold text-center ${
+                      uatItemTestModal.status === 'FAILED'
+                        ? 'border-rose-600 bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300'
+                        : 'border-slate-200 dark:border-slate-700 text-slate-600'
+                    }`}
+                  >
+                    Failed
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Feedback / Defect Notes {uatItemTestModal.status === 'FAILED' ? '*' : '(Optional)'}
+                </label>
+                <textarea
+                  rows={3}
+                  required={uatItemTestModal.status === 'FAILED'}
+                  placeholder={
+                    uatItemTestModal.status === 'PASSED'
+                      ? 'Optional notes confirming scenario passed'
+                      : 'Describe what failed, actual vs expected result'
+                  }
+                  value={uatItemTestModal.feedback}
+                  onChange={(e) => setUatItemTestModal({ ...uatItemTestModal, feedback: e.target.value })}
+                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-slate-900 dark:text-white"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-700">
+                <button
+                  type="button"
+                  onClick={() => setUatItemTestModal({ show: false, item: null, status: 'PASSED', feedback: '' })}
+                  className="px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg"
+                >
+                  Save Verification
                 </button>
               </div>
             </form>

@@ -240,4 +240,23 @@ CREATE INDEX IF NOT EXISTS idx_cr_revisions_decision ON change_request_revisions
 CREATE INDEX IF NOT EXISTS idx_cr_tasks_cr ON change_request_tasks(change_request_id);
 CREATE INDEX IF NOT EXISTS idx_cr_tasks_task ON change_request_tasks(task_id);
 
+-- ========================================================
+-- Date & Time: 2026-09-29 20:36:00 IST
+-- Description: CLIENT-005 - Indexes for UAT Packages, Revisions, Checklist Items, and Client Installed Versions
+-- ========================================================
+CREATE INDEX IF NOT EXISTS idx_uat_packages_project ON uat_packages(project_id, status) WHERE project_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_uat_packages_product ON uat_packages(product_id, status) WHERE product_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_uat_packages_version ON uat_packages(version_id) WHERE version_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_uat_packages_milestone ON uat_packages(milestone_id) WHERE milestone_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_uat_packages_status ON uat_packages(status);
+CREATE INDEX IF NOT EXISTS idx_uat_revisions_pkg ON uat_package_revisions(package_id, revision_number);
+CREATE INDEX IF NOT EXISTS idx_uat_revisions_status ON uat_package_revisions(status);
+CREATE INDEX IF NOT EXISTS idx_uat_revisions_decision ON uat_package_revisions(client_decision) WHERE client_decision IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_uat_items_rev ON uat_checklist_items(package_revision_id, order_index);
+CREATE INDEX IF NOT EXISTS idx_uat_items_client_status ON uat_checklist_items(client_status);
+CREATE INDEX IF NOT EXISTS idx_uat_items_criterion ON uat_checklist_items(criterion_id) WHERE criterion_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_uat_items_defect ON uat_checklist_items(linked_defect_task_id) WHERE linked_defect_task_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_client_installed_client ON client_installed_versions(client_id, is_current_active);
+CREATE INDEX IF NOT EXISTS idx_client_installed_version ON client_installed_versions(version_id);
+
 

@@ -1418,4 +1418,114 @@ CREATE TABLE IF NOT EXISTS change_request_tasks (
     CONSTRAINT uq_cr_task UNIQUE (change_request_id, task_id)
 );
 
+-- ========================================================
+-- Date & Time: 2026-09-29 20:36:00 IST
+-- Description: Client UAT Packages & Milestone Acceptance (CLIENT-005)
+-- ========================================================
+
+-- 51. UAT Packages (CLIENT-005)
+CREATE TABLE IF NOT EXISTS uat_packages (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    package_code VARCHAR(50) NOT NULL UNIQUE,
+    project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+    product_id UUID REFERENCES products(id) ON DELETE CASCADE,
+    version_id UUID REFERENCES versions(id) ON DELETE SET NULL,
+    milestone_id UUID REFERENCES milestones(id) ON DELETE SET NULL,
+    title VARCHAR(255) NOT NULL,
+    description TEXT NOT NULL,
+    environment_url VARCHAR(500),
+    build_number VARCHAR(100),
+    test_credentials_instructions TEXT,
+    current_revision INTEGER NOT NULL DEFAULT 1 CHECK (current_revision > 0),
+    status VARCHAR(30) NOT NULL DEFAULT 'DRAFT' CHECK (status IN ('DRAFT', 'INTERNAL_QA', 'READY_FOR_CLIENT', 'ACCEPTED', 'CHANGES_REQUESTED', 'REJECTED', 'SUPERSEDED')),
+    target_signoff_date DATE,
+    prepared_by_user_id UUID NOT NULL REFERENCES users(id),
+    qa_lead_user_id UUID REFERENCES users(id),
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_uat_package_scope CHECK (
+        (project_id IS NOT NULL AND product_id IS NULL) OR
+        (product_id IS NOT NULL AND project_id IS NULL)
+    )
+);
+
+-- 52. UAT Package Revisions (CLIENT-005)
+CREATE TABLE IF NOT EXISTS uat_package_revisions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    package_id UUID NOT NULL REFERENCES uat_packages(id) ON DELETE CASCADE,
+    revision_number INTEGER NOT NULL CHECK (revision_number > 0),
+    revision_notes TEXT NOT NULL,
+    status VARCHAR(30) NOT NULL DEFAULT 'DRAFT' CHECK (status IN ('DRAFT', 'INTERNAL_QA', 'READY_FOR_CLIENT', 'ACCEPTED', 'CHANGES_REQUESTED', 'REJECTED', 'SUPERSEDED')),
+    known_issues JSONB NOT NULL DEFAULT '[]'::jsonb,
+    test_evidence_urls JSONB NOT NULL DEFAULT '[]'::jsonb,
+    qa_approved_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    qa_approved_at TIMESTAMP WITH TIME ZONE,
+    qa_notes TEXT,
+    client_decision VARCHAR(30) CHECK (client_decision IS NULL OR client_decision IN ('APPROVED', 'CHANGES_REQUESTED', 'REJECTED')),
+    decided_by_contact_id UUID REFERENCES client_contacts(id) ON DELETE SET NULL,
+    decided_at TIMESTAMP WITH TIME ZONE,
+    client_signoff_remarks TEXT,
+    submitted_to_client_at TIMESTAMP WITH TIME ZONE,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_uat_revision UNIQUE (package_id, revision_number)
+);
+
+-- 53. UAT Checklist Items (CLIENT-005)
+CREATE TABLE IF NOT EXISTS uat_checklist_items (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    package_revision_id UUID NOT NULL REFERENCES uat_package_revisions(id) ON DELETE CASCADE,
+    item_code VARCHAR(50) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    instructions TEXT NOT NULL,
+    expected_outcome TEXT NOT NULL,
+    criterion_id UUID REFERENCES requirement_acceptance_criteria(id) ON DELETE SET NULL,
+    order_index INTEGER NOT NULL DEFAULT 1,
+    developer_done BOOLEAN NOT NULL DEFAULT FALSE,
+    developer_done_at TIMESTAMP WITH TIME ZONE,
+    qa_verified BOOLEAN NOT NULL DEFAULT FALSE,
+    qa_verified_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    qa_verified_at TIMESTAMP WITH TIME ZONE,
+    qa_evidence_notes TEXT,
+    client_status VARCHAR(30) NOT NULL DEFAULT 'PENDING' CHECK (client_status IN ('PENDING', 'PASSED', 'FAILED', 'BLOCKED', 'WAIVED')),
+    client_feedback TEXT,
+    client_tested_by_contact_id UUID REFERENCES client_contacts(id) ON DELETE SET NULL,
+    client_tested_at TIMESTAMP WITH TIME ZONE,
+    linked_defect_task_id UUID REFERENCES tasks(id) ON DELETE SET NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_uat_checklist_item UNIQUE (package_revision_id, item_code)
+);
+
+-- 54. Client Installed / Accepted Versions (CLIENT-005)
+CREATE TABLE IF NOT EXISTS client_installed_versions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    client_id UUID NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+    product_id UUID REFERENCES products(id) ON DELETE CASCADE,
+    project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+    version_id UUID NOT NULL REFERENCES versions(id) ON DELETE RESTRICT,
+    environment_name VARCHAR(50) NOT NULL DEFAULT 'PRODUCTION',
+    accepted_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    accepted_by_contact_id UUID REFERENCES client_contacts(id) ON DELETE SET NULL,
+    installed_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    installed_by_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    uat_package_id UUID REFERENCES uat_packages(id) ON DELETE SET NULL,
+    notes TEXT,
+    is_current_active BOOLEAN NOT NULL DEFAULT TRUE,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 

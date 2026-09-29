@@ -1361,6 +1361,148 @@ export interface ChangeRequest {
   tasks?: ChangeRequestTask[];
 }
 
+// ========================================================
+// Client UAT Packages & Milestone Sign-Off (CLIENT-005)
+// ========================================================
+
+export type UatPackageStatus =
+  | 'DRAFT'
+  | 'INTERNAL_QA'
+  | 'READY_FOR_CLIENT'
+  | 'ACCEPTED'
+  | 'CHANGES_REQUESTED'
+  | 'REJECTED'
+  | 'SUPERSEDED';
+
+export type UatChecklistClientStatus =
+  | 'PENDING'
+  | 'PASSED'
+  | 'FAILED'
+  | 'BLOCKED'
+  | 'WAIVED';
+
+export interface UatKnownIssue {
+  title: string;
+  workaround?: string;
+  severity?: string;
+  linkedTaskId?: string;
+  linkedTaskCode?: string;
+}
+
+export interface UatChecklistItem {
+  id: string;
+  package_revision_id: string;
+  item_code: string;
+  title: string;
+  instructions: string;
+  expected_outcome: string;
+  criterion_id?: string;
+  criteria_code?: string;
+  criteria_title?: string;
+  order_index: number;
+  developer_done: boolean;
+  developer_done_at?: string;
+  qa_verified: boolean;
+  qa_verified_by?: string;
+  qa_verified_by_name?: string;
+  qa_verified_at?: string;
+  qa_evidence_notes?: string;
+  client_status: UatChecklistClientStatus;
+  client_feedback?: string;
+  client_tested_by_contact_id?: string;
+  client_tested_by_contact_name?: string;
+  client_tested_at?: string;
+  linked_defect_task_id?: string;
+  linked_defect_code?: string;
+  linked_defect_title?: string;
+  linked_defect_status?: string;
+}
+
+export interface UatPackageRevision {
+  id: string;
+  package_id: string;
+  revision_number: number;
+  revision_notes: string;
+  status: UatPackageStatus;
+  known_issues: UatKnownIssue[];
+  test_evidence_urls: string[];
+  qa_approved_by?: string;
+  qa_approved_by_name?: string;
+  qa_approved_at?: string;
+  qa_notes?: string;
+  client_decision?: 'APPROVED' | 'CHANGES_REQUESTED' | 'REJECTED';
+  decided_by_contact_id?: string;
+  decided_by_contact_name?: string;
+  decided_by_contact_email?: string;
+  decided_by_client_company?: string;
+  decided_at?: string;
+  client_signoff_remarks?: string;
+  submitted_to_client_at?: string;
+  checklistItems?: UatChecklistItem[];
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UatPackage {
+  id: string;
+  package_code: string;
+  project_id?: string;
+  product_id?: string;
+  project_name?: string;
+  project_code?: string;
+  product_name?: string;
+  product_code?: string;
+  version_id?: string;
+  version_name?: string;
+  milestone_id?: string;
+  milestone_name?: string;
+  title: string;
+  description: string;
+  environment_url?: string;
+  build_number?: string;
+  test_credentials_instructions?: string;
+  current_revision: number;
+  status: UatPackageStatus;
+  target_signoff_date?: string;
+  prepared_by_user_id: string;
+  prepared_by_name?: string;
+  qa_lead_user_id?: string;
+  qa_lead_name?: string;
+  total_checklist_items?: number;
+  dev_done_items?: number;
+  qa_verified_items?: number;
+  client_passed_items?: number;
+  client_failed_items?: number;
+  revisions?: UatPackageRevision[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ClientInstalledVersion {
+  id: string;
+  client_id: string;
+  client_name?: string;
+  product_id?: string;
+  product_name?: string;
+  project_id?: string;
+  project_name?: string;
+  version_id: string;
+  version_name?: string;
+  environment_name: string;
+  accepted_at: string;
+  accepted_by_contact_id?: string;
+  accepted_by_contact_name?: string;
+  installed_at: string;
+  installed_by_user_id?: string;
+  installed_by_user_name?: string;
+  uat_package_id?: string;
+  uat_package_code?: string;
+  uat_package_title?: string;
+  notes?: string;
+  is_current_active: boolean;
+}
+
 
 
 

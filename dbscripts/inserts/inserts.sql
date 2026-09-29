@@ -301,7 +301,10 @@ BEGIN
         ('REQUIREMENTS', 'SIGNOFF', 'REQUIREMENTS:SIGNOFF', 'Permission to record QA verification and client sign-offs on acceptance criteria', TRUE, v_admin_id),
         ('CHANGE_REQUESTS', 'READ', 'CHANGE_REQUESTS:READ', 'Permission to view change requests, quotations, and revisions', TRUE, v_admin_id),
         ('CHANGE_REQUESTS', 'MANAGE', 'CHANGE_REQUESTS:MANAGE', 'Permission to create change requests, draft revisions, and submit to client', TRUE, v_admin_id),
-        ('CHANGE_REQUESTS', 'APPROVE', 'CHANGE_REQUESTS:APPROVE', 'Permission to approve, reject, or request changes on change requests', TRUE, v_admin_id)
+        ('CHANGE_REQUESTS', 'APPROVE', 'CHANGE_REQUESTS:APPROVE', 'Permission to approve, reject, or request changes on change requests', TRUE, v_admin_id),
+        ('UAT_PACKAGES', 'READ', 'UAT_PACKAGES:READ', 'Permission to view UAT packages, revisions, and checklist items', TRUE, v_admin_id),
+        ('UAT_PACKAGES', 'MANAGE', 'UAT_PACKAGES:MANAGE', 'Permission to create and manage UAT packages, checklists, and installed versions', TRUE, v_admin_id),
+        ('UAT_PACKAGES', 'APPROVE', 'UAT_PACKAGES:APPROVE', 'Permission to sign off or record client decisions on UAT packages', TRUE, v_admin_id)
     ON CONFLICT (permission_code) DO NOTHING;
 
     INSERT INTO role_permissions (role_id, permission_id, created_by)
@@ -319,7 +322,8 @@ BEGIN
         'CLIENT_PORTAL:READ', 'CLIENT_PORTAL:MANAGE',
         'CLIENT_INTAKE:READ', 'CLIENT_INTAKE:TRIAGE',
         'REQUIREMENTS:READ', 'REQUIREMENTS:MANAGE', 'REQUIREMENTS:SIGNOFF',
-        'CHANGE_REQUESTS:READ', 'CHANGE_REQUESTS:MANAGE', 'CHANGE_REQUESTS:APPROVE'
+        'CHANGE_REQUESTS:READ', 'CHANGE_REQUESTS:MANAGE', 'CHANGE_REQUESTS:APPROVE',
+        'UAT_PACKAGES:READ', 'UAT_PACKAGES:MANAGE', 'UAT_PACKAGES:APPROVE'
     )
     ON CONFLICT (role_id, permission_id) DO NOTHING;
 
@@ -330,7 +334,8 @@ BEGIN
         'CLIENT_PORTAL:READ', 'CLIENT_PORTAL:MANAGE',
         'CLIENT_INTAKE:READ', 'CLIENT_INTAKE:TRIAGE',
         'REQUIREMENTS:READ', 'REQUIREMENTS:MANAGE', 'REQUIREMENTS:SIGNOFF',
-        'CHANGE_REQUESTS:READ', 'CHANGE_REQUESTS:MANAGE', 'CHANGE_REQUESTS:APPROVE'
+        'CHANGE_REQUESTS:READ', 'CHANGE_REQUESTS:MANAGE', 'CHANGE_REQUESTS:APPROVE',
+        'UAT_PACKAGES:READ', 'UAT_PACKAGES:MANAGE', 'UAT_PACKAGES:APPROVE'
     )
     ON CONFLICT (role_id, permission_id) DO NOTHING;
 
@@ -339,7 +344,8 @@ BEGIN
     FROM permissions p
     WHERE p.permission_code IN (
         'CLIENT_INTAKE:READ', 'CLIENT_INTAKE:TRIAGE',
-        'CHANGE_REQUESTS:READ'
+        'CHANGE_REQUESTS:READ',
+        'UAT_PACKAGES:READ'
     )
     ON CONFLICT (role_id, permission_id) DO NOTHING;
 

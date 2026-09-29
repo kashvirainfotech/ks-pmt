@@ -57,6 +57,10 @@ import {
   TraceabilityMatrixResponse,
   ChangeRequest,
   ChangeRequestRevision,
+  UatPackage,
+  UatPackageRevision,
+  UatChecklistItem,
+  ClientInstalledVersion,
 } from '../types';
 
 // ==========================================
@@ -835,6 +839,18 @@ export const clientPortalApi = {
 
   submitChangeRequestDecision: (id: string, rev: number, data: { decision: 'APPROVED' | 'CHANGES_REQUESTED' | 'REJECTED'; remarks?: string }) =>
     api.post(`/client-portal/change-requests/${id}/revisions/${rev}/decision`, data),
+
+  getUatPackages: (params?: { projectId?: string }): Promise<{ data: UatPackage[] }> =>
+    api.get('/client-portal/uat-packages', { params }),
+
+  getUatPackageDetail: (id: string): Promise<{ data: UatPackage }> =>
+    api.get(`/client-portal/uat-packages/${id}`),
+
+  testChecklistItem: (itemId: string, data: { clientStatus: string; clientFeedback?: string; linkedDefectTaskId?: string }) =>
+    api.patch(`/client-portal/uat-packages/checklist-items/${itemId}/test`, data),
+
+  submitUatDecision: (id: string, rev: number, data: { decision: 'APPROVED' | 'CHANGES_REQUESTED' | 'REJECTED'; remarks?: string }) =>
+    api.post(`/client-portal/uat-packages/${id}/revisions/${rev}/decision`, data),
 };
 
 export const clientIntakeApi = {
@@ -934,6 +950,41 @@ export const changeRequestsApi = {
 
   unlinkTask: (id: string, taskId: string) =>
     api.delete(`/change-requests/${id}/tasks/${taskId}`),
+};
+
+// ==========================================
+// Client UAT Packages & Milestone Sign-Off (CLIENT-005)
+// ==========================================
+export const uatPackagesApi = {
+  create: (data: any): Promise<{ data: UatPackage }> =>
+    api.post('/uat-packages', data),
+
+  getAll: (params?: any): Promise<{ data: { data: UatPackage[]; total: number; page: number; limit: number; totalPages: number } }> =>
+    api.get('/uat-packages', { params }),
+
+  getById: (id: string): Promise<{ data: UatPackage }> =>
+    api.get(`/uat-packages/${id}`),
+
+  submitForQa: (id: string): Promise<{ data: UatPackage }> =>
+    api.post(`/uat-packages/${id}/submit-qa`),
+
+  reviewRevisionQa: (id: string, rev: number, data: { status: string; qaNotes?: string }): Promise<{ data: any }> =>
+    api.post(`/uat-packages/${id}/revisions/${rev}/review-qa`, data),
+
+  createRevision: (id: string, data: any): Promise<{ data: UatPackage }> =>
+    api.post(`/uat-packages/${id}/revisions`, data),
+
+  updateChecklistItem: (itemId: string, data: any): Promise<{ data: UatChecklistItem }> =>
+    api.patch(`/uat-packages/checklist-items/${itemId}`, data),
+
+  recordDecision: (id: string, rev: number, data: { decision: string; remarks?: string }): Promise<{ data: UatPackage }> =>
+    api.post(`/uat-packages/${id}/revisions/${rev}/decision`, data),
+
+  recordInstalledVersion: (data: any): Promise<{ data: ClientInstalledVersion }> =>
+    api.post('/uat-packages/installed-versions', data),
+
+  getInstalledVersions: (clientId: string): Promise<{ data: ClientInstalledVersion[] }> =>
+    api.get(`/uat-packages/installed-versions/client/${clientId}`),
 };
 
 

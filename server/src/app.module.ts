@@ -33,6 +33,7 @@ import { HandoffsModule } from './modules/handoffs/handoffs.module';
 import { ClientPortalModule } from './modules/client-portal/client-portal.module';
 import { RequirementsModule } from './modules/requirements/requirements.module';
 import { ChangeRequestsModule } from './modules/change-requests/change-requests.module';
+import { UatPackagesModule } from './modules/uat-packages/uat-packages.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { DynamicRbacGuard } from './modules/rbac/rbac.guard';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
@@ -77,6 +78,7 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
     ClientPortalModule,
     RequirementsModule,
     ChangeRequestsModule,
+    UatPackagesModule,
   ],
   providers: [
     {
