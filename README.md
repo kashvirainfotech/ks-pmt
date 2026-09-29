@@ -91,17 +91,21 @@ Most off-the-shelf tools force organizations to choose between developer task tr
 
 ## ✅ Current Implementation Status (Completed Modules)
 
-The core foundational architecture and operational modules are implemented and available for development testing:
+The core foundational architecture, enterprise planning engine, and operational modules are implemented and available for development testing:
 
 | Module / Area | Status | Implemented Capabilities |
 | :--- | :---: | :--- |
 | **Organizational Hierarchy & Masters** | ✅ Implemented | Multiple branches with GPS coordinates & geofencing radius, corporate departments, designations with ranking hierarchy, employee master. |
 | **Authentication & Dynamic RBAC** | ✅ Implemented | Dual login (Email + Password with bcrypt & Mobile + OTP mock verification), JWT access & refresh tokens, dynamic roles/permissions, branch & user permission overrides. |
 | **Clients, Projects & Products** | ✅ Implemented | CRM-lite client/prospect directory, Project commercials (Fixed-cost vs T&M, budgets), Proprietary products, licensing terms, AMC renewal dates, team allocations. |
+| **Working Calendars & Capacity (`FND-001`)** | ✅ Implemented | Configurable working shifts, corporate public holidays, calendar assignments, employee leave requests/approvals, and dynamic effective working capacity calculation (`calculateWorkingCapacity`). |
 | **Task Management Engine** | ✅ Implemented | Dynamic task types, customizable workflow statuses, multi-assignees, parent-child subtasks, rule-based & least-loaded auto-assignment, priority/severity flags. |
 | **Jira-Style Task Experience** | ✅ Implemented | Inline quick-create modal, slide-over task drawer, full-page task view, Markdown descriptions, typed custom values, revision conflict detection. |
+| **Work Hierarchy, Sprints & Milestones (`PLAN-001`)** | ✅ Implemented | 4-level hierarchy (`Initiative` → `Epic` → `Task/Story/Bug` → `Subtask`), independent sprints and product/project milestones, backlog ranking, sprint commitment and rollover tracking, scope-change ledger with baseline snapshots. |
+| **Dependencies, Blockers & Defect Templates (`PLAN-002`)** | ✅ Implemented | Finish-to-Start & Blocks/Blocked-by links with cycle prevention; Blocker Radar tracking active episodes, root-causes, and non-overlapping blocked duration; structured defect templates (steps, actual vs expected, environment, workaround, severity vs priority, resolution classifications). |
+| **Saved Views, Inline Editing & Bulk Actions (`PLAN-003`)** | ✅ Implemented | Personal and team saved views, scope-based sharing (Personal, Team, Project, Global), system presets, inline grid cell editing, permission-aware bulk updates with optimistic concurrency / revision checks & partial failure reporting, Attention Workspaces. |
+| **Weekly Timesheets & Persistent Global Timer (`TIME-001`)** | ✅ Implemented | Monday-to-Sunday weekly effort matrix, calendar expected hours integration with missing hours warnings, cross-project reviewer portion routing with self-approval prevention & rejection resubmission, database-backed persistent global timer across tabs/devices invariant to browser blur with task-switch auto-logging. |
 | **Web Views & Grid Experience** | ✅ Implemented | Interactive drag-and-drop Kanban board, shared TanStack DataGrid (faceted search, multi-column sorting, nested grouping, CSV/Print export), light/dark theme. |
-| **Worklogs & Time Tracking** | ✅ Implemented | Per-task worklogs, billable vs non-billable classification, overtime & weekend flags, manager submission/approval/rejection flows. |
 | **AWS S3 Cloud Storage** | ✅ Implemented | Direct-to-S3 pre-signed PUT/GET URL generation for attachments, screenshots, and logs; zero binary storage on backend API server. |
 | **Audit Trails & Activity Logs** | ✅ Implemented | Central audit log capturing entity mutations, old/new diffs, timestamps, user IDs, IP addresses, and user-agent tags. |
 | **Cross-Platform Mobile (Flutter)** | 🟡 Foundation Built | Flutter 3.x codebase (Android & iOS), 5-tab navigation, secure token storage, automatic 401 token refresh queue, GPS geofencing branch check, camera integration. |
@@ -116,7 +120,7 @@ All roadmap items are categorized by strategic delivery increment. Each feature 
 
 ```mermaid
 flowchart LR
-    A["Tier A: Foundations & Boundaries"] --> B["Tier B: Agile Development Planning"]
+    A["Tier A: Foundations & Boundaries (Active)"] --> B["Tier B: Agile Development Planning (In Progress)"]
     B --> C["Tier C: Client Delivery & UAT"]
     C --> D["Tier D: Product Operations & QA"]
     D --> E["Tier E: Delivery Intelligence"]
@@ -124,16 +128,16 @@ flowchart LR
 ```
 
 ### 📌 Tier A: Foundations & Boundary Governance
-- **`FND-001` Shared Planning Foundations**: Configurable employee and contractor working calendars (working days, shifts, holidays, approved leave); multi-tenant audience isolation (internal, client-shared, product-community); reproducible baseline and event-history tracking.
+- **`FND-001` Shared Planning Foundations** [✅ Core Implemented]: Configurable employee and contractor working calendars (working days, shifts, holidays, approved leave); effective capacity calculation; multi-tenant audience isolation (internal, client-shared, product-community); reproducible baseline and event-history tracking.
 
 ### 📌 Tier B: Agile Development & Daily Planning
-- **`PLAN-001` Work Hierarchy, Backlog & Sprints**: 4-level hierarchy (`Initiative` → `Epic/Feature` → `Story/Task/Bug` → `Subtask`); ranked project and product backlogs; sprints independent of releases; sprint goals, team sizing, and commitment/rollover tracking; scope-change ledger.
-- **`PLAN-002` Task Dependencies & Blocker Management**: Finish-to-Start and Blocks/Blocked-by links with circular dependency prevention; Blocker Radar tracking blocker owners, reasons, next actions, and elapsed blocker episodes; rich bug reproduction templates.
-- **`PLAN-003` Advanced Views, Inline Editing & Bulk Actions**: Personal and team saved views, favorites, inline cell editing in listing grids, permission-aware bulk status/assignee updates with conflict handling, server-side query optimizations, and "My Work" focused queues.
-- **`PLAN-004` Delivery Teams & Software Component Ownership**: Dedicated delivery teams and component architecture catalogs; tracking defects and technical debt per component without expanding project access boundaries.
-- **`FLOW-001` Work Handoff Tracking**: Explicit handoffs between roles/teams (e.g., Dev → QA), tracking acknowledgment time, work-start time, return/redirect history, and queue waiting time analysis.
-- **`CONFIG-001` Project-Specific Workflow Overrides**: Visual workflow editor allowing versioned project-level workflow progression, mandatory custom fields per status transition, and manual review gates.
-- **`TIME-001` Effort & Timesheets with Durable Timer**: Schedule-aware weekly timesheets with cross-project approval and audited amendments; durable single active timer across browser tabs that does not stop on window blur.
+- **`PLAN-001` Work Hierarchy, Backlog & Sprints** [✅ Implemented]: 4-level hierarchy (`Initiative` → `Epic/Feature` → `Story/Task/Bug` → `Subtask`); ranked project and product backlogs; sprints independent of releases; sprint goals, team sizing, and commitment/rollover tracking; scope-change ledger.
+- **`PLAN-002` Task Dependencies & Blocker Management** [✅ Implemented]: Finish-to-Start and Blocks/Blocked-by links with circular dependency prevention; Blocker Radar tracking blocker owners, reasons, next actions, and elapsed blocker episodes; rich bug reproduction templates.
+- **`PLAN-003` Advanced Views, Inline Editing & Bulk Actions** [✅ Implemented]: Personal and team saved views, favorites, inline cell editing in listing grids, permission-aware bulk status/assignee updates with conflict handling, server-side query optimizations, and "My Work" focused queues.
+- **`TIME-001` Effort & Timesheets with Durable Timer** [✅ Implemented]: Schedule-aware weekly timesheets with cross-project approval and audited amendments; durable single active timer in database across browser tabs that does not stop on window blur; task-switching auto-logging.
+- **`PLAN-004` Delivery Teams & Software Component Ownership** [Planned]: Dedicated delivery teams and component architecture catalogs; tracking defects and technical debt per component without expanding project access boundaries.
+- **`FLOW-001` Work Handoff Tracking** [Planned]: Explicit handoffs between roles/teams (e.g., Dev → QA), tracking acknowledgment time, work-start time, return/redirect history, and queue waiting time analysis.
+- **`CONFIG-001` Project-Specific Workflow Overrides** [Planned]: Visual workflow editor allowing versioned project-level workflow progression, mandatory custom fields per status transition, and manual review gates.
 
 ### 📌 Tier C: Client Delivery & Collaboration
 - **`CLIENT-001` & `CLIENT-002` Customer Portal & Intake Triage**: Invited client contacts with role-scoped project access; private support/ticket intake; separation of customer impact/urgency from internal priority; complete cross-client data isolation.
