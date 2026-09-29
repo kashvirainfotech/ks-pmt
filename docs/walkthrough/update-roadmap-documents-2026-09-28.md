@@ -1,5 +1,7 @@
 # Roadmap & Specifications Documentation Update
 
+> Historical record of the 2026-09-28 proposal/update. The accepted roadmap was revised on 2026-09-29 in [requirements](../requirements.md), [plan](../plan.md) and [checklist](../tasks-checklist.md). Those documents supersede this record's scope, sequencing, metric definitions and status claims. See [the update report](roadmap-documentation-update-2026-09-29.md).
+
 **Date**: 2026-09-28 (IST)  
 **Document**: Roadmap Documentation Synchronization Report  
 **Context**: Incorporating operational tracking, effort variance, SLA management, flow analytics, and team performance intelligence into the project's canonical specification and planning documents.

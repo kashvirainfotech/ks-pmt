@@ -2,6 +2,8 @@
 
 This guide provides end-to-end instructions for deploying the **KS-PMT** (Kashvira Infotech - Project & Product Management Tool) ecosystem across cloud infrastructure, databases, web applications, and mobile platforms.
 
+This guide covers operating KS-PMT, not a DevOps/CI/CD product feature. Instructions are not production certification; [the checklist](tasks-checklist.md) retains provider, native and security acceptance gaps.
+
 ---
 
 ## 1. System Architecture Overview
@@ -14,7 +16,7 @@ This guide provides end-to-end instructions for deploying the **KS-PMT** (Kashvi
                      +------------------------+------------------------+
                      |                                                 |
          [Modern Web Application]                             [Mobile Application]
-         (React 18 + Vite + Tailwind)                         (Flutter Android & iOS)
+         (React 19 + Vite + Tailwind)                         (Flutter Android & iOS)
                      |                                                 |
                      +------------------------+------------------------+
                                               | HTTPS (REST API)
@@ -48,6 +50,7 @@ This guide provides end-to-end instructions for deploying the **KS-PMT** (Kashvi
 > In accordance with KS-PMT database rules, **AI agents never execute database migrations directly**. The human developer / DBA must review and execute scripts manually in the target database.
 
 ### 2.1 Database Creation
+
 ```bash
 # Connect to PostgreSQL host
 psql -U postgres
@@ -77,12 +80,14 @@ For pgAdmin's Query Tool, run `node dbscripts/build-install.mjs`, then open the 
 ## 3. AWS S3 Bucket Setup (Direct Pre-Signed Uploads)
 
 ### 3.1 Create Private S3 Bucket
+
 1. Log into AWS Console -> **S3** -> **Create bucket**.
 2. **Bucket name**: `kspmt-enterprise-attachments-prod`.
 3. **Block all public access**: **Enabled** (all downloads must use pre-signed URLs).
 4. **Default encryption**: SSE-S3 or AWS-KMS.
 
 ### 3.2 S3 CORS Configuration
+
 Paste the following CORS policy into bucket settings to enable direct browser uploads:
 ```json
 [
@@ -99,6 +104,7 @@ Paste the following CORS policy into bucket settings to enable direct browser up
 ```
 
 ### 3.3 IAM Policy (Least Privilege for NestJS Server)
+
 Create an IAM user `kspmt-api-service` and attach the policy:
 ```json
 {
@@ -122,18 +128,19 @@ Create an IAM user `kspmt-api-service` and attach the policy:
 ## 4. Backend REST API Deployment (`server/`)
 
 ### 4.1 Production Environment Configuration (`.env.production`)
+
 ```env
 NODE_ENV=production
-PORT=4000
+PORT=5000
 
 # Database Connection Pool
-DATABASE_HOST=postgres-prod.internal
-DATABASE_PORT=5432
-DATABASE_USER=kspmt_app
-DATABASE_PASSWORD=SuperSecurePassword123!
-DATABASE_NAME=kspmt_prod
-DATABASE_MAX_POOL=30
-DATABASE_SSL=false
+DB_HOST=postgres-prod.internal
+DB_PORT=5432
+DB_USER=kspmt_app
+DB_PASSWORD=SuperSecurePassword123!
+DB_NAME=kspmt_prod
+DB_POOL_MAX=30
+DB_SSL=false
 
 # JWT Authentication
 JWT_ACCESS_SECRET=your-256-bit-access-secret-key-here-minimum-32-chars
@@ -148,10 +155,11 @@ AWS_SECRET_ACCESS_KEY=YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY
 AWS_S3_BUCKET_NAME=kspmt-enterprise-attachments-prod
 
 # CORS Settings
-CORS_ORIGIN=https://pmt.kashvirainfotech.com
+CORS_ORIGINS=https://pmt.kashvirainfotech.com
 ```
 
 ### 4.2 Build & Process Management (PM2)
+
 ```bash
 cd server
 npm ci --production=false
@@ -168,6 +176,7 @@ pm2 startup
 ## 5. Web Application Deployment (`web/`)
 
 ### 5.1 Production Build
+
 ```bash
 cd web
 npm ci
@@ -176,6 +185,7 @@ npm run build
 ```
 
 ### 5.2 Nginx Server Block Configuration
+
 ```nginx
 server {
     listen 80;
@@ -206,7 +216,7 @@ server {
 
     # Reverse Proxy to NestJS Backend
     location /api/ {
-        proxy_pass http://127.0.0.1:4000/api/;
+        proxy_pass http://127.0.0.1:5000/api/;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -223,6 +233,7 @@ server {
 ## 6. Mobile Application Release (`mobile/`)
 
 ### 6.1 Android Release Build (Google Play)
+
 1. **Keystore Generation**:
    ```bash
    keytool -genkey -v -keystore android/app/kspmt-release-key.jks -keyalg RSA -keysize 2048 -validity 10000 -alias kspmt
@@ -242,6 +253,7 @@ server {
    ```
 
 ### 6.2 iOS Release Build (Apple App Store & TestFlight)
+
 1. Configure App ID and Push Notification capabilities in **Apple Developer Portal**.
 2. Open `mobile/ios/Runner.xcworkspace` in Xcode.
 3. Select your Development Team and set Bundle Identifier (`com.kashvirainfotech.kspmt`).

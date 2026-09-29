@@ -2,11 +2,11 @@
 
 # 🚀 KS-PMT (Kashvira Infotech - Project & Product Management Tool)
 
-### *Enterprise-Grade Multi-Branch Task, Project & Product Management Ecosystem*
+### *Project & Product Management for Development Teams and Clients*
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Backend: NestJS](https://img.shields.io/badge/Backend-NestJS%2010-E0234E?logo=nestjs&logoColor=white)](https://nestjs.com/)
-[![Frontend: React + Vite](https://img.shields.io/badge/Frontend-React%2018%20%7C%20Vite-61DAFB?logo=react&logoColor=black)](https://vitejs.dev/)
+[![Frontend: React + Vite](https://img.shields.io/badge/Frontend-React%2019%20%7C%20Vite-61DAFB?logo=react&logoColor=black)](https://vitejs.dev/)
 [![Mobile: Flutter](https://img.shields.io/badge/Mobile-Flutter%203%20(Android%20%26%20iOS)-02569B?logo=flutter&logoColor=white)](https://flutter.dev/)
 [![Database: PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL%2015+-336791?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![Storage: AWS S3](https://img.shields.io/badge/Storage-AWS%20S3%20Pre--Signed-FF9900?logo=amazons3&logoColor=white)](https://aws.amazon.com/s3/)
@@ -14,9 +14,9 @@
 
 ---
 
-**KS-PMT** is an enterprise-ready task and product lifecycle management platform designed for **one company with multiple locations and branches**, supporting both **commercial software products** and **custom client development services**. It is deployed for the company's own use and is not a SaaS offering.
+**KS-PMT** is an project and product management platform under development designed for **one company with multiple locations and branches**, supporting both **commercial software products** and **custom client development services**. It is deployed for the company's own use and is not a SaaS offering.
 
-Built with a **NestJS REST API backend**, a modern **React 18 + Tailwind CSS web dashboard**, and a cross-platform **Flutter mobile app (Android & iOS)** with native hardware capabilities (GPS Geofencing, Camera/Gallery S3 Uploads, Live Timers, and FCM Push Notifications).
+Built with a **NestJS REST API backend**, a modern **React 19 + Tailwind CSS web dashboard**, and a cross-platform **Flutter mobile app (Android & iOS)** with native capability development and device acceptance still in progress. See the status matrix below for implementation limits.
 
 </div>
 
@@ -26,24 +26,8 @@ Built with a **NestJS REST API backend**, a modern **React 18 + Tailwind CSS web
 
 - [Architectural Overview](#-architectural-overview)
 - [Feature Matrix & Implementation Status](#-feature-matrix--implementation-status)
-  - [1. Multi-Branch & Dynamic RBAC Engine](#1-multi-branch--dynamic-rbac-engine)
-  - [2. Dual Authentication & Access Control](#2-dual-authentication--access-control)
-  - [3. Dynamic Task Engine & State Machine Workflows](#3-dynamic-task-engine--state-machine-workflows)
-  - [4. Agile Sprints, Milestones & Backlog Management](#4-agile-sprints-milestones--backlog-management)
-  - [5. Task Dependencies, Critical Path & Blocker Radar](#5-task-dependencies-critical-path--blocker-radar)
-  - [6. Effort Tracking, Timesheets & Budget Variance](#6-effort-tracking-timesheets--budget-variance)
-  - [7. Deadline Management, SLA Engine & Early Warnings](#7-deadline-management-sla-engine--early-warnings)
-  - [8. Bottleneck Detection & Flow Analytics](#8-bottleneck-detection--flow-analytics)
-  - [9. Team & Employee Performance, Workload & Capacity](#9-team--employee-performance-workload--capacity)
-  - [10. Auto-Assignment Rule Matrix](#10-auto-assignment-rule-matrix)
-  - [11. Financial, Client & Commercial Tracking](#11-financial-client--commercial-tracking)
-  - [12. Cloud Storage (AWS S3 Direct Uploads)](#12-cloud-storage-aws-s3-direct-uploads)
-  - [13. Central Tamper-Evident Audit Trail](#13-central-tamper-evident-audit-trail)
-  - [14. Responsive Web Application (`web/`)](#14-responsive-web-application-web)
-  - [15. Cross-Platform Mobile Application (`mobile/`)](#15-cross-platform-mobile-application-mobile)
-  - [16. Executive & Portfolio Intelligence](#16-executive--portfolio-intelligence)
-  - [17. Customer Portal (Client Self-Service & Issue Tracking)](#17-customer-portal-client-self-service--issue-tracking)
-  - [18. Product Feature Request & Customer Voting Engine](#18-product-feature-request--customer-voting-engine)
+- [Roadmap for Development Teams and Clients](#roadmap-for-development-teams-and-clients)
+- [Documentation and Evidence](#documentation-and-evidence)
 - [Technology Stack](#-technology-stack)
 - [Directory Structure](#-directory-structure)
 - [Quick Start & Installation Guide](#-quick-start--installation-guide)
@@ -67,7 +51,7 @@ Built with a **NestJS REST API backend**, a modern **React 18 + Tailwind CSS web
                     +------------------------+------------------------+
                     |                                                 |
         [Modern Web Application]                             [Mobile Application]
-        (React 18 + Vite + Tailwind)                         (Flutter Android & iOS)
+        (React 19 + Vite + Tailwind)                         (Flutter Android & iOS)
                     |                                                 |
                     +------------------------+------------------------+
                                              | HTTPS (REST API)
@@ -97,152 +81,99 @@ Built with a **NestJS REST API backend**, a modern **React 18 + Tailwind CSS web
 
 ## ✨ Feature Matrix & Implementation Status
 
-> Legend: `[x]` Implemented / Available in current build | `[ ]` Planned Roadmap Feature
+Documentation reconciled **2026-09-29**. These labels describe scope and evidence; this roadmap update does not implement or verify new application features.
 
-### 1. Multi-Branch & Dynamic RBAC Engine
-- [x] **Multi-Location Hubs**: Native support for multiple physical branches and regional tech centers with GPS coordinates and geofence radii.
-- [x] **Hierarchical Access Model**: Dynamic permissions computed from $\text{Effective Permissions} = \text{Base Role} - \text{Branch Revocations} + \text{User Explicit Overrides}$.
-- [x] **Granular Override Controls**: Instantly grant or revoke module permissions at the specific branch or individual employee level.
-- [x] **Super Admin Bypass**: Built-in system override for top-level corporate administrators.
-- [x] **Department & Designation Hierarchy**: Department master with HOD mapping and designation seniority ranking.
+| Status | Meaning |
+| --- | --- |
+| **Planned** | Required future delivery. |
+| **Partial** | Some capability exists; material implementation remains. |
+| **Implemented — acceptance pending** | Implementation evidence exists; required live/database/provider/device acceptance is still pending. |
+| **Verified** | Only the named scope passed dated checks linked in the checklist/walkthroughs; never a blanket production certification. |
 
-### 2. Dual Authentication & Access Control
-- [x] **Zero Public Registration**: Open self-registration disabled; employee accounts are provisioned exclusively by authorized administrators.
-- [x] **Email & Password Authentication**: Secure authentication with Argon2id / bcrypt hashing (12 rounds) and password complexity validation.
-- [x] **Mobile Number & 6-Digit OTP**: OTP-based authentication with expiration countdowns and rate-limiting.
-- [x] **Session Tracking & Remote Revocation**: View active sessions with device platform, IP address, and remote session termination.
-- [ ] **MFA Challenge & Password Expiration Policies**: Mandatory password rotation cycles and multi-factor verification prompts.
+| Current capability | Status | Evidence and limits |
+| --- | --- | --- |
+| Branches, departments, designations, employees, dynamic roles and branch/user overrides | Implemented — acceptance pending | Management and selected authorization checks recorded in the requirements audit; exhaustive authorization acceptance remains open. |
+| Password login, refresh/session tracking and remote revocation | Implemented — acceptance pending | Historical session tests exist; full security acceptance remains pending. Current password implementation uses bcrypt. |
+| Mobile OTP login | Partial | Verification/mock flow exists; live SMS delivery, shared OTP state and distributed throttling remain pending. |
+| Clients/prospects, products, licenses/AMC, projects, team allocations and release records | Implemented — acceptance pending | Core CRUD and field-persistence evidence exists; grouped reporting and new client workflows are separate roadmap work. |
+| Dynamic task types/workflows, primary owner and collaborators, subtasks and auto-assignment | Implemented — acceptance pending | Core workflow evidence exists. The legacy ROUND_ROBIN strategy selects least-loaded eligible staff; it is not cyclic round-robin scheduling. |
+| Focused task creation, inline editing, Markdown descriptions, typed custom values and revision conflicts | Implemented — acceptance pending | Builds, 46 backend tests and fixture browser checks recorded on 2026-09-28; new schema still requires developer/DBA blank-database and live-workflow acceptance. |
+| Worklogs, billable/overtime/weekend classification and individual review | Implemented — acceptance pending | Per-worklog submit/reject/resubmit/approve evidence exists; grouped weeks and a durable global timer are planned. |
+| Threaded comments, in-app events and notification preferences | Partial | Rich comment/S3 composition, live email/FCM and real-time transport remain pending. |
+| S3 upload/download APIs and client flows | Implemented — acceptance pending | Last recorded real upload failed with InvalidAccessKeyId; successful upload/confirmation/download/avatar acceptance remains open. |
+| Activity history and audit viewer | Partial | Selected task mutations/history exist; comprehensive authentication/change/download and metadata coverage remains pending. Tamper-evidence is not established. |
+| Kanban, shared grid, task drawer/full-page view, command palette and light/dark web shell | Implemented — acceptance pending | Dated fixture/browser and build evidence exists. The grid loads all authorized pages into the browser; saved views, bulk operations and server-side scale work remain planned. |
+| Dashboard and basic workload summaries | Partial | Task counts and labelled recent-sample metrics exist; full portfolio/financial/flow aggregates remain planned. |
+| Flutter mobile source, secure token handling and five-tab navigation | Partial | Native builds/device acceptance, push/deep links, offline sync, field/geofencing flows and remaining parity are pending. |
 
-### 3. Dynamic Task Engine & State Machine Workflows
-- [x] **Dynamic Task Types**: Configurable task types (*New Development, Bug, Issue, Enhancement, Support Ticket*) with individual color codes and default chargeability.
-- [x] **Workflow State Machine**: Strictly enforces allowed status transitions per task type, preventing illegal workflow skipping.
-- [x] **Jira-Style Inline Editing**: Click-to-edit for title, description, priority, severity, dates, release, and billable amounts with optimistic conflict checking.
-- [x] **Revision Concurrency Locking**: Atomic `revision` checks on task updates to prevent concurrent overwrite collisions (HTTP 409 Conflict).
-- [x] **Custom Fields per Task Type**: JSONB custom fields (*text, textarea, number, boolean, date, select, multiselect, user*) with server-side schema validation.
-- [x] **Rich Markdown Descriptions**: Formatted descriptions with toolbar support (headings, bold, lists, code blocks) and real-time preview.
-- [x] **Multi-Assignee Support**: Assign primary owners alongside secondary collaborators with searchable user pickers.
-- [x] **Hierarchical Subtasks**: Parent-child subtask checklist with quick-add and full-detail creation modes.
-- [ ] **Structured Defect Fields**: Standardized numbered Steps to Reproduce, Expected vs. Actual behavior, and Workaround details.
-- [ ] **Defect Resolution Classification**: Formal resolution categorizations (*Fixed, Won't Fix, Duplicate, Cannot Reproduce, By Design*).
+MFA, password-policy completion, external API-key/OAuth provisioning, full authorization/security review and production/performance acceptance remain open in the [checklist](docs/tasks-checklist.md). The most recent task delivery does not establish full SRS completion.
 
-### 4. Agile Sprints, Milestones & Backlog Management
-- [x] **Version & Release Milestones**: Scheduling and tracking product and project releases with target vs. actual delivery dates.
-- [ ] **Sprint Lifecycle Management**: Dedicated agile sprints within projects (`sprint_number`, `sprint_goal`, `PLANNING`, `ACTIVE`, `COMPLETED`).
-- [ ] **Backlog Grooming & Sprint Planning**: Interactive drag-and-drop planning board to rank and move tasks from project backlog to active sprints.
-- [ ] **Story Points & Complexity Sizing**: Support Fibonacci sizing (`1, 2, 3, 5, 8, 13`) and T-shirt sizing (`XS, S, M, L, XL`) alongside hourly estimates.
-- [ ] **Sprint Rollover Wizard**: Automated wizard on sprint completion to rollover incomplete tasks to the next sprint or backlog.
+## Roadmap for Development Teams and Clients
 
-### 5. Task Dependencies, Critical Path & Blocker Radar
-- [ ] **Relational Task Dependencies**: Support `Finish-to-Start` (FS), `Start-to-Start` (SS), `Finish-to-Finish` (FF), `Blocks / Is Blocked By`, and `Relates To`.
-- [ ] **Circular Dependency Prevention**: Server-side Directed Acyclic Graph (DAG) cycle validation ($A \rightarrow B \rightarrow C \rightarrow A$).
-- [ ] **Interactive Critical Path Gantt**: Visual Gantt chart showing dependency lines, critical path calculations, and cascading schedule shift alerts.
-- [ ] **Explicit Blocker Flagging**: "Flag as Blocked" toggle with categorized reasons (*Client Dependency, Missing Specs, Technical Blocker, Environment Down*).
-- [ ] **Blocker Radar & Elapsed Timers**: Automated tracking of cumulative blocked hours and a dashboard Blocker Radar strip for rapid impediment triage.
+The primary journey is **request → clarification → approved scope → development → QA → client UAT → accepted delivery**. Product work also connects customer feedback to prioritization, releases and outcome reviews.
 
-### 6. Effort Tracking, Timesheets & Budget Variance
-- [x] **Per-Task Worklogs**: Manual effort logging with date, hours spent, billable/non-billable flag, and summary descriptions.
-- [x] **Overtime & Weekend Classification**: Track standard hours vs. overtime and weekend effort.
-- [x] **Individual Worklog Approval Workflow**: Draft, submit, approve, and reject pipeline with manager review remarks.
-- [ ] **Grouped Weekly Timesheet Grid**: Unified Monday-to-Sunday matrix view for batch effort logging across assigned projects and tasks.
-- [ ] **Missing Hours Automated Reminders**: Automated Friday afternoon and Monday morning alerts for employees logging $<40$ hours/week.
-- [ ] **One-Click Batch Timesheet Approvals**: Single-click approval for an employee's full weekly timesheet with inline task audit drill-downs.
-- [ ] **Persistent Live Global Stopwatch**: Sticky header timer with automatic task switching, pause on switch, and idle-time detection.
-- [ ] **Task Effort Variance Badges**: Real-time $\text{Actual} - \text{Estimated}$ variance badges (Green $<90\%$, Amber $90-100\%$, Red $>100\%$).
-- [ ] **Project Budget Burn Rate Curves**: Planned vs. actual hours burn curves with automated alerts at 75%, 90%, and 100% of budgeted hours.
-- [ ] **Project Profitability Margins**: Calculate internal employee cost rate vs. billable client rate to evaluate gross project margins.
+**Out of scope:** Git/source-control integrations, DevOps and CI/CD automation. Manual test evidence, release planning and client sign-off remain in scope. KS-PMT's deployment documentation describes operating this application.
 
-### 7. Deadline Management, SLA Engine & Early Warnings
-- [x] **Static Due Date Tracking**: Planned and actual start/end dates with overdue task flagging.
-- [ ] **Configurable SLA Policies Matrix**: First Response Time and Resolution Time targets mapped by Priority, Severity, Task Type, and Client Tier.
-- [ ] **Business Hours Calculation Engine**: Automatic pause of SLA clocks outside office working hours and on regional branch holidays.
-- [ ] **Dynamic SLA Countdown Badges**: Real-time countdown badges on tasks with warning and breach indicators.
-- [ ] **Delay Early Warning System (EWS)**: Predictive algorithm identifying at-risk tasks prior to deadline breach (e.g. deadline within 48h while in `TODO`).
-- [ ] **Multi-Tier Automated Escalation Matrix**: Progressive notifications on impending and breached deadlines (Assignee $\rightarrow$ PM $\rightarrow$ Branch Leadership).
-- [ ] **Mandatory Delay Root-Cause Attribution**: Enforced selection of delay reasons upon overdue closure or deadline extension (*Scope Creep, Client Delay, Tech Complexity, Estimation, Leave*).
+All entries below are **Planned** expansions/completion work. Feature IDs link behavior in the [SRS](docs/requirements.md) to delivery gates in the [plan](docs/plan.md) and [checklist section 11](docs/tasks-checklist.md#11-accepted-roadmap-and-acceptance-gates-2026-09-29).
 
-### 8. Bottleneck Detection & Flow Analytics
-- [ ] **Kanban Work In Progress (WIP) Limits**: Configurable min/max task thresholds per status column with soft warnings and hard guards.
-- [ ] **Status Dwell Time Heatmap**: Track exact business hours spent in each stage to pinpoint pipeline bottlenecks (e.g., development vs. code review vs. testing).
-- [ ] **Cumulative Flow Diagram (CFD)**: Area charts visualizing work volume distribution across stages over time to highlight expanding bottlenecks.
-- [ ] **Lead Time & Cycle Time Scatterplots**: Measure elapsed duration from creation to closure (Lead Time) and work started to closure (Cycle Time).
+| Order | Focus | Planned outcomes |
+| --- | --- | --- |
+| **A** | Trustworthy foundation | Client boundaries, working calendars, baseline/event history, status evidence and release-specific provider acceptance. |
+| **B** | Daily development planning | Backlog/sprints, basic blockers/dependencies, saved views and schedule-aware weekly timesheets. |
+| **C** | Client delivery | Portal intake, agreed requirements, change approval, UAT/sign-off and client progress reports. |
+| **D** | Product management and repeatable delivery | Discovery/voting, goals, QA checklists, knowledge, templates, notification preferences and retainers. |
+| **E** | Delivery intelligence | Contractual SLA, flow metrics, capacity, effort/budget forecasts and explainable alerts. |
+| **Later** | Advanced options | Scheduling scenarios/critical path and optional reviewed drafting assistance. |
 
-### 9. Team & Employee Performance, Workload & Capacity
-- [x] **Basic Employee Workload Summary**: Active assigned task counts and aggregated logged hours per user (`vw_employee_workload`).
-- [ ] **Resource Allocation & Capacity Heatmap**: Team member bandwidth matrix (Sprints/Weeks) highlighting over-allocated (>100%) and under-utilized (<75%) staff.
-- [ ] **Estimation Accuracy Index (EAI)**: Track variance between estimated and actual logged hours over time to identify chronic estimation bias.
-- [ ] **Engineering Quality & Rework Rates**: Track task reopen/rejection counts from QA back to dev and calculate First-Time-Right (FTR %) rate.
-- [ ] **Post-Release Defect Leakage**: Ratio of customer-reported defects vs. internally detected defects per release version.
-- [ ] **Employee 360° Operational Performance Scorecard**: Managerial performance scorecard tracking On-Time Delivery (OTD %), billable efficiency %, velocity, and quality.
-- [ ] **Skill Matrix & Smart Task Allocation**: Employee skill taxonomy with proficiency tiers and smart assignment recommendations matching skills and available bandwidth.
+### A. Trustworthy foundation
 
-### 10. Auto-Assignment Rule Matrix
-- [x] **Event-Driven Triggers**: Evaluate routing rules automatically `ON_CREATION` or `ON_STATUS_CHANGE`.
-- [x] **Department HOD Routing**: Automatically route tasks to the designated department head (e.g., dev complete $\rightarrow$ QA HOD).
-- [x] **Round-Robin Distribution**: Dynamically distribute tasks to the least-loaded active team member in a department or branch.
-- [x] **Designation Hierarchy Routing**: Route based on seniority hierarchy ranking.
-- [x] **Specific User Assignment**: Direct assignment to designated specialist users.
+- **FND-001:** Invitation-based client access, explicit internal/client-shared/product-community audiences, configurable employee/contract calendars and reproducible baseline/event history. Complete required SMS/S3/email checks before dependent releases; native field capabilities do not block web/client value.
 
-### 11. Financial, Client & Commercial Tracking
-- [x] **Dual Business Models**: Supports both **Client Development Projects** (Fixed Price, Time & Materials, Retainers) and **In-House Software Products**.
-- [x] **Client & Prospect CRM**: Manage leads, active client accounts, and lifecycle conversion with tax/billing details.
-- [x] **Software Product Licensing**: Manage license models (SaaS, On-Premise, Perpetual), standard pricing, and annual maintenance contract (AMC) renewals.
-- [x] **Task-Level Chargeables**: Toggle individual tasks as chargeable/billable with custom amounts, rolling up into project financial summaries.
-- [x] **Project Team Member Allocations**: Assign employees to projects with explicit allocation percentages and date spans.
+### B. Daily development planning
 
-### 12. Cloud Storage (AWS S3 Direct Uploads)
-- [x] **Direct-to-S3 Pre-Signed URLs**: Pre-signed PUT URLs for direct client uploads of binary files (photos, documents, logs, zip archives) to Amazon S3.
-- [x] **Zero Server Memory Bottlenecks**: Prevents server memory exhaustion and eliminates proxy bandwidth overhead.
-- [x] **Expiring Secure Downloads**: Pre-signed GET URLs with time limits for private, secure file access.
-- [ ] **Verified End-to-End Cloud S3 Acceptance**: Verification of production S3 bucket policies and CORS configuration in live cloud deployments.
+- **PLAN-001:** Ranked project/product backlogs; Initiative → Epic/Feature → Story/Task/Bug → Subtask; sprints independent of releases/milestones, goals, team ownership, optional points/sizing and retained commitment/rollover history. Kanban remains available.
+- **PLAN-002:** Finish-to-Start and Blocks/Blocked by links, dependency cycle checks, blocker owners/reasons/actions and accurate elapsed episodes; reusable bug templates and resolution categories.
+- **PLAN-003:** Personal/team saved views, favorites, inline cells and permission-aware bulk actions with conflict/partial-failure handling; server-side queries and exports for scale.
+- **TIME-001:** Weekly entry, cross-project approval, audited amendments and reminders based on work schedules/leave. One persistent timer across tabs/devices; browser blur does not stop productive time. Monthly summaries/exports follow weekly acceptance; separate monthly approval is deferred.
 
-### 13. Central Tamper-Evident Audit Trail
-- [x] **Comprehensive Activity Logging**: Tracks user authentication, task status shifts, financial changes, and file uploads.
-- [x] **Before / After JSON Snapshots**: Stores `old_values` and `new_values` JSONB diffs with automated triggers.
-- [x] **Forensic Metadata**: Captures IP address, user agent, client device platform (`WEB`, `ANDROID`, `IOS`), and GPS coordinates.
-- [x] **Task-Scoped History Tab**: Readable timeline in task drawers displaying field mutations, actor names, and timestamps.
-- [ ] **Automated Audit Partitioning & Archival**: Monthly/quarterly table partitioning for high-volume audit logs older than 12 months.
+### C. Client delivery
 
-### 14. Responsive Web Application (`web/`)
-- [x] **Modern Tech Stack**: React 18, Vite, Tailwind CSS, Lucide Icons.
-- [x] **Interactive Kanban Board**: Drag-and-drop status transitions with workflow guardrails.
-- [x] **Shared Listing Grid**: Built with MIT-licensed TanStack Table, with search, column filters, pagination, multi-column sorting, grouping, print, and CSV exports.
-- [x] **Task Drawer & Full-Page Workspace**: Drawer view with inline field editors and a dedicated full-page route (`/tasks?taskId=<id>&viewTask=full`).
-- [x] **Command Palette (`Ctrl+K`)**: Instant debounced search across all tasks, projects, and clients.
-- [x] **Bento-Grid Dashboard**: Executive metrics for active tasks, billable values, and recent activities.
-- [x] **Adaptive Dark & Light Theme**: System preference detection, explicit toggle, and cross-tab synchronization.
+- **CLIENT-001 / CLIENT-002:** Invited customer contacts, explicit project access and private intake/triage. A product license never exposes all product tasks; submission promises neither price nor delivery date.
+- **CLIENT-003:** Versioned requirements and acceptance criteria linked to tasks, QA evidence and client decisions.
+- **CLIENT-004:** Scope/change quotations with effort, cost and delivery impact; authorized approval of a specific revision, with reapproval after material changes.
+- **CLIENT-005:** UAT packages, known issues, evidence and Approve / Request changes / Reject decisions. Developer completion, QA verification and client acceptance stay separate.
+- **CLIENT-006 / DEL-001:** PM-reviewed client progress reports, milestone forecasts, risks/assumptions/decisions and client actions awaiting response. Reports distinguish indicative targets from approved commitments.
 
-### 15. Cross-Platform Mobile Application (`mobile/`)
-- [x] **Flutter Multiplatform Architecture**: Clean modular architecture for Android and iOS.
-- [x] **Secure Token Storage**: Encrypted credential storage via `flutter_secure_storage`.
-- [x] **5-Tab Navigation Shell**: Dashboard, Tasks, Timesheets, Alerts, and Profile.
-- [x] **Task Detail & Workflow Screen**: Status transition picker and subtask checklists.
-- [ ] **Camera & Gallery S3 Uploader**: Snap photos or attach documents with direct progress streaming to AWS S3.
-- [ ] **GPS Location Check-in & Geofencing**: Real-time proximity calculation against branch coordinates on field check-ins.
-- [ ] **Mobile Live Stopwatch**: Notification drawer timer controls with quick worklog logging.
-- [ ] **FCM Push Notification Integration**: Push alert handler with deep-linking directly into referenced tasks.
-- [ ] **Offline Task Caching & Sync**: Local SQLite / Hive caching for offline viewing with reconnect synchronization.
+### D. Product management and repeatable delivery
 
-### 16. Executive & Portfolio Intelligence
-- [x] **Multi-Branch Filtering**: Corporate overview with instant branch switching for multi-location oversight.
-- [ ] **Project Health Index (PHI)**: Composite 0-100 score combining schedule health, budget burn, defect density, and active blockers.
-- [ ] **Cross-Branch Productivity Benchmarking**: Comparative analytics across locations comparing velocity, billable efficiency %, and on-time delivery rates.
+- **PROD-001:** Moderated product feedback and organization voting, duplicate merging, private impact evidence, impact/confidence/effort scoring and decision rationale. Authenticated customer roadmaps use Now / Next / Later with delivery/changelog links; votes and ACV are inputs, not promises.
+- **PROD-002:** Product goals, baselines/targets and dated post-release outcome reviews.
+- **QA-001:** Manual test cases/runs, affected/fix versions, evidence, known issues and release-readiness checklists; no CI/CD integration.
+- **COLLAB-001 / COLLAB-002:** Versioned specifications/FAQs/decision documents, rich comments with S3 files, reusable project/task templates and recurring work without copying private access or approvals.
+- **COLLAB-003:** Watchers/follows, channel preferences, digests, quiet hours and deduplicated delivery with authorization rechecked at dispatch.
+- **COMM-001:** Retainer/AMC included hours, approved usage, remaining allowance, rollover and overage approval; historical terms and authorized client statements.
 
-### 17. Customer Portal (Client Self-Service & Issue Tracking)
-- [ ] **Customer Authentication & Provisioning**: Secure customer user logins (`user_type = 'CLIENT'`) mapped directly to client company records.
-- [ ] **Dual Client Support**: Native portal support for both **Custom Project Clients** and **Software Product Licensees**.
-- [ ] **Strict Multi-Tenant Boundary Isolation**: Customers can ONLY view projects, products, releases, and tasks belonging to their organization.
-- [ ] **Internal Data Redaction Layer**: Strictly hides internal notes (`is_internal_only = TRUE`), employee costings, billing rates, and internal assignees.
-- [ ] **Customer Task & Bug Reporting**: Self-service interface for logging bugs, change requests, and support tickets with environment info and S3 file attachments.
-- [ ] **Milestone Delivery Timeline**: Client-facing Gantt/timeline view showing planned releases, versions, and sprint delivery dates.
-- [ ] **Direct Customer Collaboration**: Threaded discussions between client representatives and internal project leads on public task comments.
+### E. Delivery intelligence
 
-### 18. Product Feature Request & Customer Voting Engine
-- [ ] **Crowdsourced Product Ideation**: Shared feature request forum where licensed customers of the same software product can submit and discuss enhancements.
-- [ ] **Module Categorization**: Organize enhancement requests by product module (e.g. Reporting, UI, Integration, Performance, Mobile).
-- [ ] **Customer Upvoting Mechanism**: Enforce 1 vote per customer organization with optional business impact justification statements.
-- [ ] **Product Demand Analytics Dashboard**: Prioritization report for Product Managers ranking feature requests by raw vote counts and revenue-weighted impact (client ACV/ARR).
-- [ ] **Customer-Facing Roadmap Transparency**: Live feature lifecycle stages (`PROPOSED` -> `UNDER_EVALUATION` -> `PLANNED` -> `IN_DEVELOPMENT` -> `RELEASED` / `DECLINED`).
-- [ ] **Automated Status Notifications**: Automatic email and in-app alerts sent to all voting customers when an upvoted feature is planned or released in a new version.
+- **ANALYTICS-001:** Contract-defined response/resolution SLA, calendar/pause/reopen rules, rule-based deadline warnings, reason attribution and configurable escalation.
+- **ANALYTICS-002:** Maximum WIP limits, stage dwell heatmaps, cumulative flow, lead/cycle distributions, rework and release-defect trends based on source events.
+- **ANALYTICS-003:** Calendar-aware capacity and explainable skill suggestions; split co-assignee demand and contextual team trends. Automatic employee/branch leaderboards are deferred.
+- **ANALYTICS-004:** Baseline effort variance, consumption alerts, independent remaining estimates, burn/forecast curves and currency-aware contribution/margin reporting. Missing estimates/zero denominators show N/A; internal costs and margins remain private.
+
+### Later and deferred scope
+
+- **LATER-001:** SS/FF dependencies, lag, critical path and scheduling scenario previews after calendar/estimate quality is established; composite health scores require transparent weights and calibration.
+- **LATER-002:** Optional source-linked drafts of summaries/acceptance criteria with human review and approved data handling.
+- Lower priority: native field/geofencing expansion and broad CRM/HR/payroll/accounting features. Internet-public roadmaps and a universal automation designer remain deferred.
+
+## Documentation and Evidence
+
+- [Requirements](docs/requirements.md): behavioral contract, stable feature IDs, client visibility rules, metric definitions and acceptance examples.
+- [Implementation plan](docs/plan.md): dependencies, delivery order and acceptance gates.
+- [Tasks checklist](docs/tasks-checklist.md): implementation status and outstanding verification; a checked item is not production certification.
+- [Architecture](docs/tech-stack.md) and [user journeys](docs/walkthrough.md): current foundations and explicitly planned flows.
+- [Latest task implementation evidence](docs/walkthrough/jira-style-task-create-edit-2026-09-28.md), [shared grid evidence](docs/walkthrough/shared-listing-grid.md) and [requirements audit](docs/walkthrough/requirements-screen-audit.md): dated checks and limits.
+- [Roadmap review](docs/walkthrough/roadmap-review-and-market-recommendations-2026-09-28.md): rationale and official market references. Walkthroughs are historical records; current canonical requirements and checklist supersede older broad completion claims.
 
 ---
 
@@ -254,10 +185,10 @@ Built with a **NestJS REST API backend**, a modern **React 18 + Tailwind CSS web
 | **Database** | [PostgreSQL 15+](https://www.postgresql.org/) (pgcrypto, PL/pgSQL functions & triggers) |
 | **Database Access** | Native `pg.Pool` connection pooling (No ORM auto-migrations; strict SQL script compliance) |
 | **Cloud Storage** | [AWS S3](https://aws.amazon.com/s3/) via `@aws-sdk/client-s3` & `@aws-sdk/s3-request-presigner` |
-| **Security & Auth** | Dual login (Email+Password & Mobile+OTP), JWT, Passport, Helmet, Rate-limiting |
-| **Web Frontend** | [React 18](https://react.dev/), [Vite](https://vitejs.dev/), [Tailwind CSS](https://tailwindcss.com/), [Lucide React](https://lucide.dev/), Axios |
+| **Security & Auth** | Dual login (Email+Password & Mobile+OTP), JWT, Passport, Helmet; shared throttling pending |
+| **Web Frontend** | [React 19](https://react.dev/), [Vite](https://vitejs.dev/), [Tailwind CSS](https://tailwindcss.com/), [Lucide React](https://lucide.dev/), Axios |
 | **Mobile App** | [Flutter 3.x](https://flutter.dev/) (Dart), Dio with queued interceptors, Geolocator, ImagePicker, SecureStorage |
-| **Testing** | [Jest](https://jestjs.io/), `ts-jest` (100% pass rate on unit & integration test suites) |
+| **Testing** | [Jest](https://jestjs.io/), `ts-jest`; dated test scope and results in linked walkthroughs |
 
 ---
 
@@ -306,7 +237,7 @@ ks-pmt/
     ├── tech-stack.md                 # Technology stack documentation
     ├── plan.md                       # Architecture design plan
     ├── deployment-guide.md           # Production deployment & operations guide
-    └── walkthrough/                  # Step-by-step walkthroughs for all 9 phases
+    └── walkthrough/                  # Dated implementation, review and roadmap reports
 ```
 
 ---
@@ -314,6 +245,7 @@ ks-pmt/
 ## 🚀 Quick Start & Installation Guide
 
 ### Prerequisites
+
 - **Node.js**: `v20.x` or `v22.x` (LTS)
 - **PostgreSQL**: `v15+` running on port `5432`
 - **AWS S3 Bucket**: Configured for pre-signed uploads
@@ -381,7 +313,7 @@ Both options include the seed data and [default Super Admin account](#-default-s
    ```
    Configure your database and AWS credentials in `.env`:
    ```env
-   PORT=4000
+   PORT=5000
    DB_HOST=localhost
    DB_PORT=5432
    DB_USER=postgres
@@ -408,8 +340,8 @@ Both options include the seed data and [default Super Admin account](#-default-s
    ```bash
    npm run start:dev
    ```
-   The REST API will be accessible at `http://localhost:4000/api/v1`.  
-   Interactive Swagger documentation will be available at `http://localhost:4000/api/docs`.
+   The REST API will be accessible at `http://localhost:5000/api/v1`.
+   Interactive Swagger documentation will be available at `http://localhost:5000/api/docs`.
 
 ---
 
@@ -472,26 +404,30 @@ The database installer includes `dbscripts/inserts/inserts.sql` and provisions t
 | **Email Address** | `admin@kashvirainfotech.com` | Primary login email |
 | **Mobile Number** | `+919999900000` | For OTP authentication |
 | **Password** | `Admin@123456` | *Change immediately upon first login* |
-| **OTP Code (Dev)** | `123456` | Default verification code |
+| **OTP (development only)** | Request a generated code in explicitly configured mock mode | Live SMS delivery remains pending; no universal fixed code is promised |
 
 ---
 
 ## 💬 Community, Feedback & Support
 
-This project is **100% open source** released under the [MIT License](LICENSE). We built **KS-PMT** with passion to help a software development or product company manage its projects across all its locations and branches, with full control over its deployment and data.
+This project is **100% open source** released under the [MIT License](https://opensource.org/licenses/MIT). We built **KS-PMT** with passion to help a software development or product company manage its projects across all its locations and branches, with full control over its deployment and data.
 
 ### 📬 Get in Touch
+
 - **Contact Email**: `kashvirainfotech@gmail.com`
 
 ### 🌟 Let Us Know If You Are Using KS-PMT!
+
 If you or your organization are using this project, **please drop us a short email at `kashvirainfotech@gmail.com`**.  
 Hearing how KS-PMT helps your team gives us immense confidence, motivation, and a boost to keep adding more and more advanced enterprise features!
 
 ### 💡 Stopped Using KS-PMT? Help Us Improve!
+
 If you tested, installed, or previously used KS-PMT but decided to stop using it, **we would genuinely love to know why**.  
 Please email us with your honest feedback, pain points, or missing features. We welcome all feedback with open arms and will use it to continuously improve the tool for the entire developer community.
 
 ### 🤝 Feedback, Suggestions & Bug Reports
+
 Feedback, feature suggestions, and bug reports are warmly welcomed! Please open an issue to share your ideas or report a problem, or email us at `kashvirainfotech@gmail.com`.
 
 ---

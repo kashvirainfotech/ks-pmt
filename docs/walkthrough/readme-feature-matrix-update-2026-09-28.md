@@ -1,5 +1,7 @@
 # README Feature Matrix & Roadmap Synchronization
 
+> Historical record of the 2026-09-28 proposal/update. The accepted roadmap was revised on 2026-09-29 in [requirements](../requirements.md), [plan](../plan.md) and [checklist](../tasks-checklist.md). Those documents supersede this record's scope, sequencing, metric definitions and status claims. See [the update report](roadmap-documentation-update-2026-09-29.md).
+
 **Date**: 2026-09-28 (IST)  
 **Document**: README Feature Matrix & Roadmap Status Report  
 **Context**: Updating `README.md` with explicit tick/untick indicators (`[x]` for implemented/verified and `[ ]` for future roadmap points) across all feature domains.

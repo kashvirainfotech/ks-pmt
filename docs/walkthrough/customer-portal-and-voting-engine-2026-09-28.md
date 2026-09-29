@@ -1,5 +1,7 @@
 # Customer Portal & Product Feature Voting Engine Specifications
 
+> Historical record of the 2026-09-28 proposal/update. The accepted roadmap was revised on 2026-09-29 in [requirements](../requirements.md), [plan](../plan.md) and [checklist](../tasks-checklist.md). Those documents supersede this record's scope, sequencing, metric definitions and status claims. See [the update report](roadmap-documentation-update-2026-09-29.md).
+
 **Date**: 2026-09-28 (IST)  
 **Document**: Customer Portal & Feature Voting Engine Roadmap Synchronization Report  
 **Context**: Expanding KS-PMT with a dedicated Customer Portal (supporting both proprietary software product licensees and custom development project clients) and a Product Feature Request & Customer Voting Engine.

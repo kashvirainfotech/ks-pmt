@@ -1,32 +1,36 @@
 # Master Implementation Plan
+
 ## KS-PMT: Multi-Branch Project & Product Management System
 
 ---
 
-## 1. Project Implementation Phases
+## 1. Delivery Strategy
+
+Updated: 2026-09-29 (IST). [Requirements](requirements.md) define behavior; [the checklist](tasks-checklist.md) records implementation and dated verification. This plan sets dependency order, not duration estimates or claims of completion.
+
+Phases 1–9 below retain the original foundation scope as reference; their completion is governed by the checklist and newer evidence. Remaining native field capabilities do not block web/client delivery. Testing, accessibility, authorization and manual database acceptance are gates within every increment.
 
 ```mermaid
-flowchart TD
-    P1["Phase 1: DB Architecture & Data Modeling"] --> P2["Phase 2: Backend Core, Auth & Dynamic RBAC"]
-    P2 --> P3["Phase 3: Masters & Organizational Setup"]
-    P3 --> P4["Phase 4: Clients, Products, Projects & Versions"]
-    P4 --> P5["Phase 5: Dynamic Task Engine & Auto-Assignment"]
-    P5 --> P6["Phase 6: AWS S3, Notifications & Audit Logging"]
-    P6 --> P7["Phase 7: Modern Responsive Web Application"]
-    P7 --> P8["Phase 8: Cross-Platform Mobile App (Android/iOS)"]
-    P8 --> P9["Phase 9: Quality Assurance & Deployment Readiness"]
-    P9 --> P10["Phase 10: Operational Tracking, Flow & Performance Intelligence"]
+flowchart LR
+    A["A: Trustworthy foundation"] --> B["B: Daily development planning"]
+    B --> C["C: Client delivery"]
+    C --> D["D: Product management"]
+    D --> E["E: Delivery intelligence"]
+    E --> L["Later: Advanced scheduling and optional assistance"]
 ```
+
+Focus: development teams and clients managing custom projects and software products. Git integration, DevOps and CI/CD automation are excluded. Manual QA evidence, release planning and client acceptance remain in scope. Existing deployment guides describe operation of KS-PMT itself.
 
 ---
 
 ## 2. Phase-by-Phase Roadmap & Milestones
 
 ### Phase 1: Database Architecture & Data Modeling
+
 - **Goals**: Design and generate the complete PostgreSQL relational schema in strict compliance with project guidelines.
 - **Key Deliverables**:
   - `dbscripts/tables/tables.sql`: Core schema with all audit columns (`created_by`, `created_at`, `updated_by`, `updated_at`) and `is_active` flags on all masters.
-  - `dbscripts/indexes/indexes.sql`: Performance indexes on foreign keys, tenant/branch IDs, task statuses, and date ranges.
+  - `dbscripts/indexes/indexes.sql`: Performance indexes on foreign keys, client/project scope and branch IDs, task statuses, and date ranges.
   - `dbscripts/functions/`: Helper functions for updated timestamps, auto-assignment calculation, and audit trail generation.
   - `dbscripts/triggers/`: Automatic `updated_at` modification triggers and activity log interceptors.
   - `dbscripts/views/`: Denormalized reporting views (task summary by project/product, user workload, monthly billable hours).
@@ -34,11 +38,12 @@ flowchart TD
 - **Review Gate**: Developer manual verification and execution of SQL scripts on the development database.
 
 ### Phase 2: Backend Core, Authentication & Dynamic RBAC
+
 - **Goals**: Establish the modular NestJS REST API server, security middleware, dual authentication, and granular permission engine.
 - **Key Deliverables**:
   - NestJS modular skeleton with global filters, interceptors, and DTO validation pipes.
   - Dual Authentication system:
-    - Email + Password login (Argon2id hashing).
+    - Email + Password login (current bcrypt implementation; hash-policy changes require explicit implementation).
     - Mobile + OTP login (CSPRNG 6-digit generation, Redis storage, SMS dispatch integration).
   - JWT Access Token & Refresh Token lifecycle with secure token rotation.
   - Dynamic RBAC Engine:
@@ -47,6 +52,7 @@ flowchart TD
     - Branch-level permission override evaluation logic.
 
 ### Phase 3: Masters & Organizational Hierarchy
+
 - **Goals**: Implement REST API endpoints for organizational management.
 - **Key Deliverables**:
   - **Branches / Locations Module**: CRUD, geofence radius coordinates, multi-branch listing.
@@ -56,6 +62,7 @@ flowchart TD
   - **Dynamic Task Types & Workflows Module**: Configurable task types (Bug, New Development, etc.) and their permissible status transitions.
 
 ### Phase 4: Clients, Products, Projects & Versions
+
 - **Goals**: Implement business entities and client commercial relationships.
 - **Key Deliverables**:
   - **Clients & Prospects Module**: Leads and active clients, account managers, contact persons.
@@ -64,6 +71,7 @@ flowchart TD
   - **Versions & Releases Module**: Milestone and version planning for both products and projects with scheduled start/target release dates.
 
 ### Phase 5: Dynamic Task Engine, Time Tracking & Auto-Assignment
+
 - **Goals**: Core task management capabilities, subtasks, worklogs, and intelligent auto-assignment.
 - **Key Deliverables**:
   - **Tasks Module**:
@@ -74,7 +82,7 @@ flowchart TD
   - **Task Status Progression Engine**: Dynamic state machine enforcing allowed status transitions based on task type.
   - **Auto-Assignment Matrix**:
     - Trigger rules on task creation and status transition.
-    - Automatic routing based on department, designation, branch, or round-robin availability.
+    - Automatic routing based on department, designation, branch, or least-loaded availability (legacy strategy code `ROUND_ROBIN`).
   - **Time Tracking / Effort Logging**:
     - Worklogs with hours spent, billable flag, and work summaries.
     - Weekly timesheet summaries and manager sign-off.
@@ -82,6 +90,7 @@ flowchart TD
     - Threaded task comments with `@mentions` and file attachments.
 
 ### Phase 6: Cloud Storage (AWS S3), Real-Time Notifications & Audit Trail
+
 - **Goals**: Secure media storage, multi-channel notification engine, and system activity tracking.
 - **Key Deliverables**:
   - **AWS S3 Integration**:
@@ -96,20 +105,22 @@ flowchart TD
     - Global audit interceptor capturing entity changes, old/new diffs, IP addresses, user agents, and geolocation tags.
 
 ### Phase 7: Modern Responsive Web Application (React + Vite + Tailwind)
+
 - **Goals**: Build an intuitive, high-performance web interface following modern UI trends.
 - **Key Deliverables**:
-  - Design system with Tailwind CSS and Shadcn UI (accessible, clean typography, dark/light theme).
+  - Design system with Tailwind CSS and existing custom components (accessible, clean typography, dark/light theme); a Shadcn migration is not required by this roadmap.
   - Multi-Branch & Executive Bento-Grid Dashboards.
   - Interactive Task Views:
     - Kanban Board with drag-and-drop status transitions.
     - List View with advanced multi-filter (Branch, Project, Assignee, Priority, Status, Date).
-    - Gantt / Timeline view for Version and Milestone schedules.
+    - Release timeline for version schedules; dependency-aware Gantt is later scope (LATER-001).
   - Task Detail Drawer / Modal with subtasks, multi-assignees, attachments preview, time-logging widget, and comment stream.
   - Administrative Management Screens for Masters, Users, Roles, and Permission Overrides.
   - Client & Project Financial Portals with budget vs. actual hours and billable metrics.
   - Fully mobile-responsive layout for tablets and smartphones.
 
 ### Phase 8: Cross-Platform Mobile Applications (Flutter - Android & iOS)
+
 - **Goals**: Deploy native-quality mobile apps with hardware integration.
 - **Key Deliverables**:
   - Dual login screen (Email/Password & Mobile/OTP with auto-read on Android).
@@ -124,6 +135,7 @@ flowchart TD
   - Offline task caching and sync capabilities.
 
 ### Phase 9: Testing, Security Hardening, API Docs & Delivery
+
 - **Goals**: Comprehensive verification, documentation, and production readiness.
 - **Key Deliverables**:
   - Unit and integration testing suites.
@@ -131,52 +143,33 @@ flowchart TD
   - Complete Swagger / OpenAPI 3.0 specification published for external developers.
   - Developer Handover & Operations Guide.
 
-### Phase 10: Operational Tracking, Flow & Performance Intelligence
-- **Goals**: Deliver advanced issue dependencies, sprint agility, grouped weekly timesheets, budget burn curves, SLA early warning countdowns, flow bottleneck heatmaps, and resource capacity intelligence.
-- **Key Deliverables**:
-  - **10.1 Advanced Project & Issue Tracking**:
-    - Relational task dependencies (`task_dependencies` with `FS`, `SS`, `FF`, `BLOCKS`, `RELATES_TO`) with server-side DAG circular loop prevention.
-    - Interactive Gantt chart with Critical Path analysis and cascading delay warnings.
-    - Sprint lifecycle management (`sprints`), backlog grooming board, and story point complexity sizing.
-    - Blocker Radar system with categorized impediment tracking and elapsed blocked timers.
-    - Standardized defect fields (steps to reproduce, expected/actual) and formal resolution categories.
-  - **10.2 Effort Tracking, Timesheets & Budget Variance**:
-    - Grouped Weekly Timesheet Periods (`timesheet_periods`) with batch Monday-Sunday entry grid.
-    - Automated missing-hours alerts (< 40h/week) and one-click manager sign-offs.
-    - Persistent live stopwatch widget in top navigation bar with inactivity idle detection.
-    - Real-time Task Effort Variance ($\text{Actual} - \text{Estimated}$) with color-coded threshold badges.
-    - Project budget burn rate curves with threshold notifications at 75%, 90%, and 100% of budgeted hours.
-    - Project profitability margin analysis based on internal employee cost rates vs. client billable rates.
-  - **10.3 Deadline Management, SLA Engine & Early Warning System**:
-    - SLA Policies Matrix (`sla_policies`) with dynamic business-hours countdowns and breach alerts.
-    - Delay Early Warning System (EWS) algorithm detecting "At-Risk" tasks before deadlines breach.
-    - Multi-tier automated background escalation matrix (assignee $\rightarrow$ PM $\rightarrow$ branch leadership).
-    - Mandatory delay root-cause attribution (*Scope Creep*, *Client Dependency*, *Technical Complexity*, *Estimation*, *Leave*).
-  - **10.4 Bottleneck Detection & Flow Metrics**:
-    - Kanban Work-in-Progress (WIP) minimum/maximum limits per status column.
-    - Denormalized status duration tracking (`task_status_durations`) measuring exact business hours spent in each stage.
-    - Visual Status Dwell Time Heatmap highlighting pipeline queues.
-    - Cumulative Flow Diagram (CFD) area chart tracking work stage distributions over time.
-    - Lead Time and Cycle Time metrics and scatterplot distribution charts.
-  - **10.5 Team & Employee Performance, Workload & Capacity Intelligence**:
-    - Resource Allocation & Capacity Heatmap (Team Members $\times$ Sprints/Weeks) highlighting over-allocated (>100%) and under-utilized (<75%) staff.
-    - Estimation Accuracy Index (EAI) tracking estimation bias and precision per employee and team.
-    - Engineering Quality tracking: Task Rejection / Reopen counts and First-Time-Right (FTR %) rate.
-    - Employee 360° Operational Performance Scorecard (On-Time Delivery %, billable efficiency, velocity, quality).
-    - Employee Skill Matrix taxonomy with proficiency ratings and "Smart Assign" task recommendation routing.
-  - **10.6 Executive & Portfolio Intelligence**:
-    - Composite Project Health Index (PHI, 0-100) combining schedule, budget burn, defect density, and blockers.
-    - Cross-Branch Productivity Benchmarking comparing velocity, billable efficiency %, and on-time delivery across locations.
-  - **10.7 Customer Portal (Client Self-Service & Issue Tracking)**:
-    - Customer user provisioning and authentication linked to client accounts with strict multi-tenant boundary checks.
-    - Absolute redaction of internal employee notes, developer hourly costs, and profit margins.
-    - Client task/bug reporting portal with S3 attachment uploads and auto-assignment routing.
-    - Milestone delivery timeline and customer-facing status progression.
-  - **10.8 Product Feature Request & Customer Voting Engine**:
-    - Crowdsourced product ideation forum for software product clients with module categorization.
-    - 1-vote-per-client voting mechanism with operational impact justification.
-    - Product Manager prioritization dashboard ranking requests by vote count and revenue impact (ACV).
-    - Transparent public roadmap and automated notifications on feature stage progression.
+### Phase 10: Accepted Roadmap Increments
+
+All items below are planned expansions or completion work, not newly implemented features. Stable IDs map to the SRS and checklist section 11. Frontend, backend, mobile and live acceptance must be tracked separately when implementation begins.
+
+| Increment | Feature IDs and deliverables | Dependencies and acceptance gate |
+| --- | --- | --- |
+| **A — Trustworthy foundation** | **FND-001**: status/evidence reconciliation, client access model, employee/contract calendars, baselines and source-event history; required provider acceptance and server-side data-query foundations | Establish scope and action checks, including secondary surfaces. Record provider acceptance for channels used by each release. Developer/DBA installs relevant schema against a blank database. No client-facing feature ships before its isolation tests pass. |
+| **B — Daily development planning** | **PLAN-001**: hierarchy, product/project backlogs and sprints independent of releases; **PLAN-002**: basic FS/blocking links, blocker episodes and bug templates; **PLAN-003**: saved views, inline cells, bulk actions and scalable queries; **TIME-001**: schedule-aware weekly entry, review and durable timer | Depends on A calendars and events. Plan/close a product sprint, retain commitment and scope history, carry over incomplete work, track overlapping blockers and approve a multi-project week containing leave. Preserve existing per-worklog review behavior. |
+| **C — Client delivery** | **CLIENT-001**: invited client membership and private/shared audiences; **CLIENT-002**: intake/triage; **CLIENT-003**: versioned requirements and acceptance criteria; **CLIENT-004**: scope/quotation approval; **CLIENT-005**: UAT/sign-off; **CLIENT-006**: published progress updates; **DEL-001**: risks and client decisions | Depends on A access rules and B delivery records. Demonstrate request → triage → agreed scope → development → QA → client UAT → accepted milestone. Material revisions require reapproval; client reports/files contain only authorized content. Basic QA evidence is included here; reusable test management follows in D. |
+| **D — Product management and repeatable delivery** | **PROD-001**: moderated feedback, organization voting, prioritization and customer roadmap; **PROD-002**: goals/outcome reviews; **QA-001**: reusable manual test cases/runs and release checklist; **COLLAB-001**: knowledge/decision documents; **COLLAB-002**: templates/recurrence; **COLLAB-003**: followers/digests and reliable notifications; **COMM-001**: retainer/AMC allowance and overage review | Depends on C audience/approval rules and B approved effort. Merge duplicate ideas without duplicate votes or private-data leakage; link selected ideas to delivered work and outcome reviews. Repeat templates safely and reconcile allowance consumption. Basic notification delivery is implemented as needed in A/C, before advanced preferences in D. |
+| **E — Delivery intelligence** | **ANALYTICS-001**: contractual SLA and rule-based risk alerts; **ANALYTICS-002**: WIP limits, dwell/flow/cycle metrics and quality trends; **ANALYTICS-003**: capacity and skill suggestions; **ANALYTICS-004**: variance, burn curves, forecast contribution and metric reconciliation | Depends on A calendars/events, B estimates/worklogs and C approved baselines. Reproduce results for holidays, reopened/cancelled work, revised estimates, overlapping blockers, historic rates and split co-assignee effort. Disclose missing data and sample size. |
+| **Later — Advanced options** | **LATER-001**: SS/FF, lag, critical path, capacity/date scenarios and calibrated composite health; **LATER-002**: optional source-linked drafting assistance with human review | E data must be reliable before scheduling/score adoption. Preview schedule changes before authorized application. Optional assistance requires an approved data-handling decision and must preserve content access boundaries. |
+
+#### Explicitly deferred or lower-priority scope
+
+- Monthly summaries/exports follow weekly timesheet acceptance; separate monthly approval is deferred and must not double-approve hours.
+- Native field/geofencing expansion, broad CRM/HR/payroll and accounting automation do not displace client delivery.
+- Automatic employee/branch leaderboards, internet-public roadmaps and a universal automation designer remain deferred.
+- Rich comment composition and comment-specific S3 attachments remain planned collaboration work; they were not removed from scope.
+
+#### Definition of done for each increment
+
+- Trace each feature ID to its actor, permissions, state transitions, edge cases and SRS acceptance example.
+- Record implementation separately from mocked tests, live database/provider acceptance and native-device acceptance. “Verified” always names scope, evidence and date.
+- Demonstrate permission denial, conflict/error recovery, keyboard/mobile layout and audience-safe search/export/notification behavior for the affected flows.
+- Keep all SQL in canonical object definitions with required audit/active columns; the developer/DBA performs blank-database execution. No agent database execution, commits or pushes.
+- Update the checklist, README summary and a dated walkthrough with evidence and remaining limitations.
 
 ---
 
@@ -184,6 +177,8 @@ flowchart TD
 
 | Risk Factor | Impact | Mitigation Strategy |
 | :--- | :--- | :--- |
+| **Client Data Exposure** | High | Enforce client membership, explicit sharing and per-action authorization on all API and secondary surfaces; a shared product license never grants private-ticket visibility. |
+| **Metric Misinterpretation** | High | Use the SRS measurement contract, baseline/calendar snapshots, sample sizes and source-event reconciliation; avoid automatic individual rankings. |
 | **Complex Permission Overrides** | High | Implement deterministic hierarchical evaluation: `User Overrides` > `Branch Overrides` > `Role Base Permissions`. Cache compiled permission sets in Redis with instant invalidation on update. |
 | **Direct S3 Upload Vulnerabilities** | Medium | Strictly validate file MIME types and size constraints before granting pre-signed upload URLs. Use private S3 buckets with IAM least privilege. |
 | **Large Audit Log Data Growth** | Medium | Partition the `audit_logs` table by month/quarter in PostgreSQL. Implement automated archival policies for historical logs older than 12 months. |

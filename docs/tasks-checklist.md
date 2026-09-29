@@ -1,7 +1,10 @@
 # Project Tasks & Verification Checklist
+
 ## KS-PMT: Multi-Branch Project & Product Management System
 
-Status reconciled on 2026-09-26 against the requirements audit, saved test results and implementation review. `[x]` means the stated scope is implemented or documented; `[ ]` means unfinished, partially implemented, blocked, or awaiting verification. A checked implementation item is not production certification. Earlier phase walkthroughs are historical and may overstate completion.
+Roadmap reconciled on 2026-09-29; implementation evidence remains dated in the linked audits and walkthroughs. This documentation update does not rerun tests or complete planned features. `[x]` means the stated scope is implemented or documented; `[ ]` means unfinished, partially implemented, blocked, or awaiting verification. A checked implementation item is not production certification. Earlier phase walkthroughs are historical and may overstate completion.
+
+Status labels: **Planned** = no completed delivery; **Partial** = some scope exists; **Implemented — acceptance pending** = implementation evidence exists but a required acceptance gate remains; **Verified** = the explicitly named scope passed dated checks. Historical `[x]` entries retain their stated scope, not a blanket Verified label.
 
 Evidence: [completion review](walkthrough/completion-status-review-2026-09-26.md) and [requirements audit](walkthrough/requirements-screen-audit.md). Existing build/test evidence is historical unless a newer walkthrough explicitly records a rerun.
 
@@ -22,6 +25,7 @@ Evidence: [completion review](walkthrough/completion-status-review-2026-09-26.md
 ## 2. Database Scripts (`dbscripts/`)
 
 ### 2.1 Table Definitions (`dbscripts/tables/tables.sql`)
+
 - [x] Enforce standard audit columns (`created_by`, `created_at`, `updated_by`, `updated_at`) across all tables
 - [x] Enforce `is_active` boolean column on all master tables
 - [x] `branches`: Multi-branch office master with geofencing coordinates (lat, long, radius)
@@ -38,7 +42,7 @@ Evidence: [completion review](walkthrough/completion-status-review-2026-09-26.md
 - [x] `product_client_licenses`: Client-to-product mapping (licenses, subscriptions, AMC terms)
 - [x] `projects`: Custom development projects with client mapping, budgets, and dates
 - [x] `project_members`: Project team allocation with roles and date spans
-- [x] `versions`: Release milestones and sprint versions for products and projects
+- [x] `versions`: Product/project release records; separate sprints and milestone semantics are PLAN-001
 - [x] `task_types`: Dynamic task types (New Development, Bug, Issue, Enhancement, Training, Support)
 - [x] `task_statuses`: Dynamic workflow statuses with sequence and completion flags
 - [x] `task_type_workflow`: Allowed status transitions per task type
@@ -53,12 +57,14 @@ Evidence: [completion review](walkthrough/completion-status-review-2026-09-26.md
 - [x] `audit_logs`: Detailed activity tracking (entity, action, old/new values, IP, user-agent, location)
 
 ### 2.2 Blank-Database Development Schema
+
 - [x] Fold development schema changes into canonical `CREATE TABLE` definitions.
 - [x] Use `department_heads` to avoid circular table dependencies while enforcing head assignments with foreign keys.
 - [x] Provide an ordered terminal installer and generated plain SQL bundle for pgAdmin.
 - Incremental migrations apply only after the project is declared live.
 
 ### 2.3 Indexes (`dbscripts/indexes/indexes.sql`)
+
 - [x] Foreign key indexes on all relation columns
 - [x] Composite indexes on `tasks(project_id, status_id, priority)`
 - [x] Composite indexes on `tasks(product_id, version_id, status_id)`
@@ -67,12 +73,14 @@ Evidence: [completion review](walkthrough/completion-status-review-2026-09-26.md
 - [x] Index on `audit_logs(entity_name, record_id, created_at)`
 
 ### 2.4 Views (`dbscripts/views/`)
+
 - [x] `vw_project_financial_summary.sql`: Project contract values, billed hours, and remaining budget
 - [x] `vw_product_license_summary.sql`: Active licenses, expiring AMCs, and client counts per product
 - [x] `vw_employee_workload.sql`: Open tasks count, estimated hours, and actual hours logged per user
 - [x] `vw_task_hierarchy.sql`: Recursive view of parent tasks and nested sub-tasks with progress
 
 ### 2.5 Functions & Triggers (`dbscripts/functions/` & `dbscripts/triggers/`)
+
 - [x] `fn_set_updated_at.sql`: Reusable trigger function updating `updated_at = CURRENT_TIMESTAMP`
 - [x] `trg_tasks_updated_at.sql`: Apply update timestamp trigger on `tasks` table
 - [x] `fn_calculate_task_effort.sql`: Computes aggregated effort (billable and non-billable hours)
@@ -82,6 +90,7 @@ Evidence: [completion review](walkthrough/completion-status-review-2026-09-26.md
 - [x] `trg_users_updated_at.sql`: Apply update timestamp trigger on `users` table
 
 ### 2.6 Seed Data (`dbscripts/inserts/inserts.sql`)
+
 - [x] Seed base system permissions (CRUD across all modules)
 - [x] Seed default roles (Super Admin, Branch Manager, Project Manager, Tech Lead, Developer, QA, Support)
 - [x] Seed default departments and designations
@@ -93,6 +102,7 @@ Evidence: [completion review](walkthrough/completion-status-review-2026-09-26.md
 ## 3. Backend REST API Implementation (`server/`)
 
 ### 3.1 Core Architecture & Security
+
 - [x] Initialize NestJS project with TypeScript and Prettier
 - [ ] Complete and verify ESLint configuration (including required tooling)
 - [x] Configure PostgreSQL database connection pool (`pg` / TypeORM / Kysely)
@@ -102,6 +112,7 @@ Evidence: [completion review](walkthrough/completion-status-review-2026-09-26.md
 - [x] Setup Swagger / OpenAPI documentation UI at `/api/docs`
 
 ### 3.2 Authentication & Dynamic RBAC Module
+
 - [x] `POST /api/v1/auth/login-password`: Authenticate with email and password
 - [ ] `POST /api/v1/auth/request-otp`: Request 6-digit OTP to registered mobile number
 - [x] `POST /api/v1/auth/login-otp`: Verify generated OTP and issue tokens (mock flow; live SMS acceptance pending)
@@ -114,6 +125,7 @@ Evidence: [completion review](walkthrough/completion-status-review-2026-09-26.md
   - Individual user-level permission overrides
 
 ### 3.3 Masters & Organizational Modules
+
 - [x] Branches CRUD (`/api/v1/branches`) with geofencing coordinates
 - [x] Departments CRUD (`/api/v1/departments`)
 - [x] Designations CRUD (`/api/v1/designations`) with hierarchy sorting
@@ -122,6 +134,7 @@ Evidence: [completion review](walkthrough/completion-status-review-2026-09-26.md
 - [x] Workflow Status Transitions CRUD (`/api/v1/task-workflows`)
 
 ### 3.4 Business & CRM Modules
+
 - [x] Clients & Prospects CRUD (`/api/v1/clients`)
 - [x] Client conversion endpoint (Prospect -> Active Client)
 - [x] Products CRUD (`/api/v1/products`) with license pricing and AMC rates
@@ -131,6 +144,7 @@ Evidence: [completion review](walkthrough/completion-status-review-2026-09-26.md
 - [x] Versions & Milestones CRUD (`/api/v1/versions`) for both products and projects
 
 ### 3.5 Dynamic Task Management Engine
+
 - [x] Tasks CRUD (`/api/v1/tasks`) with multi-assignee payload
 - [x] Sub-task creation and hierarchical tree retrieval
 - [x] Task Status Transition endpoint (`PATCH /api/v1/tasks/:id/status`) with workflow validation
@@ -141,12 +155,14 @@ Evidence: [completion review](walkthrough/completion-status-review-2026-09-26.md
 - [x] Auto-assignment rule evaluation engine on task create and status change
 
 ### 3.6 Cloud Storage (AWS S3) & Media Service
+
 - [x] Configure AWS SDK v3 S3 client
 - [x] `POST /api/v1/attachments/presigned-upload-url`: Generate time-limited pre-signed PUT URL
 - [x] `GET /api/v1/attachments/:id/presigned-download-url`: Generate secure pre-signed GET URL
 - [x] Attachment metadata registration and association with Tasks / Comments / User Avatars
 
 ### 3.7 Notifications & Audit Service
+
 - [x] In-App notification list and mark-as-read endpoints (`/api/v1/notifications`)
 - [ ] Firebase Cloud Messaging (FCM) integration service for push notifications
 - [ ] AWS SES / SendGrid email notification dispatch service
@@ -157,8 +173,9 @@ Evidence: [completion review](walkthrough/completion-status-review-2026-09-26.md
 ## 4. Modern Web Application (`web/`)
 
 ### 4.1 UI Framework & Layout
+
 - [x] Initialize React + Vite with TypeScript and Tailwind CSS
-- [ ] Reconcile planned Shadcn UI library with current custom components
+- [x] Document current custom-component architecture; adopting Shadcn is not a roadmap prerequisite
 - [x] Integrate Lucide Icons
 - [x] Build responsive shell layout:
   - Collapsible desktop sidebar and mobile sliding drawer
@@ -166,6 +183,7 @@ Evidence: [completion review](walkthrough/completion-status-review-2026-09-26.md
 - [x] Setup Dark / Light mode theme provider
 
 ### 4.2 Screens & User Flows
+
 - [x] Authentication Screens: Email/Password login & Mobile/OTP form (live SMS delivery pending)
 - [x] Dashboard with task totals, recent activity and explicitly labeled sample metrics
 - [ ] Complete aggregate executive/branch reporting, sprint velocity and workload charts
@@ -173,7 +191,7 @@ Evidence: [completion review](walkthrough/completion-status-review-2026-09-26.md
   - Interactive Kanban Board with drag-and-drop status progression
   - Filterable Data Table (List View) with search
   - Calendar / Timeline view for Version milestones
-- [ ] Complete and verify multi-column sorting
+- [x] Shared grid multi-column sorting within its client-loaded result scope (see [grid evidence](walkthrough/shared-listing-grid.md)); server-side scale acceptance remains PLAN-003
 - [ ] Complete all advanced Task Detail View features (core drawer is implemented):
   - Core inline field editing, focused creation, revision conflicts and fixture-based browser acceptance are implemented; live database acceptance remains pending
   - Multi-assignee avatar chips and selector
@@ -185,13 +203,14 @@ Evidence: [completion review](walkthrough/completion-status-review-2026-09-26.md
 - [x] Dynamic RBAC Permission Matrix UI with User and Branch override toggles
 - [x] Clients & Projects Management with financial amount tracking (contract value, AMC, hourly billables)
 - [x] Individual worklog submission, rejection, resubmission and manager approval screen
-- [ ] Grouped weekly/monthly timesheet submission and sign-off
+- Grouped weekly approval and later monthly summary scope are tracked once under TIME-001 in section 11.
 
 ---
 
 ## 5. Cross-Platform Mobile Application (`mobile/` - Android & iOS)
 
 ### 5.1 Core Architecture & Device Integrations
+
 - [x] Create Flutter application source with modular architecture
 - [ ] Complete/verify native Android and iOS build scaffolding and successful builds
 - [x] Setup secure token storage (`flutter_secure_storage`)
@@ -200,6 +219,7 @@ Evidence: [completion review](walkthrough/completion-status-review-2026-09-26.md
 - [ ] Integrate Firebase Cloud Messaging (`firebase_messaging`) for push alerts
 
 ### 5.2 Screens & Native Capabilities
+
 - [ ] Login screen with Email/Password and Mobile/OTP (SMS auto-fill)
 - [x] Bottom navigation bar (Home/Dashboard, Tasks, Timesheet, Notifications, Profile)
 - [ ] Task List view with search, filter by project/product, and status chips
@@ -251,6 +271,7 @@ Evidence: [completion review](walkthrough/completion-status-review-2026-09-26.md
 ## 8. Remaining Requirements and Acceptance Gates
 
 ### External services and infrastructure
+
 - [ ] Successful real S3 upload/confirmation/download/avatar test: last recorded PUT failed with HTTP 403 `InvalidAccessKeyId`; credentials and browser CORS need verification
 - [ ] Implement/configure actual SMS provider and verify OTP delivery/login end to end
 - [ ] Shared Redis OTP cache and distributed request throttling; current OTP state is process-local
@@ -259,13 +280,15 @@ Evidence: [completion review](walkthrough/completion-status-review-2026-09-26.md
 - [ ] Planned asynchronous delivery queues, audit archival/partitioning and operational infrastructure
 
 ### Task collaboration and reporting
+
 - [x] Dynamic per-task custom-field value storage and rendering (manual blank-database installation acceptance pending)
 - [x] Formatted task descriptions with toolbar and preview (Markdown-based, raw HTML disabled)
 - [ ] Rich-text comment composition and comment-specific attachment composition
 - [ ] Responsibility flags beyond primary-assignee selection
-- [ ] Grouped weekly/monthly timesheets, exports and complete aggregate reports
+- TIME-001 and ANALYTICS-004 in section 11 track grouped timesheets, summary/export scope and aggregate reports.
 
 ### Mobile
+
 - [ ] Flutter/Dart analysis, Android/iOS builds and device acceptance tests
 - [ ] Offline task/draft cache and conflict-aware reconnect synchronization
 - [ ] Integrated GPS/geofence check-in, field activity and location audit workflows
@@ -274,6 +297,7 @@ Evidence: [completion review](walkthrough/completion-status-review-2026-09-26.md
 - [ ] Signing, release artifacts and store/TestFlight release validation
 
 ### Security, operations and documentation
+
 - [ ] Password expiry and MFA challenge flow
 - [ ] External API-key/OAuth provisioning and IP allowlists
 - [ ] Full authorization review including secondary lookups and report routes
@@ -308,74 +332,62 @@ UI evidence: [refresh walkthrough](walkthrough/web-ui-refresh-and-checklist-2026
 
 Evidence: [create/edit walkthrough](walkthrough/jira-style-task-create-edit-2026-09-28.md). Advanced list productivity, visual field-layout administration and native mobile parity remain separate work.
 
-## 11. Operational Tracking, Flow & Performance Intelligence Roadmap
+## 11. Accepted Roadmap and Acceptance Gates (2026-09-29)
 
-### 11.1 Project & Issue Tracking Enhancements
-- [ ] Canonical DDL & API for task dependencies (`task_dependencies` with `FS`, `SS`, `FF`, `BLOCKS`, `RELATES_TO`)
-- [ ] Server-side DAG validation preventing circular dependencies ($A \rightarrow B \rightarrow C \rightarrow A$)
-- [ ] Interactive Gantt view with dependency connectors, Critical Path highlighting and cascading delay recalculation
-- [ ] Agile Sprints entity (`sprints`) with sprint backlog grooming, ranking, and status progression (`PLANNING`, `ACTIVE`, `COMPLETED`)
-- [ ] Story Points / complexity sizing (Fibonacci and T-shirt sizes) alongside hourly estimates
-- [ ] Sprint rollover wizard to carry over incomplete tasks on sprint closure
-- [ ] Explicit "Flag as Blocked" toggle with structured blocker categorization (*Client*, *Specs*, *Tech*, *Environment*)
-- [ ] Blocker stopwatch tracking cumulative blocked hours and dashboard Blocker Radar strip
-- [ ] Structured Bug lifecycle fields: numbered Steps to Reproduce, Expected vs. Actual behavior, and Workaround info
-- [ ] Bug resolution classification (*Fixed*, *Won't Fix*, *Duplicate*, *Cannot Reproduce*, *By Design*)
+All boxes in this section remain unchecked. Feature IDs reference [requirements](requirements.md) and [delivery increments](plan.md). Existing components may support these features, but none is marked complete by this documentation change. For each feature, implementation work must record backend, web, mobile applicability, automated evidence and manual/live acceptance separately. Cross-references elsewhere are not additional progress items.
 
-### 11.2 Effort Spent, Timesheets & Budget Variance
-- [ ] Grouped Weekly Timesheet Periods entity (`timesheet_periods`) and batch submission workflow
-- [ ] Weekly Timesheet Matrix UI (Monday through Sunday hours grid across assigned tasks)
-- [ ] Automated missing-hours alerts (< 40h/week) for employees and managers
-- [ ] One-click batch manager sign-off with task-level audit drill-down
-- [ ] Global persistent stopwatch in the application header with automatic pause and draft creation
-- [ ] Browser blur / inactivity idle detection for the live stopwatch
-- [ ] Real-time Task Effort Variance calculation ($\text{Actual} - \text{Estimated}$) with color-coded threshold badges
-- [ ] Project Budget Burn Rate curves with proactive alerts at 75%, 90%, and 100% of budgeted hours
-- [ ] Project Profitability Margin calculation based on employee internal cost rates vs. client billable rates
+### 11.1 Increment A — Trustworthy Foundation
 
-### 11.3 Deadline Management, SLA Engine & Early Warnings
-- [ ] SLA Policies Matrix table (`sla_policies`) defining First Response and Resolution targets by Priority, Type, and Client Tier
-- [ ] SLA business hours engine pausing timers during off-hours and regional branch holidays
-- [ ] Dynamic SLA countdown badges on tasks with warning and breach states
-- [ ] Delay Early Warning System (EWS) algorithm detecting "At-Risk" tasks before deadlines pass
-- [ ] Dedicated "At-Risk Deadlines" radar tab for Project Managers
-- [ ] Multi-tier background escalation scheduler (Tier 1: Assignee/Tech Lead, Tier 2: PM/HOD, Tier 3: Branch Manager)
-- [ ] Mandatory Delay Root-Cause attribution (*Scope Creep*, *Client Dependency*, *Technical Complexity*, *Estimation*, *Leave*)
+- [ ] **FND-001 — permissions and evidence**: Reconcile documented status; define invitation/client/project/action boundaries and internal, client-shared and product-community audiences; test details, lookups, counts, search, export, history, notifications and S3 downloads.
+- [ ] **FND-001 — calendars and events**: Implement configurable employee/contract calendars, leave and effective dates; versioned baselines, workflow categories and status/blocker source events.
+- [ ] **FND-001 — acceptance**: Complete provider checks needed by the release and human blank-database acceptance; preserve pending SMS/S3/email/FCM/native gates in section 8 until actual evidence exists.
 
-### 11.4 Bottleneck Detection & Flow Analytics
-- [ ] Kanban Work-in-Progress (WIP) minimum/maximum limits per status column with soft/hard warnings
-- [ ] Denormalized status duration tracking (`task_status_durations`) measuring exact business hours spent in each stage
-- [ ] Visual Status Dwell Time Heatmap highlighting pipeline queues (e.g. development vs. code review vs. testing)
-- [ ] Cumulative Flow Diagram (CFD) area chart tracking work stage distributions over time
-- [ ] Lead Time (creation to closure) and Cycle Time (in-progress to closure) metrics and scatterplot charts
+### 11.2 Increment B — Daily Development Planning
 
-### 11.5 Team & Employee Performance, Workload & Capacity Intelligence
-- [ ] Resource Allocation & Capacity Heatmap (Team Members $\times$ Sprints/Weeks) highlighting over-allocated (>100%) and under-utilized (<75%) staff
-- [ ] Estimation Accuracy Index (EAI) tracking estimation bias and precision per employee and team
-- [ ] Engineering Quality tracking: Task Rejection / Reopen count (sent back from QA to dev) and First-Time-Right (FTR %) rate
-- [ ] Post-release Defect Leakage ratio tracking per release version
-- [ ] Employee 360° Operational Performance Scorecard (On-Time Delivery %, billable efficiency, velocity, quality)
-- [ ] Employee Skill Matrix taxonomy with proficiency ratings (`Beginner`, `Intermediate`, `Expert`)
-- [ ] "Smart Assign" task routing ranking team members by skill match, available bandwidth, and branch proximity
+- [ ] **PLAN-001**: Initiative/epic/task/subtask hierarchy, ranked product/project backlogs, separate sprints/releases/milestones, team ownership and sprint permissions.
+- [ ] **PLAN-001 — acceptance**: Record initial sprint commitment, scope changes and rollover history; support story points/T-shirt sizes and Kanban without mandatory sprints.
+- [ ] **PLAN-002**: FS and directed Blocks links, inverse display, dependency-only cycle checks; blocker episodes with owner/reason/next action and overlapping-duration handling.
+- [ ] **PLAN-002 — defect templates**: Reuse custom fields for reproduction, expected/actual behavior, environment and workaround; distinguish priority/severity and enforce resolution classifications.
+- [ ] **PLAN-003**: Personal/team saved views, inline cells and permission-aware bulk operations with revision checks/partial failures; coordinated server-side queries and exports for large results.
+- [ ] **TIME-001**: Configurable weekly grid and reminders based on expected hours; cross-project reviewer portions, submit/reject/resubmit/approve and audited amendments without duplicate approval.
+- [ ] **TIME-001 — timer**: Persist one active timer across tabs/devices with recovery and correction; browser blur never stops/discards time automatically.
+- [ ] **TIME-001 — acceptance**: Exercise leave, part-time work, multiple projects and stale approvals; monthly summaries/exports follow weekly acceptance and separate monthly sign-off stays deferred.
 
-### 11.6 Executive & Portfolio Intelligence
-- [ ] Composite Project Health Index (PHI, 0-100) combining schedule, budget burn, defect density, and blockers
-- [ ] Cross-Branch Productivity Benchmarking comparing velocity, billable efficiency %, and on-time delivery across locations
+### 11.3 Increment C — Client Delivery
 
-### 11.7 Customer Portal (Client Self-Service & Issue Tracking)
-- [ ] Customer user authentication & profile model (`user_type = 'CLIENT'`, bound to `client_id`)
-- [ ] Multi-tenant client isolation guard ensuring customers only access their own project/licensed product tasks
-- [ ] Internal data redaction layer (strictly filter out `is_internal_only` comments, billable/cost rates, and internal assignees)
-- [ ] Customer task & defect creation dialog with environment specs, numbered reproduction steps, and S3 file attachments
-- [ ] Customer status progression view with user-friendly status translations
-- [ ] Project & Product Milestone Delivery Timeline view for customers
-- [ ] Threaded customer collaboration comments with internal PMs/Leads
+- [ ] **CLIENT-001**: Invitation, recovery, restricted delegated administration and revocation; explicit sharing, allowlisted responses, bounded download access and contract-specific closeout/history rights.
+- [ ] **CLIENT-002**: Private bug/support/change requests with clarification, triage, reasons and duplicate/delivery linking; submission grants no commercial/date commitment.
+- [ ] **CLIENT-003**: Versioned requirements, baseline scope and acceptance criteria linked to work, QA evidence and client decisions; coverage gaps view.
+- [ ] **CLIENT-004**: PM review and authorized client approval of a specific scope/price/date revision; material edits require new approval and preserve prior decisions.
+- [ ] **CLIENT-005**: Versioned UAT packages, defects, evidence and explicit approve/request-changes/reject; separate developer done, QA verified and client accepted.
+- [ ] **CLIENT-006**: PM-reviewed client-safe progress updates, health narrative, decisions needed, target/committed dates and report history.
+- [ ] **DEL-001**: Risks/assumptions/decisions with owners, mitigation and review dates; client action list distinct from internal risk discussion and active blockers.
+- [ ] **Client journey acceptance**: Request → triage → approved scope → development → QA → UAT → sign-off. Test client-to-client denial, hidden internal content and reapproval after material edits.
 
-### 11.8 Product Feature Request & Customer Voting Engine
-- [ ] Product feature requests entity (`product_feature_requests`) with module categorization and status lifecycle (`PROPOSED`, `UNDER_EVALUATION`, `PLANNED`, `IN_DEVELOPMENT`, `RELEASED`, `DECLINED`)
-- [ ] Customer voting entity (`product_feature_votes`) enforcing 1 vote per customer organization with impact justification statement
-- [ ] Product Manager demand analytics dashboard ranking feature requests by raw vote count and revenue-weighted (ACV) value
-- [ ] Customer-facing product enhancement roadmap view
-- [ ] Automated email/in-app notification alerts to all voting customers on feature status progression (e.g. planned in release `v2.1.0`)
+### 11.4 Increment D — Product Management and Repeatable Delivery
 
+- [ ] **PROD-001 — discovery**: Problems/evidence/segments, impact/confidence/effort/strategic fit and recorded product decisions; moderated sanitized publication.
+- [ ] **PROD-001 — voting**: Authorized organization representatives, one vote per client/idea, conflict handling, retraction and duplicate merging with deduplication; private identities/impact/commercials.
+- [ ] **PROD-001 — roadmap**: Authenticated Now/Next/Later views, indicative versus committed dates, deferred/merged outcomes, delivery/release links and approved changelogs.
+- [ ] **PROD-002**: Product goals, baselines/targets, owners and dated outcome reviews linked to released features.
+- [ ] **QA-001**: Reusable manual test cases/runs, evidence, affected/fix versions, known issues and reviewed release readiness; no CI/CD or automated test execution integration.
+- [ ] **COLLAB-001**: Versioned knowledge/decision documents with explicit audiences and permission-preserving task links; rich comments and comment-specific S3 composition.
+- [ ] **COLLAB-002**: Project/task templates, relative dates and recurring work with unique occurrences; never copy approvals, client permissions or confidential artifacts implicitly.
+- [ ] **COLLAB-003**: Watchers, independent follows, channel/digest/quiet-hour settings and urgent exceptions; retries deduplicate and queued delivery rechecks authorization.
+- [ ] **COMM-001**: Retainer/AMC periods, included/approved/remaining hours, historical terms, rollover and overage approval using CLIENT-004.
+- [ ] **Product acceptance**: Merge duplicate ideas without privacy leaks or duplicate votes, link idea to outcome review, and reconcile approved allowance usage without double consumption.
 
+### 11.5 Increment E — Delivery Intelligence
+
+- [ ] **ANALYTICS-001**: Deterministic SLA policy selection, calendar snapshots and response/resolution/start/pause/reopen rules; rule-based warnings and nonduplicating escalation with stated business/elapsed units.
+- [ ] **ANALYTICS-002**: Maximum WIP/authorized exceptions, stage dwell, cumulative flow, lead/cycle distributions and quality trends reconciled to source events; correct reopened/cancelled populations.
+- [ ] **ANALYTICS-003**: Availability/allocated/demand views, split co-assignee effort, contextual team trends and explainable skill suggestions; no automatic employee/branch rankings.
+- [ ] **ANALYTICS-004**: Baseline variance, consumption thresholds, independent remaining estimates, burn/forecast curves, dated rate snapshots, currency-aware contribution and margin with N/A handling.
+- [ ] **Analytics acceptance**: Reconcile holidays, absence, scope/date changes, reopened work, overlapping blockers, missing estimates, mixed approval states and multiple currencies; show sample sizes/freshness.
+
+### 11.6 Later and Deferred Options
+
+- [ ] **LATER-001**: SS/FF/lag, critical path and capacity/date scenarios with previews and explicit application; calibrated composite health only after defining weights, missing-data behavior and overrides.
+- [ ] **LATER-002**: Optional source-linked drafting with human review, audience checks and approved data handling.
+- Deferred: automatic employee/branch leaderboards, internet-public roadmaps, universal automation designer and separate monthly timesheet approval.
+- Lower priority: native field/geofencing expansion and broad CRM/HR/payroll/accounting scope; Git integration, DevOps and CI/CD remain out of scope.

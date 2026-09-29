@@ -1,13 +1,22 @@
 # Software Requirements Specification (SRS)
+
 ## KS-PMT: Enterprise Project & Product Management Tool
 
 ---
+
+Updated: 2026-09-29 (IST). This SRS defines intended behavior, not implementation status. See [the checklist](tasks-checklist.md) for dated evidence and [the plan](plan.md) for delivery order. Stable feature IDs below connect requirements to roadmap acceptance gates.
 
 ## 1. Executive Summary & Purpose
 
 **KS-PMT (Kashvira Infotech - Project & Product Management Tool)** is a centralized, enterprise-grade task and operations management platform designed specifically for an IT software company offering both **proprietary software products** (SaaS / on-premise solutions) and **custom project-based software development services**.
 
 The system connects multiple company branches and locations under a unified operational umbrella, providing granular control over employees, clients, products, projects, versions, task workflows, billable effort tracking, dynamic auto-assignments, and real-time notifications across modern Web and Mobile (Android & iOS) interfaces.
+
+### 1.1 Scope and priorities
+
+KS-PMT is deployed for one IT company with multiple branches, serving its development teams and client organizations. Prioritize reliable planning and the client journey: request, clarification, approved scope, development, QA, UAT and acceptance. Product management connects customer evidence to priorities, releases and outcome reviews.
+
+Git/source-control integration, DevOps and CI/CD automation are out of scope. Manual release planning, QA evidence and client sign-off remain in scope. Deployment guides describe operating KS-PMT itself. Broad HR/payroll, accounting automation, employee leaderboards and native field/geofencing expansion have lower priority; they are not prerequisites for the web/client roadmap.
 
 ---
 
@@ -23,20 +32,24 @@ The system connects multiple company branches and locations under a unified oper
 | **Developer / Engineer** | Executes assigned tasks, updates statuses, logs work hours/efforts, creates subtasks, and attaches technical artifacts. |
 | **QA / Test Engineer** | Reports bugs and issues, executes verification passes, updates testing statuses, and attaches bug evidence/logs. |
 | **Support / Implementation Executive** | Handles client support tickets, installation/deployment tasks, and on-site support visits (via mobile GPS). |
-| **Client / Customer User (Portal & API)** | Authenticated portal access for authorized client representatives (product licensees and project clients) to report bugs, submit tasks, monitor release timelines, and vote on product feature requests. |
+| **Client / Customer User (Portal & API)** | Invited representative who submits requests and sees explicitly shared project content and eligible published product ideas. |
+| **Client Administrator** | Manages approved contacts within their own organization and granted scope; never administers employees or internal roles. |
+| **Client Approver** | Explicitly authorized to decide on particular scope changes, quotations or UAT milestones; client membership alone grants no approval authority. |
 
 ---
 
 ## 3. Functional Requirements
 
 ### 3.1 Company Structure & Location Master
+
 - **Multi-Branch Support**: Ability to define multiple office branches/locations (e.g., Head Office, Development Centers, Regional Support Branches).
 - **Location Attributes**: Branch Name, Branch Code, Address, City, State, Country, Postal Code, Phone, Official Email, Geofence / Geo-coordinates (Latitude, Longitude, Radius in meters), and Active/Inactive status.
 - **Data Isolation & Visibility**: Option to restrict employee views to their assigned branch or grant multi-branch oversight based on role permissions.
 
 ### 3.2 Departments & Designations Master
+
 - **Department Management**:
-  - Dynamic creation of departments (e.g., Software Development, Mobile Apps, QA & Testing, UI/UX Design, DevOps & Infrastructure, Support & Maintenance, Business Analysis, Sales & Marketing).
+  - Dynamic creation of departments (e.g., Software Development, Mobile Apps, QA & Testing, UI/UX Design, Support & Maintenance, Business Analysis, Sales & Marketing).
   - Department Head mapping, description, and Active/Inactive status.
 - **Designation Management**:
   - Hierarchical designation masters (e.g., Associate Software Engineer, Software Engineer, Senior Software Engineer, Tech Lead, Solution Architect, Project Manager, QA Analyst, QA Lead, Support Engineer).
@@ -44,6 +57,7 @@ The system connects multiple company branches and locations under a unified oper
   - Association with departments and Active/Inactive status.
 
 ### 3.3 User & Employee Management
+
 - **No Public Self-Registration**: Accounts are provisioned exclusively by authorized administrators or HR/Branch managers.
 - **Employee Attributes**:
   - Personal & Official Info: Full Name, Employee Code, Official Email, Mobile Number, Emergency Contact.
@@ -56,6 +70,7 @@ The system connects multiple company branches and locations under a unified oper
   - Multi-Factor / Device session management with remote revocation.
 
 ### 3.4 Dynamic Role-Based Access Control (RBAC) & Overrides
+
 - **System Roles**: Standard templates (Super Admin, Branch Manager, Project Manager, Employee, QA, Support).
 - **Granular Module Permissions**: Create, Read, Update, Delete, Export, Approve permissions across all entities (Projects, Products, Tasks, Timesheets, Financials, Clients, Users).
 - **Dynamic Override Engine**:
@@ -63,12 +78,14 @@ The system connects multiple company branches and locations under a unified oper
   - **Branch-Level Overrides**: Ability to enforce branch-specific permission policies (e.g., Branch A users cannot view financial amounts, while Branch B users with the same designation can).
 
 ### 3.5 Client & Prospect Management (CRM-Lite)
+
 - **Entities**: Prospects (Leads/Enquiries) and Active Clients.
 - **Client Profile**: Company Name, Contact Person, Designation, Email, Phone, Alternate Phone, Billing Address, Tax/GST Identification, Website, Account Manager (Employee).
 - **Lifecycle Transition**: Seamless conversion of a Prospect into an Active Client upon deal closing.
 - **Mappings**: Direct association of clients to software products (licenses/subscriptions/AMC) and custom projects.
 
 ### 3.6 Product Management
+
 - **Product Definition**: Manage the company's proprietary software products (e.g., ERP, Healthcare Suite, POS, HRMS, FinTech Gateway).
 - **Attributes**: Product Name, Product Code, Category, Current Production Version, Tech Stack, Documentation Links, Active/Inactive status.
 - **Financial Tracking**: Base License Price, Standard AMC Rate/Percentage, Recurring Subscription Plans, Implementation Service Fees.
@@ -77,34 +94,36 @@ The system connects multiple company branches and locations under a unified oper
   - License Start Date, End Date, AMC Renewal Date, Support Tier, Annual Contract Value (ACV).
 
 ### 3.7 Project Management (Custom Development Services)
+
 - **Project Definition**: Fixed-cost, Time & Material (T&M), or Dedicated Retainer projects built for clients.
 - **Attributes**: Project Name, Project Code, Client Association, Branch Association, Project Manager, Tech Stack, Planned Start Date, Planned End Date, Actual Start Date, Actual End Date, Project Status (Planning, Active, On Hold, Completed, Terminated).
 - **Financial Tracking**: Total Contract Value, Budgeted Hours, Hourly Rate (for T&M), Currency, Invoicing Milestones.
 - **Team Allocation**: Assigning leads, developers, and QA engineers to specific projects with allocated allocation percentages and date ranges.
 
-### 3.8 Version, Sprint & Release Management
-- **Applicable To**: Both Software Products and Projects.
-- **Version Attributes**: Version Number (e.g., `v1.0.0`, `v2.4.1-hotfix`), Version Name/Codename, Target Release Date, Actual Release Date, Release Notes / Changelog, Status (Planning, In Progress, Code Freeze, Released, Deprecated).
-- **Task Association**: Scheduling and tagging tasks, features, and bug fixes directly to a targeted Version/Release/Milestone.
-- **Sprint Management & Backlog Grooming**:
-  - Dedicated sprint cycles within projects (`sprint_number`, `sprint_goal`, `start_date`, `end_date`, `status: PLANNING, ACTIVE, COMPLETED`).
-  - Sprint backlog planning with drag-and-drop task prioritization from project backlog to active sprints.
-  - Story point / complexity estimation (Fibonacci `1, 2, 3, 5, 8, 13` or T-shirt sizing) alongside planned hours.
-  - Sprint completion rollover wizard to handle unfinished tasks.
+### 3.8 Version, Sprint, Milestone and Backlog Management — PLAN-001
+
+- Support both product and project delivery teams. A sprint is a timebox, a release is a deliverable version, and a milestone is a checkpoint; they are separate concepts with independent dates and status.
+- A task may have both a sprint assignment and a target release. Releases include target/actual dates, changelog and known issues. Client-specific installed/accepted versions are manually recorded independently of product release status.
+- Backlogs support ranked work, sprint goals, an accountable team/owner, dates and PLANNING / ACTIVE / COMPLETED / CANCELLED states. Authorized team leads or PMs start/close sprints.
+- Capture committed scope at sprint start and subsequent additions/removals. Closing a sprint explicitly moves unfinished work to a selected sprint or backlog while retaining all sprint membership history.
+- Story points or T-shirt sizes complement hourly estimates; they are not converted into individual productivity scores. Support Kanban delivery without mandatory sprints.
+- Planned visible hierarchy: Initiative → Epic/Feature → Story/Task/Bug → Subtask. One subtask level beneath a task; no unlimited nesting. Initiatives group outcomes and work; releases/sprints are links rather than extra parent levels. Do not silently flatten existing deeper records when implementing this policy.
+- Acceptance: a product team can plan a sprint and a separate release, add scope mid-sprint, close the sprint and inspect its original commitment and rollover history.
 
 ### 3.9 Dynamic Task Management Engine
+
 - **Dynamic Task Types Master**:
-  - Configurable task types: `New Development`, `Bug / Defect`, `Issue`, `Enhancement`, `Training`, `Support Ticket`, `Infrastructure / DevOps`, `Documentation`, `R&D`.
+  - Configurable task types: `New Development`, `Bug / Defect`, `Issue`, `Enhancement`, `Training`, `Support Ticket`, `Documentation`, `R&D`.
   - Configurable attributes per task type (e.g., whether billable by default, default severity, custom fields).
 - **Dynamic Task Status Workflow**:
   - Configurable status life-cycle per Task Type:
-    - *Development Workflow*: `Open` -> `WIP (Work In Progress)` -> `Pending for Code Review` -> `Pending for Testing` -> `Testing` -> `Pending for Deployment` -> `Closed` -> `Cancelled`.
+    - *Development Workflow*: `Open` -> `WIP` -> `Code Review` -> `Testing` -> `Ready for Acceptance` -> `Closed`; cancellation is a separately authorized transition. Internal completion does not itself record client acceptance.
     - *Support Workflow*: `Open` -> `Under Investigation` -> `Client Waiting` -> `Resolved` -> `Closed`.
     - *Bug Workflow*: `Logged` -> `Triaged` -> `In Fixing` -> `Retesting` -> `Verified Closed` -> `Reopened`.
 - **Task Core Attributes**:
   - Unique Task Code (e.g., `PRJ-1024`, `PRD-512`).
   - Title, Rich-text Description, Priority (`Low`, `Medium`, `High`, `Urgent`, `Critical`), Severity.
-  - Project ID or Product ID + Version ID / Sprint ID.
+  - Project ID or Product ID, optional target Release ID and independent Sprint ID.
   - Parent Task ID (for hierarchical sub-tasks).
   - Multi-User Assignment: Provision to assign a single task to one or multiple employees with individual responsibility flags and primary assignee distinction.
   - Dates: Planned Start Date, Planned End Date, Actual Start Date, Actual End Date.
@@ -112,50 +131,46 @@ The system connects multiple company branches and locations under a unified oper
   - Billing & Commercials: `is_chargeable` (Boolean flag) and `charge_amount` (Decimal) with currency.
   - Status ID (linked to dynamic status master).
   - Revision counter (`revision`) for optimistic concurrency conflict detection.
-- **Task Dependencies & Critical Path**:
-  - Relational dependencies between tasks: `FINISH_TO_START` (FS), `START_TO_START` (SS), `FINISH_TO_FINISH` (FF), `BLOCKS` / `IS_BLOCKED_BY`, and `RELATES_TO`.
-  - DAG circular dependency prevention.
-  - Interactive Gantt chart with Critical Path highlighting and cascading delay warning.
-- **Explicit Blocker Radar & Impediments**:
-  - "Flag as Blocked" status toggle with mandatory blocker categorization (*Client Dependency*, *Missing Specs*, *Technical Blocker*, *Environment Down*).
-  - Cumulative blocked duration tracking with real-time Blocker Radar widget.
+- **Task Dependencies and Blockers — PLAN-002**:
+  - Initially support Finish-to-Start scheduling and directed Blocks links, displaying Blocked by as the inverse of a single edge. Related-to and duplicate links are separate from scheduling dependencies.
+  - Reject self-links and cycles in directed dependency chains; do not apply DAG validation to symmetric related-item links. Related records must remain within the actor's authorized scope.
+  - Blocked state is independent of workflow status. Each blocker episode records owner, reason, next action, follow-up date, start/end and resolution; overlapping episodes count elapsed blocked time once.
+  - Basic dependency warnings precede advanced scheduling. SS/FF relationships, lag, critical path and schedule-change previews are later work (LATER-001), dependent on calendars and duration rules. Never silently shift a client commitment.
+  - Acceptance: resolving one of two active blockers does not mark the task unblocked; unrelated links may form triangles without failing dependency validation.
+
 - **Structured Bug / Defect Tracking**:
-  - Standardized defect fields: Steps to Reproduce (ordered list), Expected Behavior, Actual Behavior, Environment/OS/Browser, and Workaround details.
+  - Reuse validated task-type custom fields for reproduction steps, expected/actual behavior, environment, impact and workaround templates. Keep priority (delivery order) distinct from severity (impact). Structured affected/fix versions and resolution links support QA reporting.
   - Formal resolution classifications (*Fixed*, *Won't Fix*, *Duplicate*, *Cannot Reproduce*, *By Design*).
 - **Sub-Task Support**:
-  - Unlimited nesting or 2-level parent-child hierarchy.
-  - Aggregated completion percentage and effort roll-up to parent tasks.
+  - Follow the supported hierarchy in PLAN-001. Sum direct worklogs and child worklogs once each; estimates must identify whether they are direct effort or a child roll-up. Do not add a parent total to its already included children.
 - **Task Attachments**:
   - Upload multiple files, screenshots, design mockups, error log traces, or test recordings.
   - Stored directly in **AWS S3** with pre-signed secure access and metadata saved in DB.
 - **Task Comments & Collaboration**:
-  - Threaded comment system on every task with markdown support.
-  - `@mention` functionality triggering instant notifications to tagged teammates.
+  - Threaded Markdown comments and comment-specific S3 attachments remain required; rich comment composition is pending in the checklist.
+  - Mentions/followers follow notification preferences and visibility checks (COLLAB-003). Shared replies must never quote internal-only content automatically.
+- **Saved Views and List Productivity — PLAN-003**: Personal/team saved filters, columns, sorting, grouping and favorites; My work, Awaiting QA, Awaiting client, Blocked and Unassigned presets; inline cells and bulk updates reuse per-task permissions, workflow and revision checks, and report partial failures. Server-side query/export support is required before large-dataset acceptance.
 
-### 3.10 Effort & Time Tracking (Worklogs, Timesheets & Budget Variance)
-- **Time Capture**:
-  - Manual entry: Employee logs date, hours worked (e.g., 2.5 hrs), description/summary of work done.
-  - Timer-based: Start / Pause / Stop timer directly within the web or mobile interface, including a persistent global navigation stopwatch with idle-time detection.
-- **Grouped Weekly Timesheet Matrix & Batch Approval**:
-  - Standardized weekly timesheet periods (Monday through Sunday) for batch entry across assigned tasks.
-  - Automated missing-hours alerts for incomplete weekly submissions (< 40 hrs).
-  - Single-click batch manager sign-off with inline audit drill-down.
-- **Effort Classification**:
-  - Billable Hours vs. Non-Billable Hours.
-  - Overtime tracking and weekend work classification.
-- **Effort Variance & Budget Burn Analytics**:
-  - Task Effort Variance tracking ($\text{Actual Hours} - \text{Estimated Hours}$) with green/amber/red thresholds.
-  - Project budget burn rate curves with threshold notifications at 75%, 90%, and 100% of budgeted hours.
-  - Project profitability calculation based on internal employee cost rate vs. client billable rate.
+### 3.10 Effort and Timesheets — TIME-001
+
+- Manual worklogs and a persistent global timer support one active session per user across tabs/devices, task switching, disconnect recovery and explicit correction. Browser blur is not evidence of idle time and must not automatically stop or discard productive time.
+- Weekly entry/submission uses configurable workweeks and user/contract timezone. Expected loggable hours account for part-time schedules, holidays, approved absence and employment dates; billable targets are separate.
+- Grouped states: DRAFT → SUBMITTED → APPROVED / REJECTED. Rejected periods can be corrected and resubmitted. Approved entries are locked; amendments require an audited reopen/reapproval. Existing per-worklog reviews are retained and reconciled when grouping.
+- Cross-project periods route each project portion to eligible reviewers; overall approval requires all required portions. Bulk approval validates authority and revision per portion and reports rejected/conflicting items. No unauthorized self-approval.
+- Preserve billable/non-billable, overtime and weekend classification. Monthly summaries/exports remain planned; a separate monthly sign-off workflow is deferred until weekly approval is accepted and must not double-approve time.
+- Effort variance, consumption thresholds and forecast contribution use section 6 definitions (ANALYTICS-004). Missing-hours reminders use actual expected hours and configured submission deadlines.
+- Acceptance: a 32-hour scheduled week with eight hours approved absence expects 24 loggable hours; a developer can work in an IDE without the timer being stopped by browser focus changes.
 
 ### 3.11 Automated Task Assignment Engine
+
 - **Rule-Based Routing**:
   - Auto-assign tasks based on matrix criteria:
     - On Creation: Route `Bug` to QA Lead or Project Tech Lead; route `Support` to Department Support Tier 1.
-    - On Status Change: When task moves to `Pending for Testing`, automatically reassign or notify assigned QA Engineer; when moved to `Pending for Deployment`, assign to DevOps Engineer.
-  - Hierarchy & Round-Robin: Distribute incoming client support tickets or maintenance issues across available employees in a specific branch/department.
+    - On Status Change: When task moves to `Pending for Testing`, automatically reassign or notify assigned QA Engineer; when ready for client review, notify the assigned PM or UAT coordinator.
+  - Hierarchy and least-loaded routing distribute work among eligible available employees. The existing strategy code `ROUND_ROBIN` describes least-loaded selection; do not describe it as cyclic round-robin scheduling. Smart suggestions are defined in ANALYTICS-003.
 
-### 3.12 Notification System
+### 3.12 Notification System — COLLAB-003
+
 - **Trigger Events**:
   - Task Created, Task Assigned / Reassigned, Status Changed, Comment Added, Mentioned in Comment, File Attached, Deadline Approaching (SLA Alert).
 - **Delivery Channels**:
@@ -163,9 +178,11 @@ The system connects multiple company branches and locations under a unified oper
   - **Mobile Push Notifications**: Firebase Cloud Messaging (FCM) on Android & iOS.
   - **Email Alerts**: Templated transactional emails via AWS SES / SendGrid.
 - **User Notification Preferences**:
-  - Custom toggles allowing users to select which channels receive alerts.
+  - Channel toggles, follows independent of votes, digests, quiet hours and configured urgent exceptions. Delivery retries must not duplicate messages. Resolve recipient authorization at dispatch time, including after membership revocation; notifications and previews must not leak private content.
+  - Acceptance: a revoked client contact receives no queued private update, and a retried event produces only one visible notification. Provider delivery and real-time transport remain separate acceptance gates.
 
 ### 3.13 Activity Tracking & Comprehensive Audit Trail
+
 - **System Event Logging**:
   - User Authentication: Login success, Login failure, OTP generated, Logout, Session expired.
   - Task Lifecycle: Task created, updated, status transition, assignee change, estimation update, file attachment/removal.
@@ -174,8 +191,9 @@ The system connects multiple company branches and locations under a unified oper
   - Entity Name, Record ID, Action Type (`INSERT`, `UPDATE`, `DELETE`, `LOGIN`, `DOWNLOAD`), Old Value (JSON), New Value (JSON), Performed By User ID, Timestamp, IP Address, User-Agent, and Geolocation metadata (from mobile device or IP lookup).
 
 ### 3.14 Mobile Applications (Android & iOS)
+
 - **Native Experience & Performance**:
-  - Built using a high-performance cross-platform framework (Flutter / React Native).
+  - Built using Flutter; native build and device acceptance remain separate checklist gates.
   - Responsive, touch-optimized UI conforming to Material 3 (Android) and Cupertino (iOS) guidelines.
 - **Camera & File Upload**:
   - Native integration with camera to capture on-the-spot bug photos, whiteboards, or client sign-off documents.
@@ -187,95 +205,134 @@ The system connects multiple company branches and locations under a unified oper
   - Local SQLite / Hive caching allowing viewing of assigned tasks and drafts when offline, with auto-sync on reconnect.
 
 ### 3.15 Public & External REST APIs
+
 - **Secure Integration Surface**:
   - Expose select REST APIs for external systems (e.g., client portals, HRMS synchronization).
   - Token-based API Key / OAuth2 authentication with rate-limiting and IP whitelisting.
   - Comprehensive Swagger / OpenAPI 3.0 documentation.
 
-### 3.16 Service Level Agreements (SLA), Deadline Management & Early Warnings
-- **Configurable SLA Policies**:
-  - Matrix defining First Response Time and Resolution Time targets per Priority, Severity, Task Type, Client Tier, and Project.
-  - Pausing of SLA clocks during non-business hours and regional office holidays.
-  - Live dynamic SLA countdown badges on tasks with breach warning states.
-- **Delay Early Warning System (EWS)**:
-  - Predictive algorithm identifying "At-Risk" tasks before deadlines are breached:
-    - Planned end date within 48 hours while task remains in `TODO`/`Open`.
-    - Remaining estimated hours exceed remaining working hours prior to deadline.
-    - Stale `WIP` tasks with no worklogs or activity for over 3 business days.
-  - Dedicated "At-Risk Deadlines" radar view for Project Managers.
-- **Automated Escalation Matrix**:
-  - Multi-tiered background escalation workflow:
-    - Tier 1 (Near breach / 2h breach): Notify Primary Assignee and Tech Lead.
-    - Tier 2 (24h breach): Escalate to Project Manager and Department Head.
-    - Tier 3 (48h breach): Escalate to Branch Manager and Operations Director.
-- **Mandatory Delay Root-Cause Attribution**:
-  - Enforced selection of delay reasons upon overdue completion or planned date extensions (*Scope Creep*, *Client Dependency*, *Technical Complexity*, *Inaccurate Estimate*, *Resource Leave*, *Preempted by Production Emergency*).
+### 3.16 Contractual SLA and Rule-Based Risk Alerts — ANALYTICS-001
 
-### 3.17 Bottleneck Detection & Flow Analytics
-- **Kanban Work-in-Progress (WIP) Limits**:
-  - Configurable minimum and maximum task capacity per workflow status column to prevent multitasking and highlight queue blockages.
-- **Status Dwell Time & Bottleneck Heatmap**:
-  - Denormalized tracking of exact business hours tasks spend inside each workflow status.
-  - Visual status dwell time heatmap highlighting stage congestion (e.g., dev vs. code review vs. QA testing).
-- **Cumulative Flow Diagram (CFD), Lead Time & Cycle Time**:
-  - Cumulative Flow Diagram area chart tracking work distribution over time to expose expanding process bottlenecks.
-  - Lead Time (creation to closure) and Cycle Time (in-progress to closure) metrics and scatterplots.
+- Configure first-response and resolution targets by client contract/project, tier, task type, severity and priority; use deterministic most-specific policy precedence with an explicit fallback. Snapshot the selected policy/calendar for each SLA cycle.
+- First response requires an eligible customer-visible reply, not an internal status change. Resolution is a defined customer-facing outcome, not merely entry into Testing. Specify start, pause, resume, stop and reopened-cycle behavior; preserve completed-cycle history.
+- Contract calendars define working hours, holidays and timezone. Client-waiting pauses require an explicit policy and recorded reason. Every escalation threshold states whether it uses business or elapsed hours.
+- Rule-based risk alerts include overdue/near-due work, remaining effort exceeding available capacity and stale active work. Display trigger, freshness, owner and next action; no predictive accuracy claim.
+- Configurable escalation tiers avoid duplicate alerts and stop on resolution. Date extensions and overdue closure require reason attribution while preserving original/current dates; approved scope changes retain their decision link.
+- Acceptance: weekend pauses, client-waiting periods, internal comments, visible responses, policy changes and reopened tickets yield reproducible deadlines and histories.
 
-### 3.18 Team & Employee Performance, Workload & Capacity Intelligence
-- **Resource Allocation & Capacity Heatmap**:
-  - Matrix view mapping team member bandwidth against assigned task estimates, project member allocation percentages, and standard working schedules (Red: Over-allocated >100%, Green: Balanced 75-100%, Blue: Under-utilized <75%).
-- **Estimation Accuracy Index (EAI)**:
-  - Variance index comparing estimated vs. actual logged hours over time to identify chronic under-estimation or over-estimation trends.
-- **Quality & Rework / Reopen Rate**:
-  - Tracking of task rejection counts (sent back from `Testing` to `WIP`), First-Time-Right (FTR %) rate, and post-release defect leakage.
-- **Employee 360° Operational Performance Scorecard**:
-  - Managerial performance profile tracking On-Time Delivery (OTD %), billable efficiency ratio, sprint velocity, and quality scores.
-- **Skill Matrix & Smart Allocation Suggestions**:
-  - Employee skill and proficiency taxonomy (`Beginner`, `Intermediate`, `Expert`).
-  - Task recommendation engine scoring eligible team members based on required skill matches, active workload bandwidth, and branch proximity.
+### 3.17 Flow Analytics — ANALYTICS-002
 
-### 3.19 Executive Project Health Index & Cross-Branch Benchmarking
-- **Project Health Index (PHI)**:
-  - Composite 0-100 algorithmic score combining schedule health, budget burn health, open critical bug density, and active blocker count.
-  - Categorized as Healthy (Green), Needs Attention (Yellow), or At Risk (Red).
-- **Cross-Branch Productivity Benchmarking**:
-  - Executive comparative analytics across branch locations comparing task turnaround velocity, billable utilization %, and project on-time delivery rates.
+- Set maximum WIP limits with soft warnings, optional guards and authorized expedited exceptions. Queue-aging alerts do not require minimum occupied slots.
+- Record timestamped status/category transitions and blocker episodes as source events; duration summaries and daily cumulative-flow snapshots must be rebuildable.
+- Lead time begins at creation; cycle time begins at actual entry into an active workflow category. Report elapsed and business-time measures separately. Use final verified closure for completed-work cycle time, retain first closure/reopen events, and report cancellations separately.
+- Dwell heatmaps, cumulative flow, throughput and cycle-time scatterplots disclose population, observation window, sample size and workflow-category mapping. Quality reporting distinguishes rework, requirement changes and reopened defects.
+- Acceptance: reopened/cancelled work, changed workflows and overlapping blockers do not inflate completion counts or durations; reports reconcile to source events.
 
-### 3.20 Customer Portal (Client Self-Service & Issue Tracking)
-- **Applicable To**: Both Software Product Licensees and Custom Project Clients.
-- **Customer User Provisioning & Authentication**:
-  - Customer user accounts linked directly to a client record (`client_id`) with designated roles (e.g. `Client Admin`, `Client User`).
-  - Standard dual login (Email + Password or Mobile + OTP) with access restricted to active client accounts.
-- **Strict Scope Isolation & Security Boundaries**:
-  - Multi-tenant data segregation: Customers can ONLY see tasks, releases, and timelines belonging to their assigned projects or actively licensed products.
-  - Mandatory redaction of internal data:
-    - Internal employee notes (`is_internal_only = TRUE`) are strictly hidden.
-    - Developer hourly rates, employee internal costings, project profit margins, and internal assignment hours are completely redacted.
-    - Zero visibility into other clients' data or cross-project work.
-- **Self-Service Task Creation & Defect Reporting**:
-  - Dedicated client submission interface for reporting bugs/defects, submitting enhancement requests, or logging support tickets.
-  - Structured issue capture with environment details, reproduction steps, and secure pre-signed AWS S3 file attachments (screenshots, logs, error dumps).
-  - Automated routing into internal backlogs via the auto-assignment matrix.
-- **Timeline & Delivery Transparency**:
-  - Client-facing task status progression (*Received* -> *In Review* -> *In Progress* -> *Testing / QA* -> *Deployed / Closed*).
-  - Milestone & Release Delivery Timeline: High-level visual timeline showing targeted version release dates and sprint completion windows for their projects/products.
-  - Interactive collaboration: Threaded client comments with internal team leads on customer-visible discussions.
+### 3.18 Delivery, Workload and Capacity Insights — ANALYTICS-003
 
-### 3.21 Product Feature Request & Customer Voting Engine (Crowdsourced Roadmap)
-- **Crowdsourced Product Ideation**:
-  - Customers of a shared proprietary software product can view, submit, and discuss feature ideas and enhancement requests.
-  - Feature requests are categorized by product module (e.g. Reporting, UI, Integrations, Performance, Mobile).
-- **Customer Upvoting Mechanism**:
-  - Upvote/vote submission per customer organization, preventing duplicate votes while allowing vote retraction or adjustments.
-  - Business impact justification: Customers can provide optional impact statements (*"How this enhancement impacts our daily operations"*).
-- **Product Demand & Prioritization Dashboard**:
-  - Internal Product Manager analytics view ranking enhancement requests by:
-    - **Total Vote Count**: Overall popularity among customer base.
-    - **Revenue-Weighted Demand**: Vote ranking weighted by voting clients' Annual Contract Value (ACV) or license tier.
-    - **Module / Functional Area Breakdown**: Pinpoints high-demand product areas.
-- **Public / Customer Roadmap Transparency**:
-  - Customer-visible roadmap stages: `PROPOSED` -> `UNDER_EVALUATION` -> `PLANNED` -> `IN_DEVELOPMENT` -> `RELEASED` / `DECLINED`.
-  - Automated notification triggers: All voting customers receive instant email/in-app alerts when an upvoted feature transitions to `PLANNED` (with target release version) or `RELEASED` (with changelog link).
+- Use employee availability calendars (FND-001), holidays/leave, support rotations and reserved meeting/mentoring time. Allocation percentages and task demand are separate views, not additive load.
+- Split planned effort across co-assignees or use explicit shares; never allocate a task's full estimate to every collaborator. Show missing estimates and configurable capacity thresholds instead of automatically labelling spare capacity unproductive.
+- Show team-level estimation bias/accuracy, on-time trends, rework and first-time-right rates with comparable work types, sample size and original/current baselines. Individual views support workload planning and coaching; automatic employee or branch productivity rankings are deferred.
+- Skill suggestions use eligibility, skills, availability and timezone overlap, with explanation and manual choice. Physical proximity is relevant only for on-site work.
+- Acceptance: leave reduces availability once, co-assignee shares sum to the task demand, and research/mentoring time is visible without being treated as performance failure.
+
+### 3.19 Portfolio and Project Health
+
+- Deliver PM-authored On track / At risk / Off track updates with evidence and actions first (CLIENT-006).
+- Portfolio views compare commitments, capacity, risks and forecasts with filters for branch/team/work type; story points are not compared across teams as a common productivity unit.
+- Composite health scores and scenario/critical-path scheduling are later work (LATER-001). Before introducing a score, define weights, missing-data behavior, calibration, overrides and drill-down; prevent false precision.
+
+### 3.20 Customer Portal and Intake — CLIENT-001, CLIENT-002
+
+- **CLIENT-001 — identity and visibility**: Invitation-only activation, recovery and revocation for contacts of client organizations. Authorized internal administrators provision initial client admins; any delegated invitations remain within explicitly granted client/project scope. Support Client User, Client Admin and separately granted Client Approver capabilities.
+- Distinguish client membership, project membership, product-community entitlement and allowed actions. A product license does not reveal all product tasks. Internal content is private by default; explicitly shared project content and moderated published ideas have separate audiences.
+- Server authorization applies to details, lists, searches, counts, exports, audit/history, lookups, notifications, attachments and presigned downloads. Client-supplied scope is never authoritative. Removing access revokes sessions/permissions; previously issued S3 URLs have bounded expiry and no new URLs may be issued.
+- Hide internal notes, cost rates, margins, staffing and internal effort. Authorized client approvers may see agreed quotations, approved billable statements and the designated PM/contact. Only allowlisted fields form client responses.
+- Separate product-use rights, maintenance/support entitlement and portal access. Contract policy controls historical read-only access after expiry/closeout; perpetual-license customers do not lose all history solely because AMC expires.
+- **CLIENT-002 — intake**: Bug, support and change forms create private requests with owner, product/project context, impact, environment and S3 evidence. Lifecycle: SUBMITTED → UNDER_REVIEW / NEEDS_INFORMATION → ACCEPTED / DUPLICATE / DECLINED, with reasons and clarification history.
+- Accepted requests link to delivery work; acceptance of a request is not approval of price or a promised date. Multiple clients' requests may link to one internal defect while preserving separate communications and acceptance history.
+- Customer-facing progress maps approved internal milestones to Received, In review, In progress, In QA, Awaiting your acceptance and Accepted/Closed; client users do not directly change internal development statuses.
+- Acceptance: two clients of the same product can see an eligible published idea but cannot obtain each other's private requests/files through any API, export or notification. A request cannot grant its submitter internal assignment or financial permissions.
+
+### 3.21 Product Discovery, Voting and Roadmaps — PROD-001
+
+- Capture the customer problem, evidence, segment, module, expected outcome, reach, impact, confidence, effort and strategic fit. Product managers retain scoring inputs and decision rationale; popularity/revenue are inputs, never automatic commitments.
+- Moderate submissions before community publication. Keep source tickets, identities and business-impact statements private; publish a sanitized idea. Visibility defaults to authenticated, entitled product customers; internet-public roadmaps are deferred.
+- Enforce one vote per idea/client organization. Designated voting representatives may cast/retract it; record actor/revision and reject conflicting edits. Merge duplicates with organization-vote deduplication and source history. Follows are independent of votes. Keep ACV/ARR, license tiers and commercial weighting internal; perpetual purchase value is not ARR.
+- Lifecycle supports PROPOSED, UNDER_EVALUATION, PLANNED, IN_DEVELOPMENT, RELEASED, DECLINED, DEFERRED and MERGED with reasons. Link approved ideas to epics/tasks and releases.
+- Customer roadmaps use Now / Next / Later; dated targets are explicitly indicative unless approved as commitments. PM-approved release communications link sanitized changelogs and honor COLLAB-003 preferences.
+- Acceptance: duplicate merging counts each organization once without revealing private submissions; target changes preserve history and do not silently change contractual dates.
+
+### 3.22 Requirements and Acceptance Traceability — CLIENT-003
+
+- PMs/business analysts maintain versioned briefs, objectives, scope boundaries and measurable acceptance criteria; link them to epics/tasks, QA evidence and client acceptance.
+- A baseline records the agreed revision. Subsequent edits are visible as proposals until approved; coverage views identify criteria without implementation, evidence or acceptance.
+- Client readers see only published revisions and explicitly shared evidence. Authors, internal reviewers and client approvers have distinct permissions.
+- Acceptance: an agreed criterion can be traced to delivery and evidence; amending it does not rewrite the previously approved baseline.
+
+### 3.23 Scope and Change-Request Approval — CLIENT-004
+
+- Capture requested change, baseline reference, rationale, effort/cost/currency/date impact and an accountable PM. Proposed extra work remains separate from approved scope.
+- Lifecycle: DRAFT → INTERNAL_REVIEW → AWAITING_CLIENT → APPROVED / CHANGES_REQUESTED / REJECTED / DEFERRED / WITHDRAWN. An authorized client approver decides on a specific revision with timestamp and remarks.
+- Material edits create a new revision and require reapproval. Preserve previous decisions; approvals do not authorize unrelated work. Link accepted changes to revised scope, tasks and committed milestones.
+- Acceptance: changing the cost or scope of approved revision 3 creates revision 4 awaiting approval; revision 3 stays readable and cannot approve revision 4.
+
+### 3.24 Client UAT and Milestone Sign-Off — CLIENT-005
+
+- PM/QA prepares a UAT package with requirement revision, version under test, acceptance checklist, evidence, known issues and linked defects; share only appropriate artifacts.
+- Designated client approvers choose Approve, Request changes or Reject with attributable decision history. A material package revision requires a new decision; reminders/escalations never imply automatic acceptance.
+- Preserve developer-done, QA-verified and client-accepted states independently. Record client-specific accepted/installed version manually; releasing the product does not update it automatically.
+- Acceptance: failed UAT links a defect and retains the earlier package; a revised package cannot inherit an obsolete sign-off.
+
+### 3.25 Client Progress Updates — CLIENT-006
+
+- PMs prepare weekly or configurable updates covering delivered work, next steps, risks, decisions needed, health and milestone forecast. Draft → Reviewed → Published, with audience and revision history.
+- Publish an explicit client-safe version separately from internal commentary. Include agreed commercials only for entitled approvers; support downloadable reports and notification digests.
+- Acceptance: a client report contains no internal cost/personnel notes; publishing a new forecast does not change an approved delivery commitment.
+
+### 3.26 Manual QA and Release Readiness — QA-001
+
+- QA maintains versioned manual test cases, test runs, pass/fail evidence, linked acceptance criteria/defects, affected and fix versions, known issues and a release-readiness checklist.
+- Gate readiness with accountable reviewers and recorded exceptions. QA verification does not substitute for client UAT. Automated test execution, source control and deployment orchestration are excluded.
+- Acceptance: a failed case links its evidence and defect to the tested version; the release checklist shows unresolved blockers and the review decision.
+
+### 3.27 Product Goals and Outcomes — PROD-002
+
+- Product managers link initiatives/features to a measurable goal, baseline, target, owner and review date. Manually capture adoption, client feedback or business results after release.
+- Preserve outcome reviews and decision rationale for continue/change/stop decisions; task completion alone is not proof of value. Share only approved summaries.
+- Acceptance: a released idea links to its goal and a dated outcome review showing baseline, result and next decision.
+
+### 3.28 Knowledge, Templates and Recurring Work — COLLAB-001, COLLAB-002
+
+- COLLAB-001: Versioned briefs, specifications, meeting decisions, FAQs and release notes linked to work with explicit internal/client/product-community audiences. Binary documents and embedded files remain in S3; linked content retains its own access controls.
+- COLLAB-002: Reusable project/task templates for onboarding, fixed-price work, maintenance and release checklists; relative dates and recurrence respect calendars. Each generated occurrence has its own identity, owner and history; retries do not duplicate it.
+- Acceptance: copying a template does not copy client memberships, decisions, votes, confidential attachments or approvals; referenced private documents remain private.
+
+### 3.29 Risks, Assumptions and Decisions — DEL-001
+
+- PMs maintain risk/assumption/decision records with owner, likelihood/impact where relevant, mitigation, review date and related requirement/milestone. Separate possible future risks from active blocker episodes.
+- Publish client action requests with due dates and authorized responses; preserve decision revisions and resulting scope/date changes.
+- Acceptance: an unresolved client decision appears in the client's action list without exposing the internal risk discussion.
+
+### 3.30 Retainer and AMC Entitlements — COMM-001
+
+- Track contract periods, included hours, approved consumption, remaining allowance, rollover rules and overage requests. Snapshots preserve historical rates/terms; expired periods remain auditable.
+- Consume only eligible approved worklogs once, including through grouped approval. Client statements disclose only authorized approved usage and quotations. Overage approval uses CLIENT-004; invoicing/accounting automation is outside the initial scope.
+- Acceptance: rejecting a worklog does not consume allowance; approval retries do not consume it twice; a new contract period follows the agreed rollover policy.
+
+### 3.31 Shared Planning Foundations — FND-001
+
+- Define configurable employee and contract calendars with timezone, workweek, holidays, part-time schedules, approved absence and effective dates. Separate loggable working hours, available delivery hours and billable targets.
+- Record versioned baselines, workflow-category mappings, status events and blocker episodes before building analytics. Summaries must disclose stale/missing data and remain traceable to source records.
+- All roadmap features enforce server-side actions and audience rules, optimistic conflict handling where records are edited concurrently, and the standard audit/S3 requirements. Quality, accessibility and authorization acceptance apply in every increment.
+- Acceptance: historical results can be reproduced using the applicable calendar/baseline, and access removal affects secondary surfaces as well as primary records.
+
+### 3.32 Later Scheduling and Optional Assistance — LATER-001, LATER-002
+
+- LATER-001: Capacity/date/priority scenario previews, SS/FF scheduling, lag rules and critical path follow reliable calendars and estimates. Applying a preview requires authorized explicit action; contractual dates retain approval rules. Composite health scores require transparent weights, calibration, missing-data rules and overrides.
+- LATER-002: Optional drafts of summaries, acceptance criteria and progress updates must cite accessible source records, respect audience boundaries and require human review before publication. External processing requires an approved data-handling decision; this is not a prerequisite for core delivery.
+- Automatic employee/branch leaderboards and a universal automation designer remain deferred.
+
 
 ---
 
@@ -296,8 +353,31 @@ The system connects multiple company branches and locations under a unified oper
 
 ## 5. Non-Functional Requirements (NFRs)
 
+These are acceptance targets, not claims of achieved performance, security certification or production availability. Large lists/reports/exports require server-side filtering, aggregation and pagination; the current shared grid loads all authorized pages into the browser.
+
 - **Performance**: Sub-200ms API response time for 95% of standard CRUD requests.
 - **Scalability**: Support for 50+ branches, 5,000+ active users, and 1,000,000+ task records with PostgreSQL indexing and pagination.
 - **Security**: OWASP Top 10 compliance, AES-256 encryption at rest (S3 & DB backups), TLS 1.3 in transit, parameterized SQL queries preventing SQL injection.
 - **Availability**: 99.9% uptime target with automated cloud backups and stateless containerized backend services.
 - **Mobile Responsiveness**: Web application fully adaptive from 320px mobile screens up to 4K ultra-wide desktop monitors.
+
+
+## 6. Measurement Contract — ANALYTICS-004
+
+PMs and authorized financial reviewers use these definitions for variance, burn curves and delivery forecasts. Internal cost rates and margin remain private. Store effective-dated rate/contract snapshots, report currencies separately or state the chosen conversion basis, and distinguish draft/submitted effort from approved billable time. Approval state does not erase actual effort.
+
+| Measure | Definition and interpretation |
+| --- | --- |
+| Effort variance (hours) | Actual hours minus baseline estimated hours. Keep baseline and revised estimate separate. |
+| Budget consumption (%) | Actual hours / budgeted hours × 100; apply configurable warning thresholds (e.g. 75%, 90%, 100%) to this measure, not an hours difference. |
+| Estimate at completion | Actual hours plus independently maintained remaining estimate. Exhausting the original estimate does not make remaining work zero. |
+| Direct delivery contribution | Revenue on a stated basis minus direct delivery costs; a currency amount, not full accounting profit. |
+| Contribution margin (%) | Direct delivery contribution / revenue × 100. Forecast, approved billable amounts, invoiced amounts and receipts are distinct. |
+| Estimation bias (%) | (Actual minus baseline estimate) / baseline estimate × 100 for completed estimated work; positive means underestimation. Absolute error is a separate accuracy measure. |
+| Available delivery capacity | Scheduled working hours minus holidays/leave minus reserved non-project time; deduct each item once. |
+| Defect leakage (%) | External defects / (internal + external defects) × 100 for the same release and observation window; deduplicate defects. |
+| On-time delivery | Completion against original committed dates and separately against current approved dates; disclose scope changes, cancellations and reopened work. |
+
+Missing/zero denominators are N/A rather than zero or perfect performance. Disclose population, sample size, observation window, timezone and data freshness. Retain events and snapshots needed to reproduce calculations.
+
+Acceptance: known records with changed estimates, zero budgets, mixed approval states, historic rate changes and multiple currencies reconcile to the stated formulas without double-counting tasks, assignees or timesheet approvals.

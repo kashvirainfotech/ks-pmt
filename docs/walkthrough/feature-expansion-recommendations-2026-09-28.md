@@ -1,5 +1,7 @@
 # KS-PMT Feature Expansion Recommendations
 
+> Historical record of the 2026-09-28 proposal/update. The accepted roadmap was revised on 2026-09-29 in [requirements](../requirements.md), [plan](../plan.md) and [checklist](../tasks-checklist.md). Those documents supersede this record's scope, sequencing, metric definitions and status claims. See [the update report](roadmap-documentation-update-2026-09-29.md).
+
 **Date**: 2026-09-28 (IST)  
 **Document**: Feature Expansion & Architecture Enhancement Proposal  
 **Context**: Reconciled against all repository documentation (`requirements.md`, `tasks-checklist.md`, `plan.md`, `tech-stack.md`, `AGENTS.md`, and all walkthrough reports) and the implemented backend/web codebase.
