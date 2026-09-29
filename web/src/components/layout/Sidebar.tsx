@@ -22,6 +22,7 @@ import {
   ArrowRightLeft,
   GitMerge,
   LifeBuoy,
+  FileCheck,
   UserCheck,
   ExternalLink,
 } from 'lucide-react';
@@ -57,6 +58,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     ]},
     { title: 'Client Delivery', items: [
       { label: 'Intake & Triage', path: '/client-intake', icon: LifeBuoy, show: true },
+      { label: 'Requirements & Traceability', path: '/requirements', icon: FileCheck, show: true },
       { label: 'Client contacts', path: '/client-contacts', icon: UserCheck, show: true },
       { label: 'Customer portal', path: '/customer-portal', icon: ExternalLink, show: true },
     ]},

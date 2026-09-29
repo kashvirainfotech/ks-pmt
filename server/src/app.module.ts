@@ -31,6 +31,7 @@ import { TimesheetsModule } from './modules/timesheets/timesheets.module';
 import { TeamsModule } from './modules/teams/teams.module';
 import { HandoffsModule } from './modules/handoffs/handoffs.module';
 import { ClientPortalModule } from './modules/client-portal/client-portal.module';
+import { RequirementsModule } from './modules/requirements/requirements.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { DynamicRbacGuard } from './modules/rbac/rbac.guard';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
@@ -73,6 +74,7 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
     TeamsModule,
     HandoffsModule,
     ClientPortalModule,
+    RequirementsModule,
   ],
   providers: [
     {

@@ -1087,6 +1087,160 @@ export interface ImpactSummaryStats {
   byRequestType: Array<{ request_type: string; count: number }>;
 }
 
+// ========================================================
+// CLIENT-003: Requirements & Acceptance Traceability Types
+// ========================================================
+
+export type RequirementStatus = 'DRAFT' | 'PROPOSED' | 'REVIEWED' | 'BASELINED' | 'AMENDED' | 'ARCHIVED';
+export type VerificationMethod = 'MANUAL_TEST' | 'DEMO' | 'DOCUMENTATION' | 'AUTOMATED';
+export type ImplementationStatus = 'NOT_STARTED' | 'IN_PROGRESS' | 'IMPLEMENTED' | 'VERIFIED_QA' | 'ACCEPTED_CLIENT' | 'WAIVED';
+export type ClientSignoffStatus = 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'WAIVED';
+
+export interface RequirementCriterionLinkedTask {
+  id: string;
+  taskCode: string;
+  title: string;
+  priority?: string;
+  statusId?: string;
+  statusName?: string;
+  statusCategory?: string;
+}
+
+export interface RequirementAcceptanceCriterion {
+  id: string;
+  requirement_id: string;
+  criteria_code: string;
+  title: string;
+  description: string;
+  verification_method: VerificationMethod;
+  implementation_status: ImplementationStatus;
+  order_index: number;
+  qa_evidence_notes?: string;
+  qa_evidence_urls?: Array<{ title?: string; url: string; uploadedAt?: string }>;
+  qa_verified_by?: string;
+  qa_verified_by_name?: string;
+  qa_verified_at?: string;
+  client_signoff_status: ClientSignoffStatus;
+  client_signoff_by_contact_id?: string;
+  client_signoff_by_name?: string;
+  client_signoff_at?: string;
+  client_signoff_notes?: string;
+  linked_tasks?: RequirementCriterionLinkedTask[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RequirementBaseline {
+  id: string;
+  requirement_id: string;
+  version: number;
+  baseline_name: string;
+  snapshot_data: any;
+  baselined_by: string;
+  baselined_by_name?: string;
+  baselined_at: string;
+  approved_by_contact_id?: string;
+  approved_by_name?: string;
+  approved_at?: string;
+  notes?: string;
+}
+
+export interface RequirementSpecification {
+  id: string;
+  req_code: string;
+  title: string;
+  project_id?: string;
+  product_id?: string;
+  project_name?: string;
+  project_code?: string;
+  product_name?: string;
+  product_code?: string;
+  module_name?: string;
+  business_objective: string;
+  in_scope?: string;
+  out_of_scope?: string;
+  assumptions?: string;
+  originating_request_id?: string;
+  originating_request_number?: string;
+  originating_request_title?: string;
+  version: number;
+  status: RequirementStatus;
+  is_baselined: boolean;
+  baselined_at?: string;
+  baselined_by?: string;
+  baselined_by_name?: string;
+  is_client_visible: boolean;
+  total_criteria?: number;
+  implemented_criteria?: number;
+  qa_verified_criteria?: number;
+  client_accepted_criteria?: number;
+  linked_tasks_count?: number;
+  created_at: string;
+  updated_at: string;
+  criteria?: RequirementAcceptanceCriterion[];
+  baselines?: RequirementBaseline[];
+}
+
+export interface TraceabilityMatrixSummary {
+  totalRequirements: number;
+  baselinedRequirements: number;
+  totalCriteria: number;
+  implementedCount: number;
+  implementationCoveragePct: number;
+  qaVerifiedCount: number;
+  qaCoveragePct: number;
+  clientAcceptedCount: number;
+  clientAcceptedPct: number;
+}
+
+export interface TraceabilityMatrixGapItem {
+  requirementId: string;
+  reqCode: string;
+  criterionId: string;
+  criteriaCode: string;
+  criterionTitle: string;
+  signoffStatus?: string;
+}
+
+export interface TraceabilityMatrixRow {
+  requirement_id: string;
+  req_code: string;
+  requirement_title: string;
+  requirement_status: RequirementStatus;
+  requirement_version: number;
+  is_baselined: boolean;
+  is_client_visible: boolean;
+  project_name?: string;
+  product_name?: string;
+  originating_request_number?: string;
+  criterion_id?: string;
+  criteria_code?: string;
+  criterion_title?: string;
+  verification_method?: VerificationMethod;
+  implementation_status?: ImplementationStatus;
+  qa_verified_at?: string;
+  client_signoff_status?: ClientSignoffStatus;
+  client_signoff_at?: string;
+  linked_tasks?: Array<{
+    id: string;
+    taskCode: string;
+    title: string;
+    statusName?: string;
+    statusCategory?: string;
+  }>;
+}
+
+export interface TraceabilityMatrixResponse {
+  summary: TraceabilityMatrixSummary;
+  gaps: {
+    unimplementedCriteria: TraceabilityMatrixGapItem[];
+    unverifiedCriteria: TraceabilityMatrixGapItem[];
+    unacceptedCriteria: TraceabilityMatrixGapItem[];
+  };
+  traceability: TraceabilityMatrixRow[];
+}
+
+
 
 
 

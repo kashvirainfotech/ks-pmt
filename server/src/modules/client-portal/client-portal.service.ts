@@ -1232,4 +1232,191 @@ export class ClientPortalService {
       updatedAt: row.updated_at,
     };
   }
+
+  // ========================================================
+  // 6. Requirements & Acceptance Sign-Off (CLIENT-003)
+  // ========================================================
+
+  async getClientPortalRequirements(contactId: string, projectId?: string) {
+    const grantsRes = await this.db.query(
+      `SELECT project_id, can_view_milestones, can_approve_scope, can_approve_uat 
+       FROM client_contact_projects 
+       WHERE contact_id = $1 AND is_active = TRUE`,
+      [contactId],
+    );
+
+    const grantedProjectIds = grantsRes.rows.map((g: any) => g.project_id);
+    if (grantedProjectIds.length === 0) {
+      return [];
+    }
+
+    let sql = `
+      SELECT 
+        r.id,
+        r.req_code as "reqCode",
+        r.title,
+        r.module_name as "moduleName",
+        r.business_objective as "businessObjective",
+        r.in_scope as "inScope",
+        r.out_of_scope as "outOfScope",
+        r.assumptions,
+        r.version,
+        r.is_baselined as "isBaselined",
+        r.baselined_at as "baselinedAt",
+        p.id as "projectId",
+        p.project_name as "projectName",
+        p.project_code as "projectCode",
+        COUNT(DISTINCT rac.id)::int as "totalCriteria",
+        COUNT(DISTINCT CASE WHEN rac.client_signoff_status = 'ACCEPTED' THEN rac.id END)::int as "acceptedCriteria",
+        COUNT(DISTINCT CASE WHEN rac.client_signoff_status = 'PENDING' THEN rac.id END)::int as "pendingSignoffCriteria"
+      FROM requirement_specifications r
+      JOIN projects p ON r.project_id = p.id
+      LEFT JOIN requirement_acceptance_criteria rac ON r.id = rac.requirement_id AND rac.is_active = TRUE
+      WHERE r.is_active = TRUE 
+        AND r.is_client_visible = TRUE 
+        AND r.is_baselined = TRUE
+        AND r.project_id = ANY($1::uuid[])
+    `;
+
+    const params: any[] = [grantedProjectIds];
+    if (projectId) {
+      sql += ` AND r.project_id = $2`;
+      params.push(projectId);
+    }
+
+    sql += ` GROUP BY r.id, p.id ORDER BY r.baselined_at DESC, r.req_code ASC`;
+
+    const res = await this.db.query(sql, params);
+    return res.rows;
+  }
+
+  async getClientPortalRequirementDetail(requirementId: string, contactId: string) {
+    const grantsRes = await this.db.query(
+      `SELECT project_id, can_approve_scope, can_approve_uat 
+       FROM client_contact_projects 
+       WHERE contact_id = $1 AND is_active = TRUE`,
+      [contactId],
+    );
+    const grantedProjectIds = grantsRes.rows.map((g: any) => g.project_id);
+
+    const res = await this.db.query(
+      `SELECT 
+        r.id,
+        r.req_code as "reqCode",
+        r.title,
+        r.module_name as "moduleName",
+        r.business_objective as "businessObjective",
+        r.in_scope as "inScope",
+        r.out_of_scope as "outOfScope",
+        r.assumptions,
+        r.version,
+        r.is_baselined as "isBaselined",
+        r.baselined_at as "baselinedAt",
+        p.id as "projectId",
+        p.project_name as "projectName",
+        p.project_code as "projectCode"
+      FROM requirement_specifications r
+      JOIN projects p ON r.project_id = p.id
+      WHERE r.id = $1 
+        AND r.is_active = TRUE 
+        AND r.is_client_visible = TRUE 
+        AND r.is_baselined = TRUE
+        AND r.project_id = ANY($2::uuid[])`,
+      [requirementId, grantedProjectIds],
+    );
+
+    if (res.rowCount === 0) {
+      throw new NotFoundException('Requirement specification not found or not accessible');
+    }
+
+    const requirement = res.rows[0];
+
+    const criteriaRes = await this.db.query(
+      `SELECT 
+        rac.id,
+        rac.criteria_code as "criteriaCode",
+        rac.title,
+        rac.description,
+        rac.verification_method as "verificationMethod",
+        rac.implementation_status as "implementationStatus",
+        rac.order_index as "orderIndex",
+        rac.client_signoff_status as "clientSignoffStatus",
+        rac.client_signoff_at as "clientSignoffAt",
+        rac.client_signoff_notes as "clientSignoffNotes",
+        CASE WHEN rac.qa_verified_at IS NOT NULL THEN TRUE ELSE FALSE END as "isQaVerified"
+      FROM requirement_acceptance_criteria rac
+      WHERE rac.requirement_id = $1 AND rac.is_active = TRUE
+      ORDER BY rac.order_index ASC, rac.criteria_code ASC`,
+      [requirementId],
+    );
+
+    return {
+      ...requirement,
+      criteria: criteriaRes.rows,
+    };
+  }
+
+  async recordClientSignoff(
+    criterionId: string,
+    dto: { signoffStatus: 'ACCEPTED' | 'REJECTED' | 'WAIVED'; notes?: string },
+    contact: any,
+  ) {
+    const critRes = await this.db.query(
+      `SELECT rac.*, r.project_id, r.product_id, r.is_client_visible, r.is_baselined
+       FROM requirement_acceptance_criteria rac
+       JOIN requirement_specifications r ON rac.requirement_id = r.id
+       WHERE rac.id = $1 AND rac.is_active = TRUE`,
+      [criterionId],
+    );
+
+    if (critRes.rowCount === 0) {
+      throw new NotFoundException(`Acceptance criterion with ID ${criterionId} not found`);
+    }
+
+    const criterion = critRes.rows[0];
+
+    if (!criterion.is_client_visible || !criterion.is_baselined) {
+      throw new ForbiddenException('Cannot sign off on unbaselined or non-published requirements');
+    }
+
+    if (criterion.project_id) {
+      const grantRes = await this.db.query(
+        `SELECT can_approve_scope, can_approve_uat 
+         FROM client_contact_projects 
+         WHERE contact_id = $1 AND project_id = $2 AND is_active = TRUE`,
+        [contact.contactId, criterion.project_id],
+      );
+      const grant = grantRes.rows[0];
+      const hasPermission = contact.isApprover || (grant && (grant.can_approve_scope || grant.can_approve_uat));
+      if (!hasPermission) {
+        throw new ForbiddenException('Your contact account does not have approver authority for this project');
+      }
+    } else if (!contact.isApprover) {
+      throw new ForbiddenException('Only designated client approvers can sign off on product criteria');
+    }
+
+    const nextImplStatus = dto.signoffStatus === 'ACCEPTED' ? 'ACCEPTED_CLIENT' : criterion.implementation_status;
+
+    const res = await this.db.query(
+      `UPDATE requirement_acceptance_criteria
+       SET client_signoff_status = $1,
+           client_signoff_by_contact_id = $2,
+           client_signoff_at = CURRENT_TIMESTAMP,
+           client_signoff_notes = $3,
+           implementation_status = $4,
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = $5
+       RETURNING *`,
+      [
+        dto.signoffStatus,
+        contact.contactId,
+        dto.notes || null,
+        nextImplStatus,
+        criterionId,
+      ],
+    );
+
+    return res.rows[0];
+  }
 }
+

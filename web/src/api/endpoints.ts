@@ -51,6 +51,10 @@ import {
   ClientContact,
   ClientIntakeRequest,
   ImpactSummaryStats,
+  RequirementSpecification,
+  RequirementBaseline,
+  RequirementAcceptanceCriterion,
+  TraceabilityMatrixResponse,
 } from '../types';
 
 // ==========================================
@@ -811,6 +815,15 @@ export const clientPortalApi = {
 
   updateProjectGrants: (contactId: string, data: { grants: any[] }): Promise<{ data: ClientContact }> =>
     api.post(`/client-portal/contacts/${contactId}/projects`, data),
+
+  getRequirements: (params?: { projectId?: string }): Promise<{ data: any[] }> =>
+    api.get('/client-portal/requirements', { params }),
+
+  getRequirementDetail: (id: string): Promise<{ data: any }> =>
+    api.get(`/client-portal/requirements/${id}`),
+
+  signoffCriterion: (criterionId: string, data: { signoffStatus: 'ACCEPTED' | 'REJECTED' | 'WAIVED'; notes?: string }) =>
+    api.post(`/client-portal/requirements/criteria/${criterionId}/sign-off`, data),
 };
 
 export const clientIntakeApi = {
@@ -835,6 +848,51 @@ export const clientIntakeApi = {
   getImpactSummary: (): Promise<{ data: ImpactSummaryStats }> =>
     api.get('/client-intake/analytics/impact-summary'),
 };
+
+// ==========================================
+// Requirements & Acceptance Traceability (CLIENT-003)
+// ==========================================
+export const requirementsApi = {
+  create: (data: any): Promise<{ data: RequirementSpecification }> =>
+    api.post('/requirements', data),
+
+  getRequirements: (params?: any): Promise<{ data: RequirementSpecification[] }> =>
+    api.get('/requirements', { params }),
+
+  getById: (id: string): Promise<{ data: RequirementSpecification }> =>
+    api.get(`/requirements/${id}`),
+
+  update: (id: string, data: any): Promise<{ data: RequirementSpecification }> =>
+    api.patch(`/requirements/${id}`, data),
+
+  baseline: (id: string, data: { baselineName: string; notes?: string }): Promise<{ data: RequirementBaseline }> =>
+    api.post(`/requirements/${id}/baseline`, data),
+
+  proposeAmendment: (id: string): Promise<{ data: RequirementSpecification }> =>
+    api.post(`/requirements/${id}/propose-amendment`),
+
+  addCriterion: (id: string, data: any): Promise<{ data: RequirementAcceptanceCriterion }> =>
+    api.post(`/requirements/${id}/criteria`, data),
+
+  updateCriterion: (criterionId: string, data: any): Promise<{ data: RequirementAcceptanceCriterion }> =>
+    api.patch(`/requirements/criteria/${criterionId}`, data),
+
+  deleteCriterion: (criterionId: string) =>
+    api.delete(`/requirements/criteria/${criterionId}`),
+
+  linkTasks: (criterionId: string, data: { taskIds: string[]; notes?: string }) =>
+    api.post(`/requirements/criteria/${criterionId}/tasks`, data),
+
+  unlinkTask: (criterionId: string, taskId: string) =>
+    api.delete(`/requirements/criteria/${criterionId}/tasks/${taskId}`),
+
+  recordQaVerification: (criterionId: string, data: any): Promise<{ data: RequirementAcceptanceCriterion }> =>
+    api.post(`/requirements/criteria/${criterionId}/qa-verify`, data),
+
+  getTraceabilityMatrix: (params?: { projectId?: string; productId?: string }): Promise<{ data: TraceabilityMatrixResponse }> =>
+    api.get('/requirements/traceability/matrix', { params }),
+};
+
 
 
 

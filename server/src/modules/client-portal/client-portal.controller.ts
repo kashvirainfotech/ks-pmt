@@ -335,4 +335,55 @@ export class ClientPortalController {
       data,
     };
   }
+
+  // ========================================================
+  // 6. Client Portal Requirements & Acceptance (CLIENT-003)
+  // ========================================================
+
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(ClientContactGuard)
+  @Get('client-portal/requirements')
+  @ApiOperation({ summary: 'List baselined and client-visible requirements for permitted projects' })
+  async getClientRequirements(
+    @Req() req: any,
+    @Query('projectId') projectId?: string,
+  ) {
+    const data = await this.clientPortalService.getClientPortalRequirements(req.user.contactId, projectId);
+    return {
+      message: 'Client requirements retrieved successfully',
+      data,
+    };
+  }
+
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(ClientContactGuard)
+  @Get('client-portal/requirements/:id')
+  @ApiOperation({ summary: 'Get requirement detail and criteria with sign-off statuses' })
+  async getClientRequirementDetail(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: any,
+  ) {
+    const data = await this.clientPortalService.getClientPortalRequirementDetail(id, req.user.contactId);
+    return {
+      message: 'Requirement details retrieved successfully',
+      data,
+    };
+  }
+
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(ClientContactGuard)
+  @Post('client-portal/requirements/criteria/:criterionId/sign-off')
+  @ApiOperation({ summary: 'Submit client sign-off decision on acceptance criterion' })
+  async recordClientSignoff(
+    @Param('criterionId', ParseUUIDPipe) criterionId: string,
+    @Body() dto: { signoffStatus: 'ACCEPTED' | 'REJECTED' | 'WAIVED'; notes?: string },
+    @Req() req: any,
+  ) {
+    const data = await this.clientPortalService.recordClientSignoff(criterionId, dto, req.user);
+    return {
+      message: 'Client sign-off recorded successfully',
+      data,
+    };
+  }
 }
+

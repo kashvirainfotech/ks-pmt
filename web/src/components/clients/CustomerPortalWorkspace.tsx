@@ -25,7 +25,23 @@ export const CustomerPortalWorkspace: React.FC = () => {
   const [portalContext, setPortalContext] = useState<any>(null);
   const [requests, setRequests] = useState<ClientIntakeRequest[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [activeTab, setActiveTab] = useState<'REQUESTS' | 'PROJECTS' | 'PRODUCTS'>('REQUESTS');
+  const [activeTab, setActiveTab] = useState<'REQUESTS' | 'PROJECTS' | 'PRODUCTS' | 'REQUIREMENTS'>('REQUESTS');
+
+  // Requirements & Acceptance state (CLIENT-003)
+  const [portalRequirements, setPortalRequirements] = useState<any[]>([]);
+  const [selectedReqDetail, setSelectedReqDetail] = useState<any | null>(null);
+  const [loadingReqs, setLoadingReqs] = useState<boolean>(false);
+  const [signoffModal, setSignoffModal] = useState<{
+    show: boolean;
+    criterion: any | null;
+    decision: 'ACCEPTED' | 'REJECTED';
+    notes: string;
+  }>({
+    show: false,
+    criterion: null,
+    decision: 'ACCEPTED',
+    notes: '',
+  });
 
   // Submit Modal
   const [showSubmitModal, setShowSubmitModal] = useState<boolean>(false);
@@ -74,6 +90,46 @@ export const CustomerPortalWorkspace: React.FC = () => {
       console.error('Failed to load customer portal data', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadPortalRequirements = async () => {
+    try {
+      setLoadingReqs(true);
+      const res = await clientPortalApi.getRequirements();
+      setPortalRequirements(res.data || []);
+    } catch (err) {
+      console.error('Failed to load portal requirements', err);
+    } finally {
+      setLoadingReqs(false);
+    }
+  };
+
+  const handleOpenReqDetail = async (reqId: string) => {
+    try {
+      const res = await clientPortalApi.getRequirementDetail(reqId);
+      setSelectedReqDetail(res.data);
+    } catch (err) {
+      console.error('Failed to load requirement details', err);
+    }
+  };
+
+  const handleSignoffSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!signoffModal.criterion) return;
+    try {
+      await clientPortalApi.signoffCriterion(signoffModal.criterion.id, {
+        signoffStatus: signoffModal.decision,
+        notes: signoffModal.notes,
+      });
+      alert(`Criterion sign-off recorded as ${signoffModal.decision}`);
+      setSignoffModal({ show: false, criterion: null, decision: 'ACCEPTED', notes: '' });
+      if (selectedReqDetail) {
+        handleOpenReqDetail(selectedReqDetail.id);
+      }
+      loadPortalRequirements();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to record sign-off');
     }
   };
 
@@ -200,6 +256,17 @@ export const CustomerPortalWorkspace: React.FC = () => {
             }`}
           >
             Licensed Products ({portalContext?.licensedProducts?.length || 0})
+          </button>
+          <button
+            onClick={() => {
+              setActiveTab('REQUIREMENTS');
+              loadPortalRequirements();
+            }}
+            className={`px-3 py-1.5 rounded-lg transition ${
+              activeTab === 'REQUIREMENTS' ? 'bg-white text-indigo-900' : 'text-white/80 hover:bg-white/10'
+            }`}
+          >
+            Requirements & Acceptance ({portalRequirements.length})
           </button>
         </div>
       </div>
@@ -331,6 +398,236 @@ export const CustomerPortalWorkspace: React.FC = () => {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Requirements & Acceptance Tab (CLIENT-003) */}
+      {activeTab === 'REQUIREMENTS' && (
+        <div className="space-y-4">
+          <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center justify-between">
+            <div>
+              <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <ShieldCheck className="w-5 h-5 text-indigo-600" />
+                Agreed Requirements & Acceptance Sign-Off
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Review baselined project specifications, QA verification evidence, and submit formal client sign-off decisions.
+              </p>
+            </div>
+            {portalContext?.contact?.isApprover && (
+              <span className="px-3 py-1 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 rounded-lg text-xs font-semibold flex items-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4" />
+                Designated Client Approver
+              </span>
+            )}
+          </div>
+
+          {loadingReqs ? (
+            <div className="p-12 text-center text-slate-400">Loading requirements...</div>
+          ) : portalRequirements.length === 0 ? (
+            <div className="bg-white dark:bg-slate-800 rounded-xl p-12 text-center border border-slate-200 dark:border-slate-700">
+              <ShieldCheck className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+              <p className="text-slate-700 dark:text-slate-300 font-semibold text-sm">No baselined requirements published yet.</p>
+              <p className="text-xs text-slate-500 mt-1">Your project manager will publish baselined specifications here for formal review.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {portalRequirements.map((r) => (
+                <div
+                  key={r.id}
+                  onClick={() => handleOpenReqDetail(r.id)}
+                  className="bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm hover:border-indigo-500/50 transition cursor-pointer space-y-3"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono font-bold text-xs text-indigo-600 dark:text-indigo-400">
+                      {r.reqCode}
+                    </span>
+                    <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300">
+                      Baselined v{r.version}
+                    </span>
+                  </div>
+
+                  <div>
+                    <h3 className="font-bold text-slate-900 dark:text-white text-base">{r.title}</h3>
+                    <p className="text-xs text-slate-500 line-clamp-2 mt-1">{r.businessObjective}</p>
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400 pt-3 border-t border-slate-100 dark:border-slate-700">
+                    <span>{r.projectName}</span>
+                    <span className="font-semibold text-indigo-600 dark:text-indigo-400">
+                      {r.acceptedCriteria}/{r.totalCriteria} Accepted
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Requirement Detail Slide-over / Modal for Client Review */}
+      {selectedReqDetail && (
+        <div className="fixed inset-0 z-50 overflow-hidden bg-black/50 backdrop-blur-sm flex justify-end">
+          <div className="w-full max-w-2xl bg-white dark:bg-slate-900 h-full shadow-2xl flex flex-col animate-in slide-in-from-right duration-200">
+            <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-850">
+              <div className="flex items-center gap-2">
+                <span className="font-mono font-bold text-indigo-600 dark:text-indigo-400">{selectedReqDetail.reqCode}</span>
+                <span className="text-xs font-semibold px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">
+                  Baselined v{selectedReqDetail.version}
+                </span>
+              </div>
+              <button onClick={() => setSelectedReqDetail(null)} className="text-slate-400 hover:text-slate-600">
+                &times;
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6 space-y-5 text-xs">
+              <div>
+                <h2 className="text-lg font-bold text-slate-900 dark:text-white">{selectedReqDetail.title}</h2>
+                <div className="mt-2 p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                  <span className="font-bold text-slate-400 uppercase text-[10px]">Business Objective</span>
+                  <p className="text-slate-800 dark:text-slate-200 mt-1">{selectedReqDetail.businessObjective}</p>
+                </div>
+              </div>
+
+              {selectedReqDetail.inScope && (
+                <div className="p-3 bg-emerald-50/50 dark:bg-emerald-950/20 rounded-lg border border-emerald-200 dark:border-emerald-800">
+                  <span className="font-bold text-emerald-800 dark:text-emerald-300 uppercase text-[10px]">In Scope</span>
+                  <p className="text-slate-700 dark:text-slate-300 mt-1 whitespace-pre-wrap">{selectedReqDetail.inScope}</p>
+                </div>
+              )}
+
+              <div className="space-y-3">
+                <h3 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-indigo-600" />
+                  Acceptance Criteria ({selectedReqDetail.criteria?.length || 0})
+                </h3>
+
+                <div className="space-y-3">
+                  {selectedReqDetail.criteria?.map((c: any) => (
+                    <div
+                      key={c.id}
+                      className="p-4 bg-slate-50 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 space-y-3"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono font-bold text-indigo-600 dark:text-indigo-400">{c.criteriaCode}</span>
+                            <span className="font-semibold text-slate-900 dark:text-white">{c.title}</span>
+                          </div>
+                          <p className="text-slate-600 dark:text-slate-300 mt-1 whitespace-pre-wrap">{c.description}</p>
+                        </div>
+
+                        <div>
+                          {c.clientSignoffStatus === 'ACCEPTED' ? (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                              <CheckCircle2 className="w-3 h-3 mr-1" /> Accepted
+                            </span>
+                          ) : c.clientSignoffStatus === 'REJECTED' ? (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300">
+                              Changes Requested
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+                              Awaiting Sign-off
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-2 border-t border-slate-200 dark:border-slate-700 text-slate-500">
+                        <div className="flex items-center gap-3">
+                          <span className="font-mono uppercase text-[10px] bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 rounded">
+                            {c.verificationMethod}
+                          </span>
+                          {c.isQaVerified && (
+                            <span className="text-purple-600 dark:text-purple-400 font-medium flex items-center gap-1">
+                              <ShieldCheck className="w-3.5 h-3.5" /> QA Verified
+                            </span>
+                          )}
+                        </div>
+
+                        {portalContext?.contact?.isApprover && c.clientSignoffStatus !== 'ACCEPTED' && (
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() =>
+                                setSignoffModal({ show: true, criterion: c, decision: 'REJECTED', notes: '' })
+                              }
+                              className="px-2.5 py-1 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:text-rose-300 rounded"
+                            >
+                              Request Changes
+                            </button>
+                            <button
+                              onClick={() =>
+                                setSignoffModal({ show: true, criterion: c, decision: 'ACCEPTED', notes: '' })
+                              }
+                              className="px-2.5 py-1 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded shadow-sm"
+                            >
+                              Approve Criterion
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Signoff Decision */}
+      {signoffModal.show && signoffModal.criterion && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-md w-full border border-slate-200 dark:border-slate-700 p-6 space-y-4">
+            <h3 className="font-bold text-base text-slate-900 dark:text-white">
+              {signoffModal.decision === 'ACCEPTED' ? 'Approve Criterion' : 'Request Changes on Criterion'}
+            </h3>
+            <p className="text-xs text-slate-500">
+              Criterion: <strong className="font-mono">{signoffModal.criterion.criteriaCode}</strong> &bull; {signoffModal.criterion.title}
+            </p>
+
+            <form onSubmit={handleSignoffSubmit} className="space-y-3 text-xs">
+              <div>
+                <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Remarks / Sign-off Notes
+                </label>
+                <textarea
+                  rows={3}
+                  required={signoffModal.decision === 'REJECTED'}
+                  placeholder={
+                    signoffModal.decision === 'ACCEPTED'
+                      ? 'e.g. Verified and approved following staging walkthrough.'
+                      : 'Detail what changes or corrections are needed before sign-off.'
+                  }
+                  value={signoffModal.notes}
+                  onChange={(e) => setSignoffModal({ ...signoffModal, notes: e.target.value })}
+                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-slate-900 dark:text-white"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-700">
+                <button
+                  type="button"
+                  onClick={() => setSignoffModal({ show: false, criterion: null, decision: 'ACCEPTED', notes: '' })}
+                  className="px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className={`px-4 py-2 text-white font-medium rounded-lg ${
+                    signoffModal.decision === 'ACCEPTED'
+                      ? 'bg-emerald-600 hover:bg-emerald-700'
+                      : 'bg-rose-600 hover:bg-rose-700'
+                  }`}
+                >
+                  Submit Decision
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 

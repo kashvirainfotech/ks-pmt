@@ -362,7 +362,7 @@ All boxes in this section remain unchecked. Feature IDs reference [requirements]
 
 - [x] **CLIENT-001**: Invitation, recovery, restricted delegated administration and revocation; explicit sharing, allowlisted responses, bounded download access and contract-specific closeout/history rights.
 - [x] **CLIENT-002**: Private bug/support/change requests with clarification, triage, reasons and duplicate/delivery linking; submission grants no commercial/date commitment.
-- [ ] **CLIENT-003**: Versioned requirements, baseline scope and acceptance criteria linked to work, QA evidence and client decisions; coverage gaps view.
+- [x] **CLIENT-003**: Versioned requirements, baseline scope and acceptance criteria linked to work, QA evidence and client decisions; coverage gaps view.
 - [ ] **CLIENT-004**: PM review and authorized client approval of a specific scope/price/date revision; material edits require new approval and preserve prior decisions.
 - [ ] **CLIENT-005**: Versioned UAT packages, defects, evidence and explicit approve/request-changes/reject; separate developer done, QA verified and client accepted.
 - [ ] **CLIENT-006**: PM-reviewed client-safe progress updates, health narrative, decisions needed, target/committed dates and report history.

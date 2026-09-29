@@ -295,7 +295,10 @@ BEGIN
         ('CLIENT_PORTAL', 'READ', 'CLIENT_PORTAL:READ', 'Permission to view client portal contacts and their project access grants', TRUE, v_admin_id),
         ('CLIENT_PORTAL', 'MANAGE', 'CLIENT_PORTAL:MANAGE', 'Permission to invite, manage, and revoke client portal contacts and project grants', TRUE, v_admin_id),
         ('CLIENT_INTAKE', 'READ', 'CLIENT_INTAKE:READ', 'Permission to view client intake bug, support, and change requests', TRUE, v_admin_id),
-        ('CLIENT_INTAKE', 'TRIAGE', 'CLIENT_INTAKE:TRIAGE', 'Permission to triage, review, accept/decline client intake requests and link to internal tasks', TRUE, v_admin_id)
+        ('CLIENT_INTAKE', 'TRIAGE', 'CLIENT_INTAKE:TRIAGE', 'Permission to triage, review, accept/decline client intake requests and link to internal tasks', TRUE, v_admin_id),
+        ('REQUIREMENTS', 'READ', 'REQUIREMENTS:READ', 'Permission to view requirement specifications, baselines, and acceptance criteria', TRUE, v_admin_id),
+        ('REQUIREMENTS', 'MANAGE', 'REQUIREMENTS:MANAGE', 'Permission to create, edit, baseline, and manage requirements, acceptance criteria, and task mappings', TRUE, v_admin_id),
+        ('REQUIREMENTS', 'SIGNOFF', 'REQUIREMENTS:SIGNOFF', 'Permission to record QA verification and client sign-offs on acceptance criteria', TRUE, v_admin_id)
     ON CONFLICT (permission_code) DO NOTHING;
 
     INSERT INTO role_permissions (role_id, permission_id, created_by)
@@ -311,7 +314,8 @@ BEGIN
         'HANDOFFS:READ', 'HANDOFFS:CREATE', 'HANDOFFS:ACKNOWLEDGE', 'HANDOFFS:MANAGE',
         'WORKFLOWS:READ', 'WORKFLOWS:MANAGE',
         'CLIENT_PORTAL:READ', 'CLIENT_PORTAL:MANAGE',
-        'CLIENT_INTAKE:READ', 'CLIENT_INTAKE:TRIAGE'
+        'CLIENT_INTAKE:READ', 'CLIENT_INTAKE:TRIAGE',
+        'REQUIREMENTS:READ', 'REQUIREMENTS:MANAGE', 'REQUIREMENTS:SIGNOFF'
     )
     ON CONFLICT (role_id, permission_id) DO NOTHING;
 
@@ -320,7 +324,8 @@ BEGIN
     FROM permissions p
     WHERE p.permission_code IN (
         'CLIENT_PORTAL:READ', 'CLIENT_PORTAL:MANAGE',
-        'CLIENT_INTAKE:READ', 'CLIENT_INTAKE:TRIAGE'
+        'CLIENT_INTAKE:READ', 'CLIENT_INTAKE:TRIAGE',
+        'REQUIREMENTS:READ', 'REQUIREMENTS:MANAGE', 'REQUIREMENTS:SIGNOFF'
     )
     ON CONFLICT (role_id, permission_id) DO NOTHING;
 

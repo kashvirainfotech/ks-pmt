@@ -140,7 +140,7 @@ CREATE INDEX IF NOT EXISTS idx_tasks_is_blocked ON tasks(is_blocked) WHERE is_bl
 CREATE INDEX IF NOT EXISTS idx_saved_views_user ON saved_views(user_id, scope, is_active);
 CREATE INDEX IF NOT EXISTS idx_saved_views_project ON saved_views(project_id, scope, is_active);
 CREATE INDEX IF NOT EXISTS idx_saved_views_favorite ON saved_views(user_id, is_favorite) WHERE is_active = TRUE;
-CREATE INDEX IF NOT EXISTS idx_tasks_sorting_priority_due ON tasks(priority, planned_due_date ASC);
+CREATE INDEX IF NOT EXISTS idx_tasks_sorting_priority_due ON tasks(priority, planned_end_date ASC);
 
 -- ========================================================
 -- Date & Time: 2026-09-29 14:08:00 IST
@@ -207,3 +207,20 @@ CREATE INDEX IF NOT EXISTS idx_client_intake_linked_task ON client_intake_reques
 CREATE INDEX IF NOT EXISTS idx_client_intake_duplicate ON client_intake_requests(duplicate_of_request_id) WHERE duplicate_of_request_id IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_client_messages_request ON client_request_messages(request_id, created_at ASC);
 CREATE INDEX IF NOT EXISTS idx_client_messages_internal ON client_request_messages(request_id, is_internal_only);
+
+-- ========================================================
+-- Date & Time: 2026-09-29 19:16:00 IST
+-- Description: CLIENT-003 - Indexes for Requirement Specifications, Baselines, Acceptance Criteria & Task Traceability
+-- ========================================================
+CREATE INDEX IF NOT EXISTS idx_req_spec_project ON requirement_specifications(project_id, status) WHERE project_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_req_spec_product ON requirement_specifications(product_id, status) WHERE product_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_req_spec_originating_req ON requirement_specifications(originating_request_id) WHERE originating_request_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_req_spec_status ON requirement_specifications(status);
+CREATE INDEX IF NOT EXISTS idx_req_spec_client_visible ON requirement_specifications(is_client_visible, is_baselined) WHERE is_active = TRUE;
+CREATE INDEX IF NOT EXISTS idx_req_baselines_req ON requirement_baselines(requirement_id, version);
+CREATE INDEX IF NOT EXISTS idx_req_criteria_req ON requirement_acceptance_criteria(requirement_id, order_index);
+CREATE INDEX IF NOT EXISTS idx_req_criteria_status ON requirement_acceptance_criteria(implementation_status);
+CREATE INDEX IF NOT EXISTS idx_req_criteria_signoff ON requirement_acceptance_criteria(client_signoff_status);
+CREATE INDEX IF NOT EXISTS idx_req_criterion_tasks_crit ON requirement_criterion_tasks(criterion_id);
+CREATE INDEX IF NOT EXISTS idx_req_criterion_tasks_task ON requirement_criterion_tasks(task_id);
+

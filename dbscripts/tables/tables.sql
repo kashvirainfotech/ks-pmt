@@ -1244,3 +1244,99 @@ CREATE TABLE IF NOT EXISTS client_request_messages (
     updated_by UUID,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+-- ========================================================
+-- Date & Time: 2026-09-29 19:15:00 IST
+-- Description: Requirements & Acceptance Traceability (CLIENT-003)
+-- ========================================================
+
+-- 44. Requirement Specifications (CLIENT-003)
+CREATE TABLE IF NOT EXISTS requirement_specifications (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    req_code VARCHAR(50) NOT NULL UNIQUE,
+    title VARCHAR(255) NOT NULL,
+    project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+    product_id UUID REFERENCES products(id) ON DELETE CASCADE,
+    module_name VARCHAR(100),
+    business_objective TEXT NOT NULL,
+    in_scope TEXT,
+    out_of_scope TEXT,
+    assumptions TEXT,
+    originating_request_id UUID REFERENCES client_intake_requests(id) ON DELETE SET NULL,
+    version INTEGER NOT NULL DEFAULT 1 CHECK (version > 0),
+    status VARCHAR(30) NOT NULL DEFAULT 'DRAFT' CHECK (status IN ('DRAFT', 'PROPOSED', 'REVIEWED', 'BASELINED', 'AMENDED', 'ARCHIVED')),
+    is_baselined BOOLEAN NOT NULL DEFAULT FALSE,
+    baselined_at TIMESTAMP WITH TIME ZONE,
+    baselined_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    is_client_visible BOOLEAN NOT NULL DEFAULT TRUE,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_req_spec_scope CHECK (
+        (project_id IS NOT NULL AND product_id IS NULL) OR
+        (product_id IS NOT NULL AND project_id IS NULL)
+    )
+);
+
+-- 45. Requirement Baselines (CLIENT-003)
+CREATE TABLE IF NOT EXISTS requirement_baselines (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    requirement_id UUID NOT NULL REFERENCES requirement_specifications(id) ON DELETE CASCADE,
+    version INTEGER NOT NULL CHECK (version > 0),
+    baseline_name VARCHAR(150) NOT NULL,
+    snapshot_data JSONB NOT NULL,
+    baselined_by UUID NOT NULL REFERENCES users(id),
+    baselined_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    approved_by_contact_id UUID REFERENCES client_contacts(id) ON DELETE SET NULL,
+    approved_at TIMESTAMP WITH TIME ZONE,
+    notes TEXT,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_req_baseline_version UNIQUE (requirement_id, version)
+);
+
+-- 46. Requirement Acceptance Criteria (CLIENT-003)
+CREATE TABLE IF NOT EXISTS requirement_acceptance_criteria (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    requirement_id UUID NOT NULL REFERENCES requirement_specifications(id) ON DELETE CASCADE,
+    criteria_code VARCHAR(50) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    description TEXT NOT NULL,
+    verification_method VARCHAR(30) NOT NULL DEFAULT 'MANUAL_TEST' CHECK (verification_method IN ('MANUAL_TEST', 'DEMO', 'DOCUMENTATION', 'AUTOMATED')),
+    implementation_status VARCHAR(30) NOT NULL DEFAULT 'NOT_STARTED' CHECK (implementation_status IN ('NOT_STARTED', 'IN_PROGRESS', 'IMPLEMENTED', 'VERIFIED_QA', 'ACCEPTED_CLIENT', 'WAIVED')),
+    order_index INTEGER NOT NULL DEFAULT 1,
+    qa_evidence_notes TEXT,
+    qa_evidence_urls JSONB NOT NULL DEFAULT '[]'::jsonb,
+    qa_verified_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    qa_verified_at TIMESTAMP WITH TIME ZONE,
+    client_signoff_status VARCHAR(30) NOT NULL DEFAULT 'PENDING' CHECK (client_signoff_status IN ('PENDING', 'ACCEPTED', 'REJECTED', 'WAIVED')),
+    client_signoff_by_contact_id UUID REFERENCES client_contacts(id) ON DELETE SET NULL,
+    client_signoff_at TIMESTAMP WITH TIME ZONE,
+    client_signoff_notes TEXT,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_req_criteria_code UNIQUE (requirement_id, criteria_code)
+);
+
+-- 47. Requirement Criterion to Delivery Tasks Mapping (CLIENT-003)
+CREATE TABLE IF NOT EXISTS requirement_criterion_tasks (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    criterion_id UUID NOT NULL REFERENCES requirement_acceptance_criteria(id) ON DELETE CASCADE,
+    task_id UUID NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+    notes TEXT,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_criterion_task UNIQUE (criterion_id, task_id)
+);
+
