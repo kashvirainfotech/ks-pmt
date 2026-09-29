@@ -110,7 +110,14 @@ Git/source-control integration, DevOps and CI/CD automation are out of scope. Ma
 - Planned visible hierarchy: Initiative → Epic/Feature → Story/Task/Bug → Subtask. One subtask level beneath a task; no unlimited nesting. Initiatives group outcomes and work; releases/sprints are links rather than extra parent levels. Do not silently flatten existing deeper records when implementing this policy.
 - Acceptance: a product team can plan a sprint and a separate release, add scope mid-sprint, close the sprint and inspect its original commitment and rollover history.
 
+- **Scope-change ledger**: Extend sprint commitment history to releases and project baselines. Record additions, removals, deferrals, actor/time, reason (customer request, urgent support issue, clarification, dependency, technical discovery, defect or estimate correction) and any approved change reference. Report original/current/completed scope separately; re-entry of the same item must not inflate net scope. Item counts and point totals are separate units.
+- **Release workspace**: Add accountable owner, risk level and drill-down by features/bugs/technical work, open blockers, review/QA/UAT evidence, readiness checklist and scope changes. Manual release progression supports planned, in development, code complete, testing, UAT, ready, released, partially released and cancelled outcomes. Partial release requires an explicit delivered-item subset; cancelled/deferred items are not completed work. This is release planning, not deployment/rollback orchestration.
+
 ### 3.9 Dynamic Task Management Engine
+
+- **Work-item vocabulary and workspace**: Use the existing typed task engine as the software work-item foundation; do not create a competing task store or mandate an API/navigation rename. Add configurable Technical Task, Technical Debt, Research/Spike and Improvement templates. An Incident may be a manually tracked support issue; incident monitoring/response orchestration is excluded. Requirements, change approvals and test cases keep their dedicated versioned records and link to work rather than losing their distinct lifecycle.
+- Add reporter, responsible team, governed labels and module/component references (PLAN-004), alongside primary owner/collaborators, estimates and watchers. Keep reporter attribution separate from the audit actor, including requests entered on a client's behalf.
+- Extend the shared detail workspace with acceptance, testing, customer impact, relationships and a combined activity view with audience filtering. Manual code-review evidence is in scope; branch/commit/PR/build/pipeline/deployment panels are excluded.
 
 - **Dynamic Task Types Master**:
   - Configurable task types: `New Development`, `Bug / Defect`, `Issue`, `Enhancement`, `Training`, `Support Ticket`, `Documentation`, `R&D`.
@@ -135,12 +142,16 @@ Git/source-control integration, DevOps and CI/CD automation are out of scope. Ma
   - Initially support Finish-to-Start scheduling and directed Blocks links, displaying Blocked by as the inverse of a single edge. Related-to and duplicate links are separate from scheduling dependencies.
   - Reject self-links and cycles in directed dependency chains; do not apply DAG validation to symmetric related-item links. Related records must remain within the actor's authorized scope.
   - Blocked state is independent of workflow status. Each blocker episode records owner, reason, next action, follow-up date, start/end and resolution; overlapping episodes count elapsed blocked time once.
+  - Expand blocker detail with responsible team/person, linked blocking item, expected resolution date, category, priority and notes. Blocker radar shows active/critical/oldest, configurable age breaches, episode count and filters by team/category/sprint/release. Notify on creation/removal, age breaches and completion of a blocking item; completion requests re-evaluation, not automatic resolution of independent blockers.
+  - Provide a permission-filtered dependency map with downstream impact, cross-team/cross-project links and release dependencies. Flag overdue/blocked prerequisites, missing dependency owners and stale blocking flags after prerequisite completion. A completed prerequisite is not inherently an error. Count only authorized edges; do not expose hidden endpoint titles or counts.
+  - Add evidence-backed Causes/Caused by, Fixed by, Tested by and Released in relationships. Causes requires an explicit confirmed finding; chronology alone is not causation. Traceability links are not scheduling edges and do not inherit dependency cycle rules.
   - Basic dependency warnings precede advanced scheduling. SS/FF relationships, lag, critical path and schedule-change previews are later work (LATER-001), dependent on calendars and duration rules. Never silently shift a client commitment.
   - Acceptance: resolving one of two active blockers does not mark the task unblocked; unrelated links may form triangles without failing dependency validation.
 
 - **Structured Bug / Defect Tracking**:
   - Reuse validated task-type custom fields for reproduction steps, expected/actual behavior, environment, impact and workaround templates. Keep priority (delivery order) distinct from severity (impact). Structured affected/fix versions and resolution links support QA reporting.
   - Formal resolution classifications (*Fixed*, *Won't Fix*, *Duplicate*, *Cannot Reproduce*, *By Design*).
+  - Add reproduction frequency (Always/Often/Sometimes/Rare/Unable to reproduce), browser/version, OS/device, error message and optional request/correlation IDs. Let reporters review and redact suggested timestamps, URLs and application context before submission. S3 evidence may include screenshots, recordings and logs; never silently capture credentials, tokens, request bodies or unrelated device data. No monitoring agent or browser recorder is implied.
 - **Sub-Task Support**:
   - Follow the supported hierarchy in PLAN-001. Sum direct worklogs and child worklogs once each; estimates must identify whether they are direct effort or a child roll-up. Do not add a parent total to its already included children.
 - **Task Attachments**:
@@ -150,6 +161,8 @@ Git/source-control integration, DevOps and CI/CD automation are out of scope. Ma
   - Threaded Markdown comments and comment-specific S3 attachments remain required; rich comment composition is pending in the checklist.
   - Mentions/followers follow notification preferences and visibility checks (COLLAB-003). Shared replies must never quote internal-only content automatically.
 - **Saved Views and List Productivity — PLAN-003**: Personal/team saved filters, columns, sorting, grouping and favorites; My work, Awaiting QA, Awaiting client, Blocked and Unassigned presets; inline cells and bulk updates reuse per-task permissions, workflow and revision checks, and report partial failures. Server-side query/export support is required before large-dataset acceptance.
+
+- **My Work extension (PLAN-003)**: A personal attention workspace combines active work, manual review requests, testing, blockers, Waiting for me, Waiting for others, recently completed and upcoming work. Contextual actions reuse existing start/stop, status, comment, assignment, blocker and worklog permissions. Review means a PMT review task, not a pull request. Filters carry through to the shared task detail.
 
 ### 3.10 Effort and Timesheets — TIME-001
 
@@ -228,6 +241,10 @@ Git/source-control integration, DevOps and CI/CD automation are out of scope. Ma
 - Dwell heatmaps, cumulative flow, throughput and cycle-time scatterplots disclose population, observation window, sample size and workflow-category mapping. Quality reporting distinguishes rework, requirement changes and reopened defects.
 - Acceptance: reopened/cancelled work, changed workflows and overlapping blockers do not inflate completion counts or durations; reports reconcile to source events.
 
+- **Operational aging**: Display total item age, current status/primary-owner tenure, blocked age, review/QA queue age and waiting age. Configure non-overlapping buckets and warning thresholds by project, team, type, priority and status, with explicit precedence and calendar units. Tables/histograms filter by team, assignee, sprint and release. Owner/status changes start a new tenure interval without erasing prior history; terminal work freezes applicable clocks and reopening begins a new episode. Aging is a process signal, not an employee score.
+- **WIP scope**: Add per-person and per-team limits to stage limits; soft warnings are the default and hard guards require explicit project configuration. Report current/average WIP, started/completed trends, item age and breach episodes. Stage totals count distinct work items once; blocked is an overlay and is not added again to total WIP. Define primary-owner versus collaborator views to prevent inflated totals.
+- **Active versus waiting flow time**: Map workflow intervals to active, waiting (customer, dependency, approval, review/QA queue, environment, vendor, team availability or other) or unclassified. Handoff events (FLOW-001) refine queue timing. Overlapping waits are counted once using recorded classification precedence, and active/waiting/unclassified intervals must partition the same cycle-time window. These are elapsed/business flow durations, not employee worklog effort or proof of continuous activity.
+
 ### 3.18 Delivery, Workload and Capacity Insights — ANALYTICS-003
 
 - Use employee availability calendars (FND-001), holidays/leave, support rotations and reserved meeting/mentoring time. Allocation percentages and task demand are separate views, not additive load.
@@ -242,6 +259,8 @@ Git/source-control integration, DevOps and CI/CD automation are out of scope. Ma
 - Portfolio views compare commitments, capacity, risks and forecasts with filters for branch/team/work type; story points are not compared across teams as a common productivity unit.
 - Composite health scores and scenario/critical-path scheduling are later work (LATER-001). Before introducing a score, define weights, missing-data behavior, calibration, overrides and drill-down; prevent false precision.
 
+- **Health drill-down**: Show separate schedule, scope, quality, blockers, WIP, aging, release readiness and customer-impact indicators with configurable rules, reasons and freshness. Each metric opens its permission-filtered contributing records using the same time/filter snapshot. PM narrative health remains distinct from rule-based signals; no opaque composite or deployment status is introduced.
+
 ### 3.20 Customer Portal and Intake — CLIENT-001, CLIENT-002
 
 - **CLIENT-001 — identity and visibility**: Invitation-only activation, recovery and revocation for contacts of client organizations. Authorized internal administrators provision initial client admins; any delegated invitations remain within explicitly granted client/project scope. Support Client User, Client Admin and separately granted Client Approver capabilities.
@@ -253,6 +272,9 @@ Git/source-control integration, DevOps and CI/CD automation are out of scope. Ma
 - Accepted requests link to delivery work; acceptance of a request is not approval of price or a promised date. Multiple clients' requests may link to one internal defect while preserving separate communications and acceptance history.
 - Customer-facing progress maps approved internal milestones to Received, In review, In progress, In QA, Awaiting your acceptance and Accepted/Closed; client users do not directly change internal development statuses.
 - Acceptance: two clients of the same product can see an eligible published idea but cannot obtain each other's private requests/files through any API, export or notification. A request cannot grant its submitter internal assignment or financial permissions.
+
+- **Customer-impact detail (CLIENT-002)**: Separate technical severity, internal delivery priority, client-requested priority, impact breadth (none/internal, single user/customer, multiple/most/all eligible customers) and business impact categories (operations, revenue, compliance, security, usability, performance, reporting, other). Client priority informs triage but cannot directly override team priority.
+- Relate affected clients/contacts/contracts, product components, environment observations, affected version(s) and verified fix version. Record impact count/source/as-of time and unknown scope explicitly; counts cover the defined affected population, not inferred claims about all customers. Internal views trace request → defect → delivery task → test evidence → fixing release → eligible client notification. Client views expose only their own impact and deliberately published aggregate statements, never other clients' identities/counts by default.
 
 ### 3.21 Product Discovery, Voting and Roadmaps — PROD-001
 
@@ -296,6 +318,8 @@ Git/source-control integration, DevOps and CI/CD automation are out of scope. Ma
 - Gate readiness with accountable reviewers and recorded exceptions. QA verification does not substitute for client UAT. Automated test execution, source control and deployment orchestration are excluded.
 - Acceptance: a failed case links its evidence and defect to the tested version; the release checklist shows unresolved blockers and the review decision.
 
+- Extend release-readiness templates with critical-defect disposition, manual review evidence, test/UAT decisions, documentation and approved client communication. Checklists record reviewer, evidence and exceptions; missing evidence does not count as a pass. Environment-specific verification is detailed in QA-002; deployment/rollback plans and pipeline checks are excluded.
+
 ### 3.27 Product Goals and Outcomes — PROD-002
 
 - Product managers link initiatives/features to a measurable goal, baseline, target, owner and review date. Manually capture adoption, client feedback or business results after release.
@@ -308,11 +332,16 @@ Git/source-control integration, DevOps and CI/CD automation are out of scope. Ma
 - COLLAB-002: Reusable project/task templates for onboarding, fixed-price work, maintenance and release checklists; relative dates and recurrence respect calendars. Each generated occurrence has its own identity, owner and history; retries do not duplicate it.
 - Acceptance: copying a template does not copy client memberships, decisions, votes, confidential attachments or approvals; referenced private documents remain private.
 
+- Knowledge search covers authorized work items and documents together; structured filters extend to projects/products, eligible users, clients, releases and components. Snippets, suggestions and result counts obey the same permissions; binary attachment text extraction is separate optional scope. Knowledge templates may include architecture, setup, coding standards, troubleshooting, API/database guides and runbooks without executing their contents.
+- Where attachment revision history is needed, upload a new immutable S3 object and retain metadata/actor/time and parent audience; replacing a file cannot inherit or silently alter an approval bound to an older revision.
+
 ### 3.29 Risks, Assumptions and Decisions — DEL-001
 
 - PMs maintain risk/assumption/decision records with owner, likelihood/impact where relevant, mitigation, review date and related requirement/milestone. Separate possible future risks from active blocker episodes.
 - Publish client action requests with due dates and authorized responses; preserve decision revisions and resulting scope/date changes.
 - Acceptance: an unresolved client decision appears in the client's action list without exposing the internal risk discussion.
+
+- Decision records add participants, context, alternatives considered, rationale, consequences and technical/business impact; link work, components and knowledge. Lifecycle: PROPOSED / ACCEPTED / REJECTED / SUPERSEDED, with a successor link and full history. A superseded technical decision does not itself approve a commercial scope change.
 
 ### 3.30 Retainer and AMC Entitlements — COMM-001
 
@@ -331,7 +360,67 @@ Git/source-control integration, DevOps and CI/CD automation are out of scope. Ma
 
 - LATER-001: Capacity/date/priority scenario previews, SS/FF scheduling, lag rules and critical path follow reliable calendars and estimates. Applying a preview requires authorized explicit action; contractual dates retain approval rules. Composite health scores require transparent weights, calibration, missing-data rules and overrides.
 - LATER-002: Optional drafts of summaries, acceptance criteria and progress updates must cite accessible source records, respect audience boundaries and require human review before publication. External processing requires an approved data-handling decision; this is not a prerequisite for core delivery.
+- Optional focused actions extend LATER-002: requirement-gap suggestions, duplicate candidates with similarity explanations, acceptance criteria, work breakdown across UI/API/data/QA/documentation, bug summaries, release-note drafts and activity summaries. Never create work, execute SQL or publish decisions automatically; users review proposed output and its authorized sources. Rule-based risk detection remains ANALYTICS-001, not an unsupported AI prediction claim.
 - Automatic employee/branch leaderboards and a universal automation designer remain deferred.
+
+### 3.33 Teams and Software Components — PLAN-004
+
+- Administrators maintain delivery teams independently of departments and branches, with lead, effective-dated membership and project/product participation. Team membership does not automatically grant project, branch or client access. Work references the responsible team plus an accountable primary owner.
+- Maintain scoped modules/components with name, owner team, technical contact, technology, documentation, criticality and dependency links. Work may reference multiple components. Governance/deactivation preserves historical links; technical debt uses the existing configurable work-item types.
+- A component map and dashboard show authorized active work, bugs, technical debt, linked decisions/documents and manually reported support issues. Component architecture links are distinct from task scheduling dependencies; reciprocal component communication does not imply an invalid task cycle. No repository, deployment, infrastructure inventory or monitoring integration.
+- Acceptance: a team can span two branches without bypassing branch/project permissions; a component drill-down never reveals another client's private support request.
+
+### 3.34 Work Handoff Tracking — FLOW-001
+
+- Capture significant BA → development → manual review → QA → client-review handoffs: sending/receiving team and person, sent time, reason/status, required context/evidence and notes. Sending a handoff and acknowledging/starting work are separate actions; assignment alone is not acceptance.
+- Lifecycle supports pending, accepted, in progress, returned for rework, redirected, completed and cancelled. Record sent, acknowledged and work-start times separately, with receiving actor; label time-to-acknowledgment separately from time-to-work-start; redirects close one waiting episode and create a linked successor, avoiding overlapping queue-duration totals.
+- Add Waiting for me/others queues and overdue/ownerless handoff reminders. Report count, age, rework frequency and waiting duration by team/workflow with configurable calendars and sample sizes; no individual blame/ranking.
+- Acceptance: sending a task to QA at 14:32 and starting next day at 10:15 yields 19h 43m elapsed time to work start, with separately labelled business time; forwarding/reopening retains the original episode. No DevOps/production automation is included.
+
+### 3.35 Environment-Specific Issue Verification — QA-002
+
+- Define lightweight project/product/customer-scoped environment labels (internal QA, staging, client UAT, client production) and region/context metadata. These are manual QA contexts, not provisioned resources, servers or deployment records. Exclude secrets and infrastructure credentials.
+- For an issue, retain observations per environment and application version: found/reproduced, fix available, ready for retest, pass/fail, tester, time and evidence. Browser/OS/device and manually supplied build labels may clarify reproduction; no build integration is implied.
+- Track affected versions separately from planned fix version, verified fix version and the client's accepted/current version. A fix passing internal QA must not mark another environment or client resolved; version-wide release and per-client acceptance remain independent.
+- Acceptance: a bug can pass internal QA in version 2.4.5 while failing client UAT and remaining open for a client on 2.4.3, without leaking either client's details.
+
+### 3.36 What Changed View — COLLAB-004
+
+- Provide deterministic summaries of created/completed work, status/owner changes, new/resolved blockers, defects, handoffs, release stage changes, scope additions/removals and customer-impact updates. Exclude deployment events.
+- Filters support project, sprint, release, personal and authorized client scope, with Since yesterday, Since last login, Since sprint/release baseline and custom periods. Show resolved timestamps/timezone; a baseline filter uses a recorded event, not a moving date guess.
+- Each count links to contributing authorized records/events. Distinguish event counts from distinct-item counts; summarize repeated changes without losing detail. Missing historical data is disclosed and revoked/private data is omitted from counts and snippets.
+- Acceptance: an item with three transitions appears once in distinct changed-items and three times in transition-event detail; a client summary omits internal staffing changes. This feature works without AI.
+
+### 3.37 Project-Specific Workflow Configuration — CONFIG-001
+
+- Extend existing type/status/transition administration with a visual editor and versioned project/product overrides, keeping shared templates and Scrum/Kanban/support defaults. Display the effective workflow and permission source.
+- Configure allowed roles/actions, required fields, validators, transition forms and manual review/acceptance gates. For example, Ready for QA can require completed acceptance checks and recorded review; Ready for release can require reviewed QA evidence and a release association. Client UAT authority remains separate.
+- Preview and validate drafts, reject unreachable required states and invalid transitions, and explicitly map active records before publishing a changed workflow. Preserve historical version/category mappings for reporting. Generic edits, bulk changes and APIs enforce the same rules.
+- Permit bounded internal actions such as assignment or notifying a blocker owner. No arbitrary executable scripts, universal automation platform, PR/pipeline triggers or deployment actions.
+- Acceptance: two projects use different transitions for the same work type; publishing an override cannot bypass client approval or strand active work in a removed state.
+
+### 3.38 Data Import and Portable Exports — DATA-001
+
+- Add permission-controlled CSV import for supported master/work-item records with downloadable templates, field/value mapping, preview/dry-run, required-field/reference validation, stable external-ID mapping and row-level errors. Existing CSV export remains available; optional Excel export follows the same audience/field and formula-safety rules.
+- Explicitly choose create versus update behavior, detect duplicates and stale revisions, and record an import batch and per-row outcomes. Resuming/retrying must not duplicate successful rows. Cross-project/client references and protected approval/audit fields are rejected or require their own authorized workflow, never silently applied.
+- Attachments remain S3 uploads and linked metadata; imports cannot fetch arbitrary remote files or embed binary content in database fields. This is application data onboarding, not schema migration or automatic database-script execution.
+- Acceptance: a mixed-validity batch previews without writes, reports rejected references, imports permitted rows and retries without duplicates; restricted data cannot be recovered through exports/error messages.
+
+### 3.39 Scoped Outbound Webhooks — API-001 (Later)
+
+- Authorized administrators configure subscriptions for approved PMT events such as work created/transitioned/assigned, blocker changes and manually published releases. No source-control, deployment, monitoring or CI/CD connectors are introduced.
+- Use scoped, allowlisted payloads, signed deliveries, rotatable secrets, stable event/delivery IDs, bounded retries/backoff and audit/delivery history. Recheck current authorization on dispatch/retry; define at-least-once delivery and consumer deduplication, without promising order or exposing full internal audit snapshots.
+- Validate destinations and redirects against allowed network policy, block unintended internal/metadata endpoints and do not expose secrets in exports/logs. Disabled subscriptions stop pending delivery; replay requires authorization.
+- Acceptance: a retried event retains its identity and signature verification works after the defined rotation window; revoked audience access prevents subsequent payload disclosure.
+
+### 3.40 Configuration Toolkit — ADMIN-001 (Later)
+
+- Provide an administrator setup wizard and versioned configuration packages for project/workflow/role/permission/custom-field/notification/report templates, branding and enabled modules within a single-company installation. Reuse COLLAB-002 and CONFIG-001 instead of adding competing template/workflow engines.
+- Export/import supported configuration as data with version compatibility checks, dependency/reference mapping, diff/dry-run, validation, conflict handling and audited explicit application. Branding/email templates are constrained/sanitized, not executable custom code. Active records, workflow history and approval rules remain intact.
+- Packages exclude users/passwords, secrets, client data, permission assignments and historical decisions. Role/permission definitions cannot silently elevate the importer or activate new grants. Import DATA-001 separately for permitted business records.
+- Acceptance: preview a configuration package from another compatible installation, resolve missing references and apply only authorized changes without copying client memberships or breaking active workflows.
+- Multi-installation partner management, managed hosting, deployment/upgrade automation, executable plugin frameworks and in-product backup/restore administration remain deferred; operating backups stay in the existing manual operations guidance.
+
 
 
 ---
@@ -373,9 +462,12 @@ PMs and authorized financial reviewers use these definitions for variance, burn 
 | Estimate at completion | Actual hours plus independently maintained remaining estimate. Exhausting the original estimate does not make remaining work zero. |
 | Direct delivery contribution | Revenue on a stated basis minus direct delivery costs; a currency amount, not full accounting profit. |
 | Contribution margin (%) | Direct delivery contribution / revenue × 100. Forecast, approved billable amounts, invoiced amounts and receipts are distinct. |
-| Estimation bias (%) | (Actual minus baseline estimate) / baseline estimate × 100 for completed estimated work; positive means underestimation. Absolute error is a separate accuracy measure. |
+| Estimation bias (%) | (Actual minus baseline estimate) / baseline estimate × 100 for completed estimated work; positive means underestimation. Absolute error is a separate accuracy measure. Report mean/median variance by team, type, component and sprint with sample size; no individual productivity score. |
 | Available delivery capacity | Scheduled working hours minus holidays/leave minus reserved non-project time; deduct each item once. |
 | Defect leakage (%) | External defects / (internal + external defects) × 100 for the same release and observation window; deduplicate defects. |
+| Net scope change (%) | (Current distinct scope minus baseline distinct scope) / baseline distinct scope × 100; report additions/removals/deferrals separately and never mix item counts with points. Zero baseline is N/A. |
+| Waiting percentage | Waiting duration / cycle-window duration × 100 using the same elapsed or business-time basis; active/waiting/unclassified partition that window. Logged effort is a separate measure. |
+| Handoff waiting | Receiving work-start time minus handoff sent time, calendar-adjusted only in the separately labelled business-time measure; retain each redirected/returned episode. |
 | On-time delivery | Completion against original committed dates and separately against current approved dates; disclose scope changes, cancellations and reopened work. |
 
 Missing/zero denominators are N/A rather than zero or perfect performance. Disclose population, sample size, observation window, timezone and data freshness. Retain events and snapshots needed to reproduce calculations.

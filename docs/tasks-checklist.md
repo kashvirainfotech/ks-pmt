@@ -353,6 +353,11 @@ All boxes in this section remain unchecked. Feature IDs reference [requirements]
 - [ ] **TIME-001 — timer**: Persist one active timer across tabs/devices with recovery and correction; browser blur never stops/discards time automatically.
 - [ ] **TIME-001 — acceptance**: Exercise leave, part-time work, multiple projects and stale approvals; monthly summaries/exports follow weekly acceptance and separate monthly sign-off stays deferred.
 
+- [ ] **PLAN-004**: Teams independent of branch/department; scoped component ownership/dependency maps and authorized work/defect/debt drill-downs; membership grants no additional access.
+- [ ] **FLOW-001**: Explicit send/acknowledge/start/return/redirect/complete events and receiving queues; retain episodes, reminders and distinct acceptance versus work-start waiting durations.
+- [ ] **CONFIG-001**: Visual project/product overrides, versioned defaults, required-field/role/manual-gate rules, preview and active-state mapping; identical API/inline/bulk enforcement.
+- [ ] **PLAN-001/002/003 — detail acceptance**: Scope ledger with baseline/reasons, release-readiness workspace, blocker radar and lifecycle alerts, authorized dependency maps, enriched bug context and My Work queues; manual review only.
+
 ### 11.3 Increment C — Client Delivery
 
 - [ ] **CLIENT-001**: Invitation, recovery, restricted delegated administration and revocation; explicit sharing, allowlisted responses, bounded download access and contract-specific closeout/history rights.
@@ -363,6 +368,8 @@ All boxes in this section remain unchecked. Feature IDs reference [requirements]
 - [ ] **CLIENT-006**: PM-reviewed client-safe progress updates, health narrative, decisions needed, target/committed dates and report history.
 - [ ] **DEL-001**: Risks/assumptions/decisions with owners, mitigation and review dates; client action list distinct from internal risk discussion and active blockers.
 - [ ] **Client journey acceptance**: Request → triage → approved scope → development → QA → UAT → sign-off. Test client-to-client denial, hidden internal content and reapproval after material edits.
+
+- [ ] **CLIENT-002 / DEL-001 — detail acceptance**: Customer impact separate from urgency/severity/internal priority; dated affected-client/component/version evidence; decisions retain context, alternatives and supersession without exposing private source requests.
 
 ### 11.4 Increment D — Product Management and Repeatable Delivery
 
@@ -377,6 +384,11 @@ All boxes in this section remain unchecked. Feature IDs reference [requirements]
 - [ ] **COMM-001**: Retainer/AMC periods, included/approved/remaining hours, historical terms, rollover and overage approval using CLIENT-004.
 - [ ] **Product acceptance**: Merge duplicate ideas without privacy leaks or duplicate votes, link idea to outcome review, and reconcile approved allowance usage without double consumption.
 
+- [ ] **QA-002**: Scoped environment labels and version-specific observations/retests; internal QA pass leaves failing client UAT and older client versions unresolved.
+- [ ] **COLLAB-004**: What changed filters by recorded baseline/login/time window; source-linked event versus distinct-item counts, missing-history disclosure and client-safe summaries without AI.
+- [ ] **DATA-001**: CSV templates/mapping, dry-run, validated references, create/update conflicts, batch/row results and retry identities; formula-safe exports and no approval bypass or arbitrary attachment fetching.
+- [ ] **COLLAB-001 / QA-001 — detail acceptance**: Permission-aware knowledge search, S3 attachment revisions and manual readiness evidence with partial-release context.
+
 ### 11.5 Increment E — Delivery Intelligence
 
 - [ ] **ANALYTICS-001**: Deterministic SLA policy selection, calendar snapshots and response/resolution/start/pause/reopen rules; rule-based warnings and nonduplicating escalation with stated business/elapsed units.
@@ -385,9 +397,15 @@ All boxes in this section remain unchecked. Feature IDs reference [requirements]
 - [ ] **ANALYTICS-004**: Baseline variance, consumption thresholds, independent remaining estimates, burn/forecast curves, dated rate snapshots, currency-aware contribution and margin with N/A handling.
 - [ ] **Analytics acceptance**: Reconcile holidays, absence, scope/date changes, reopened work, overlapping blockers, missing estimates, mixed approval states and multiple currencies; show sample sizes/freshness.
 
+- [ ] **ANALYTICS-002/004 — detail acceptance**: Configurable owner/status aging thresholds, person/team WIP without double-counting blocked work, handoff delays, active/waiting/unclassified partition, net scope change and mean/median estimate accuracy with disclosed samples.
+
 ### 11.6 Later and Deferred Options
 
 - [ ] **LATER-001**: SS/FF/lag, critical path and capacity/date scenarios with previews and explicit application; calibrated composite health only after defining weights, missing-data behavior and overrides.
 - [ ] **LATER-002**: Optional source-linked drafting with human review, audience checks and approved data handling.
+- [ ] **API-001**: Scoped signed outbound PMT webhooks, stable IDs, bounded retries, rotation, revocation and safe destinations; at-least-once delivery with consumer deduplication, no Git/DevOps connectors.
+- [ ] **ADMIN-001**: Single-company setup wizard and configuration packages; compatible versions, dependency mapping, preview/diff, conflict handling and audited application without secrets, memberships or elevated grants.
+- [ ] **LATER-002 — focused actions**: Source-linked gap/duplicate suggestions, acceptance/work-breakdown drafts and bug/release/activity summaries; human review before creation/publication.
+- Deferred: partner installation/hosting/upgrade management, executable plugins and in-product backup/restore administration.
 - Deferred: automatic employee/branch leaderboards, internet-public roadmaps, universal automation designer and separate monthly timesheet approval.
 - Lower priority: native field/geofencing expansion and broad CRM/HR/payroll/accounting scope; Git integration, DevOps and CI/CD remain out of scope.

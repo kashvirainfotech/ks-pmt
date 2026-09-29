@@ -294,3 +294,21 @@ A transaction must couple material state changes with revision checks, audit his
 - Validate metric fixtures covering holidays/absence, reopened/cancelled work, split co-assignee estimates, changed baselines, unknown estimates, overlapping blockers, historic rates and separate currencies.
 - Manual test-case management is a product feature; automated source-control, DevOps and CI/CD integrations remain excluded. Application implementation can still use ordinary local tests.
 - Current pagination adapters may accept legacy envelopes; the canonical published contract uses page, limit, total_count and total_pages. Existing callers need compatibility verification when implementations are standardized.
+
+## 7. Planned Operational Tracking and Configuration
+
+These additions extend the existing task, audit, custom-field and workflow foundations; they are not implemented services or a second work-item engine.
+
+| Feature | Design and acceptance obligations |
+| --- | --- |
+| PLAN-004 | Effective-dated team membership and scoped component catalogs; owner/team changes are source events. Component relationship graphs are independent of task dependency DAGs; membership never grants project/client access. |
+| FLOW-001 | Explicit handoff records/events with sending, acknowledgment, work-start, return and redirect timestamps; linked non-overlapping queue episodes support acceptance and work-start delays separately. Owner changes alone do not prove acknowledgment. |
+| ANALYTICS-002/004 | Version aging thresholds, workflow active/waiting classifications and calendar choices. Preserve owner/status intervals; classify overlapping waits once and expose unclassified time. Logged effort is independent. Scope ledgers retain baseline units, additions/removals and reasons. |
+| QA-002 | Scoped environment labels and issue/version observations with evidence; no infrastructure credentials or deployment model. Per-client current version, QA verification and UAT decisions are independent facts. |
+| COLLAB-001/004 | Knowledge/search and change summaries use authorized projections of versioned content/events, not raw audit snapshots. S3 files have immutable revision metadata. Preserve since-login/baseline timestamps and distinguish event counts from distinct items. |
+| CONFIG-001 | Versioned effective project/product workflow definitions with draft validation, active-state mapping and historical categories. Every mutation path applies validators and revision checks; bounded internal actions cannot execute arbitrary code. |
+| DATA-001 | Import batches/rows retain external-key mappings and idempotent outcomes. Dry-runs write no business records; application services enforce permissions/approvals on writes. Validate references and protect exports against spreadsheet formulas. |
+| API-001 (Later) | Durable event delivery with scoped subscriptions, signatures, stable event IDs, secret rotation, bounded retries and dispatch-time authorization. Enforce safe destinations on resolution/redirects; at-least-once consumers deduplicate. No Git/CI/CD integration. |
+| ADMIN-001 (Later) | Versioned data-only configuration packages reuse templates/workflows/import validation. Compatibility/diff and dependency mapping precede explicit application; packages exclude secrets, memberships and historical decisions. No executable plugin or hosting-control plane. |
+
+Acceptance must include redirected/returned handoffs, revoked component/client access, workflow changes with active work, environment-specific failed retests, duplicate import retries and configuration packages that reference unavailable fields. The SRS remains authoritative for detailed behavior and measurement formulas.

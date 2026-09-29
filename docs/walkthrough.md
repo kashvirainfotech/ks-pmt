@@ -293,3 +293,19 @@ Example: the client approves change revision 3 for an agreed price and date. Upd
 - A four-day 32-hour week with eight hours approved absence expects 24 loggable hours. Reserved mentoring time affects delivery availability without making the employee's work unproductive.
 - Approved worklog amendments require audited reapproval. Retainer/AMC usage consumes eligible approved hours once and routes overages through the change-approval journey (COMM-001).
 - CLIENT-006 and ANALYTICS-001–004: Read narrative health and explainable risk alerts first. Capacity/flow/budget charts disclose missing data, sample sizes and baseline choices; no automatic employee leaderboard is generated.
+
+## 9. Planned Handoff, QA and Change Review Journey
+
+These are planned additions from the attached feature review; they do not describe currently available screens.
+
+1. The PM selects the responsible team and affected software components (PLAN-004). The developer's My Work queue includes manual reviews, blockers and incoming handoffs; shared team membership does not expand access.
+2. The developer supplies review/testing context and sends a handoff to QA (FLOW-001). QA acknowledgment and work start are separate events. Sending at 14:32 and starting the next day at 10:15 gives 19h 43m elapsed time to work start; business time uses the selected calendar. A redirect preserves the earlier episode.
+3. QA records version 2.4.5 passing internal QA while client UAT fails and another client remains on 2.4.3 (QA-002). Internal verification does not resolve every client issue. Customer impact remains permission-scoped and distinct from severity.
+4. The PM opens What changed since the sprint baseline (COLLAB-004): scope additions/removals with reasons, blockers, handoffs and manual release-readiness changes link to evidence. Internal staffing events stay out of client summaries; release readiness implies no deployment automation.
+5. Team reports show owner/status aging, WIP and active/waiting intervals (ANALYTICS-002/004). These durations do not replace timesheets or rank employees. Decision records preserve alternatives and supersession; authorized knowledge searches include document/file revisions.
+
+## 10. Planned Configuration and Onboarding Journey
+
+- **CONFIG-001:** An administrator previews a project-specific workflow with required QA evidence and authorized review gates, maps records out of removed states, then publishes the version. Direct API and bulk edits enforce the same rules.
+- **DATA-001:** A permitted user maps a CSV to supported records, previews reference/validation errors and selects create/update behavior. Import results show each row; retrying failed rows does not duplicate successful rows or bypass client approvals.
+- **Later — ADMIN-001/API-001:** An administrator previews a compatible configuration package and resolves missing references before applying authorized settings. Separately, approved outbound PMT webhooks use scoped signed payloads and retry history. Neither feature introduces deployment management, source-control integration or CI/CD.

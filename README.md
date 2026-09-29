@@ -119,11 +119,11 @@ All entries below are **Planned** expansions/completion work. Feature IDs link b
 | Order | Focus | Planned outcomes |
 | --- | --- | --- |
 | **A** | Trustworthy foundation | Client boundaries, working calendars, baseline/event history, status evidence and release-specific provider acceptance. |
-| **B** | Daily development planning | Backlog/sprints, basic blockers/dependencies, saved views and schedule-aware weekly timesheets. |
+| **B** | Daily development planning | Backlog/sprints, blockers, teams/components, handoffs, scoped workflows, saved views and weekly timesheets. |
 | **C** | Client delivery | Portal intake, agreed requirements, change approval, UAT/sign-off and client progress reports. |
-| **D** | Product management and repeatable delivery | Discovery/voting, goals, QA checklists, knowledge, templates, notification preferences and retainers. |
+| **D** | Product management and repeatable delivery | Discovery/voting, goals, environment-specific QA, knowledge/templates, change summaries, imports, notifications and retainers. |
 | **E** | Delivery intelligence | Contractual SLA, flow metrics, capacity, effort/budget forecasts and explainable alerts. |
-| **Later** | Advanced options | Scheduling scenarios/critical path and optional reviewed drafting assistance. |
+| **Later** | Advanced options | Scheduling scenarios, reviewed drafting assistance, scoped webhooks and configuration packages. |
 
 ### A. Trustworthy foundation
 
@@ -131,43 +131,54 @@ All entries below are **Planned** expansions/completion work. Feature IDs link b
 
 ### B. Daily development planning
 
-- **PLAN-001:** Ranked project/product backlogs; Initiative → Epic/Feature → Story/Task/Bug → Subtask; sprints independent of releases/milestones, goals, team ownership, optional points/sizing and retained commitment/rollover history. Kanban remains available.
-- **PLAN-002:** Finish-to-Start and Blocks/Blocked by links, dependency cycle checks, blocker owners/reasons/actions and accurate elapsed episodes; reusable bug templates and resolution categories.
-- **PLAN-003:** Personal/team saved views, favorites, inline cells and permission-aware bulk actions with conflict/partial-failure handling; server-side queries and exports for scale.
+- **PLAN-001:** Ranked project/product backlogs; Initiative → Epic/Feature → Story/Task/Bug → Subtask; sprints independent of releases/milestones, goals, team ownership, optional points/sizing and retained commitment/rollover history. Kanban remains available. Scope-change ledgers retain baseline/reasons; release workspaces show manual readiness and partial delivery.
+- **PLAN-002:** Finish-to-Start and Blocks/Blocked by links, dependency cycle checks, blocker owners/reasons/actions and accurate elapsed episodes; blocker radar/reminders, authorized dependency maps and richer reproduction templates with resolution categories.
+- **PLAN-003:** Personal/team saved views, favorites, inline cells and permission-aware bulk actions with conflict/partial-failure handling; server-side queries and exports for scale. My Work includes review, blocked and waiting-for-me queues.
 - **TIME-001:** Weekly entry, cross-project approval, audited amendments and reminders based on work schedules/leave. One persistent timer across tabs/devices; browser blur does not stop productive time. Monthly summaries/exports follow weekly acceptance; separate monthly approval is deferred.
+
+- **PLAN-004:** Delivery teams and software component ownership/maps, linked work, defects, technical debt and knowledge; team membership does not grant access.
+- **FLOW-001:** Explicit handoffs, receiving-team queues, acknowledgment/start times, return/redirect history and waiting-time evidence.
+- **CONFIG-001:** Versioned project/product workflow overrides, visual configuration, required fields and manual review gates with safe previews and active-state mapping.
 
 ### C. Client delivery
 
-- **CLIENT-001 / CLIENT-002:** Invited customer contacts, explicit project access and private intake/triage. A product license never exposes all product tasks; submission promises neither price nor delivery date.
+- **CLIENT-001 / CLIENT-002:** Invited customer contacts, explicit project access and private intake/triage. A product license never exposes all product tasks; submission promises neither price nor delivery date. Customer impact, urgency and affected contexts stay separate from internal priority/severity.
 - **CLIENT-003:** Versioned requirements and acceptance criteria linked to tasks, QA evidence and client decisions.
 - **CLIENT-004:** Scope/change quotations with effort, cost and delivery impact; authorized approval of a specific revision, with reapproval after material changes.
 - **CLIENT-005:** UAT packages, known issues, evidence and Approve / Request changes / Reject decisions. Developer completion, QA verification and client acceptance stay separate.
-- **CLIENT-006 / DEL-001:** PM-reviewed client progress reports, milestone forecasts, risks/assumptions/decisions and client actions awaiting response. Reports distinguish indicative targets from approved commitments.
+- **CLIENT-006 / DEL-001:** PM-reviewed client progress reports, milestone forecasts, risks/assumptions/decisions and client actions awaiting response. Reports distinguish indicative targets from approved commitments; decisions retain context, alternatives and supersession history.
 
 ### D. Product management and repeatable delivery
 
 - **PROD-001:** Moderated product feedback and organization voting, duplicate merging, private impact evidence, impact/confidence/effort scoring and decision rationale. Authenticated customer roadmaps use Now / Next / Later with delivery/changelog links; votes and ACV are inputs, not promises.
 - **PROD-002:** Product goals, baselines/targets and dated post-release outcome reviews.
 - **QA-001:** Manual test cases/runs, affected/fix versions, evidence, known issues and release-readiness checklists; no CI/CD integration.
-- **COLLAB-001 / COLLAB-002:** Versioned specifications/FAQs/decision documents, rich comments with S3 files, reusable project/task templates and recurring work without copying private access or approvals.
+- **COLLAB-001 / COLLAB-002:** Versioned specifications/FAQs/decision documents, rich comments with S3 files, reusable project/task templates and recurring work without copying private access or approvals; permission-aware knowledge search and S3 attachment revisions.
 - **COLLAB-003:** Watchers/follows, channel preferences, digests, quiet hours and deduplicated delivery with authorization rechecked at dispatch.
 - **COMM-001:** Retainer/AMC included hours, approved usage, remaining allowance, rollover and overage approval; historical terms and authorized client statements.
+
+- **QA-002:** Environment-specific reproduction/retest evidence and independent affected, planned-fix, verified-fix and client-current versions.
+- **COLLAB-004:** Permission-aware “What changed?” summaries since login, baseline or a selected date, with source-event drill-downs.
+- **DATA-001:** CSV onboarding with mapping, dry-run, row errors and duplicate-safe retries; portable exports retain audience and field restrictions.
 
 ### E. Delivery intelligence
 
 - **ANALYTICS-001:** Contract-defined response/resolution SLA, calendar/pause/reopen rules, rule-based deadline warnings, reason attribution and configurable escalation.
-- **ANALYTICS-002:** Maximum WIP limits, stage dwell heatmaps, cumulative flow, lead/cycle distributions, rework and release-defect trends based on source events.
+- **ANALYTICS-002:** Person/team WIP limits, configurable aging thresholds, active-versus-waiting intervals, handoff queues, stage dwell heatmaps, cumulative flow, lead/cycle distributions, rework and release-defect trends based on source events.
 - **ANALYTICS-003:** Calendar-aware capacity and explainable skill suggestions; split co-assignee demand and contextual team trends. Automatic employee/branch leaderboards are deferred.
-- **ANALYTICS-004:** Baseline effort variance, consumption alerts, independent remaining estimates, burn/forecast curves and currency-aware contribution/margin reporting. Missing estimates/zero denominators show N/A; internal costs and margins remain private.
+- **ANALYTICS-004:** Baseline effort variance, consumption alerts, independent remaining estimates, burn/forecast curves and currency-aware contribution/margin reporting. Missing estimates/zero denominators show N/A; internal costs and margins remain private. Scope-change, waiting-time and estimate-accuracy measures reconcile to dated source events.
 
 ### Later and deferred scope
 
 - **LATER-001:** SS/FF dependencies, lag, critical path and scheduling scenario previews after calendar/estimate quality is established; composite health scores require transparent weights and calibration.
-- **LATER-002:** Optional source-linked drafts of summaries/acceptance criteria with human review and approved data handling.
+- **LATER-002:** Optional source-linked requirement-gap/duplicate suggestions and drafts of work breakdowns, bug/release summaries and acceptance criteria with human review and approved data handling.
+- **API-001:** Scoped, signed outbound PMT webhooks with delivery history/retries; no Git, deployment or pipeline connectors.
+- **ADMIN-001:** Setup wizard and versioned configuration packages with compatibility checks, preview/diff and authorized application; partner hosting/upgrade management stays deferred.
 - Lower priority: native field/geofencing expansion and broad CRM/HR/payroll/accounting features. Internet-public roadmaps and a universal automation designer remain deferred.
 
 ## Documentation and Evidence
 
+- [Additional feature review](docs/walkthrough/additional-feature-planning-2026-09-29.md): attached-list disposition, additions and retained exclusions.
 - [Requirements](docs/requirements.md): behavioral contract, stable feature IDs, client visibility rules, metric definitions and acceptance examples.
 - [Implementation plan](docs/plan.md): dependencies, delivery order and acceptance gates.
 - [Tasks checklist](docs/tasks-checklist.md): implementation status and outstanding verification; a checked item is not production certification.
