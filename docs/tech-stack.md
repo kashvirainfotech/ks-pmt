@@ -312,3 +312,55 @@ These additions extend the existing task, audit, custom-field and workflow found
 | ADMIN-001 (Later) | Versioned data-only configuration packages reuse templates/workflows/import validation. Compatibility/diff and dependency mapping precede explicit application; packages exclude secrets, memberships and historical decisions. No executable plugin or hosting-control plane. |
 
 Acceptance must include redirected/returned handoffs, revoked component/client access, workflow changes with active work, environment-specific failed retests, duplicate import retries and configuration packages that reference unavailable fields. The SRS remains authoritative for detailed behavior and measurement formulas.
+
+---
+
+## 8. Shared UI Architecture: TanStack DataGrid Component
+
+`web/src/components/common/DataGrid.tsx` provides the unified tabular listing UI across master records, task listings, and audit trails using [TanStack Table v8](https://tanstack.com/table/v8/docs/overview), an MIT-licensed headless table library.
+
+### 8.1 Key Features & User Controls
+
+- **Faceted Search & Column Filtering**: Global search matches all visible columns; independent column filters combine with Boolean `AND`.
+- **Multi-Column Sorting**: Click any column header to sort; shift-click (or use the dedicated Sort panel) to establish secondary and tertiary sort priorities with direction toggles.
+- **Nested Grouping & Expansion**: Dynamically group records by multiple attributes with expandable group rows and Expand All / Collapse All controls. Group order determines nesting hierarchy.
+- **Pagination & Page Sizing**: Configurable page sizes (10, 25, 50, 100 rows). When grouped, pagination operates on top-level groups to keep child records unified.
+- **Direct CSV & Print Export**: Client-side sanitized export covering all filtered records across pages. CSV exports quote strings and escape formula prefixes (`=`, `+`, `-`, `@`) to protect against spreadsheet injection.
+- **Permission-Aware Row Actions**: Supports View, Edit, Delete, and contextual custom actions controlled by caller permissions. Destructive actions trigger explicit confirmation modals.
+
+### 8.2 Component Reuse Example
+
+```tsx
+import { Eye } from 'lucide-react';
+import { DataGrid } from '../common/DataGrid';
+import { useListing } from '../../hooks/useListing';
+
+type RecordRow = { id: string; name: string; hours: number };
+
+function ExampleListing() {
+  const { rows, loading, error, reload } = useListing<RecordRow>('/api/v1/example');
+  return (
+    <DataGrid
+      title="Example Records"
+      data={rows}
+      loading={loading}
+      error={error}
+      onRetry={reload}
+      columns={[
+        { id: 'name', label: 'Name' },
+        { id: 'hours', label: 'Hours', type: 'number' },
+      ]}
+      actions={[
+        { label: 'View', icon: Eye, onClick: (row) => openRecord(row.id) },
+      ]}
+    />
+  );
+}
+```
+
+### 8.3 Data Scope, Performance & Verification
+
+- `useListing` manages full dataset retrieval, abort signals, and branch-switch cache invalidation.
+- Large datasets (>5,000 records) benefit from server-side query filtering before client processing.
+- Verified via Playwright fixture tests (`web/tests/data-grid.cjs`) and production bundle builds (`npm run build`).
+

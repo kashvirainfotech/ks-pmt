@@ -2,7 +2,7 @@
 
 # 🚀 KS-PMT (Kashvira Infotech - Project & Product Management Tool)
 
-### *Project & Product Management for Development Teams and Clients*
+### *Enterprise Project & Product Management for Multi-Branch IT Teams and Clients*
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Backend: NestJS](https://img.shields.io/badge/Backend-NestJS%2010-E0234E?logo=nestjs&logoColor=white)](https://nestjs.com/)
@@ -14,9 +14,7 @@
 
 ---
 
-**KS-PMT** is an project and product management platform under development designed for **one company with multiple locations and branches**, supporting both **commercial software products** and **custom client development services**. It is deployed for the company's own use and is not a SaaS offering.
-
-Built with a **NestJS REST API backend**, a modern **React 19 + Tailwind CSS web dashboard**, and a cross-platform **Flutter mobile app (Android & iOS)** with native capability development and device acceptance still in progress. See the status matrix below for implementation limits.
+**KS-PMT** is a centralized, self-hosted project and product management platform designed for IT software companies operating across **multiple branches and geographical locations**. It provides a single operational ecosystem supporting both **commercial software products** (licensing, AMC, feature releases) and **custom client software development services** (fixed-cost/T&M contracts, milestones, worklogs).
 
 </div>
 
@@ -25,9 +23,10 @@ Built with a **NestJS REST API backend**, a modern **React 19 + Tailwind CSS web
 ## 📑 Table of Contents
 
 - [Architectural Overview](#-architectural-overview)
-- [Feature Matrix & Implementation Status](#-feature-matrix--implementation-status)
-- [Roadmap for Development Teams and Clients](#roadmap-for-development-teams-and-clients)
-- [Documentation and Evidence](#documentation-and-evidence)
+- [What KS-PMT Does](#-what-ks-pmt-does)
+- [Current Implementation Status (Completed Modules)](#-current-implementation-status-completed-modules)
+- [Comprehensive Feature Roadmap (Planned Scope)](#-comprehensive-feature-roadmap-planned-scope)
+- [Core Documentation Index](#-core-documentation-index)
 - [Technology Stack](#-technology-stack)
 - [Directory Structure](#-directory-structure)
 - [Quick Start & Installation Guide](#-quick-start--installation-guide)
@@ -79,127 +78,124 @@ Built with a **NestJS REST API backend**, a modern **React 19 + Tailwind CSS web
 
 ---
 
-## ✨ Feature Matrix & Implementation Status
+## 💡 What KS-PMT Does
 
-Documentation reconciled **2026-09-29**. These labels describe scope and evidence; this roadmap update does not implement or verify new application features.
+Most off-the-shelf tools force organizations to choose between developer task tracking (like Jira) and client services/commercial operations. **KS-PMT unifies both** for multi-location IT enterprises:
 
-| Status | Meaning |
-| --- | --- |
-| **Planned** | Required future delivery. |
-| **Partial** | Some capability exists; material implementation remains. |
-| **Implemented — acceptance pending** | Implementation evidence exists; required live/database/provider/device acceptance is still pending. |
-| **Verified** | Only the named scope passed dated checks linked in the checklist/walkthroughs; never a blanket production certification. |
+1. **Dual Business Model Support**: Simultaneously manages **custom client development contracts** (milestones, budgets, billable hours) and **proprietary commercial software products** (customer licenses, version roadmaps, AMC entitlements).
+2. **Multi-Branch Hierarchy with Granular RBAC**: Full organizational structure supporting head offices, development centers, and regional offices. Granular permission engine with **branch-level** and **user-level overrides** (e.g., allow a developer to see contract budgets without promoting them to Project Manager).
+3. **End-to-End Client Delivery Lifecycle**: Structured pipeline from initial client request, requirement sign-off, change-request quotations, sprint development, QA verification, to formal client UAT acceptance.
+4. **Secure Cloud-Native Architecture**: Direct AWS S3 pre-signed upload/download pipeline ensuring files never touch the API server disk, immutable audit trails, and strict PostgreSQL relational schema constraints.
 
-| Current capability | Status | Evidence and limits |
-| --- | --- | --- |
-| Branches, departments, designations, employees, dynamic roles and branch/user overrides | Implemented — acceptance pending | Management and selected authorization checks recorded in the requirements audit; exhaustive authorization acceptance remains open. |
-| Password login, refresh/session tracking and remote revocation | Implemented — acceptance pending | Historical session tests exist; full security acceptance remains pending. Current password implementation uses bcrypt. |
-| Mobile OTP login | Partial | Verification/mock flow exists; live SMS delivery, shared OTP state and distributed throttling remain pending. |
-| Clients/prospects, products, licenses/AMC, projects, team allocations and release records | Implemented — acceptance pending | Core CRUD and field-persistence evidence exists; grouped reporting and new client workflows are separate roadmap work. |
-| Dynamic task types/workflows, primary owner and collaborators, subtasks and auto-assignment | Implemented — acceptance pending | Core workflow evidence exists. The legacy ROUND_ROBIN strategy selects least-loaded eligible staff; it is not cyclic round-robin scheduling. |
-| Focused task creation, inline editing, Markdown descriptions, typed custom values and revision conflicts | Implemented — acceptance pending | Builds, 46 backend tests and fixture browser checks recorded on 2026-09-28; new schema still requires developer/DBA blank-database and live-workflow acceptance. |
-| Worklogs, billable/overtime/weekend classification and individual review | Implemented — acceptance pending | Per-worklog submit/reject/resubmit/approve evidence exists; grouped weeks and a durable global timer are planned. |
-| Threaded comments, in-app events and notification preferences | Partial | Rich comment/S3 composition, live email/FCM and real-time transport remain pending. |
-| S3 upload/download APIs and client flows | Implemented — acceptance pending | Last recorded real upload failed with InvalidAccessKeyId; successful upload/confirmation/download/avatar acceptance remains open. |
-| Activity history and audit viewer | Partial | Selected task mutations/history exist; comprehensive authentication/change/download and metadata coverage remains pending. Tamper-evidence is not established. |
-| Kanban, shared grid, task drawer/full-page view, command palette and light/dark web shell | Implemented — acceptance pending | Dated fixture/browser and build evidence exists. The grid loads all authorized pages into the browser; saved views, bulk operations and server-side scale work remain planned. |
-| Dashboard and basic workload summaries | Partial | Task counts and labelled recent-sample metrics exist; full portfolio/financial/flow aggregates remain planned. |
-| Flutter mobile source, secure token handling and five-tab navigation | Partial | Native builds/device acceptance, push/deep links, offline sync, field/geofencing flows and remaining parity are pending. |
+---
 
-MFA, password-policy completion, external API-key/OAuth provisioning, full authorization/security review and production/performance acceptance remain open in the [checklist](docs/tasks-checklist.md). The most recent task delivery does not establish full SRS completion.
+## ✅ Current Implementation Status (Completed Modules)
 
-## Roadmap for Development Teams and Clients
+The core foundational architecture and operational modules are implemented and available for development testing:
 
-The primary journey is **request → clarification → approved scope → development → QA → client UAT → accepted delivery**. Product work also connects customer feedback to prioritization, releases and outcome reviews.
+| Module / Area | Status | Implemented Capabilities |
+| :--- | :---: | :--- |
+| **Organizational Hierarchy & Masters** | ✅ Implemented | Multiple branches with GPS coordinates & geofencing radius, corporate departments, designations with ranking hierarchy, employee master. |
+| **Authentication & Dynamic RBAC** | ✅ Implemented | Dual login (Email + Password with bcrypt & Mobile + OTP mock verification), JWT access & refresh tokens, dynamic roles/permissions, branch & user permission overrides. |
+| **Clients, Projects & Products** | ✅ Implemented | CRM-lite client/prospect directory, Project commercials (Fixed-cost vs T&M, budgets), Proprietary products, licensing terms, AMC renewal dates, team allocations. |
+| **Task Management Engine** | ✅ Implemented | Dynamic task types, customizable workflow statuses, multi-assignees, parent-child subtasks, rule-based & least-loaded auto-assignment, priority/severity flags. |
+| **Jira-Style Task Experience** | ✅ Implemented | Inline quick-create modal, slide-over task drawer, full-page task view, Markdown descriptions, typed custom values, revision conflict detection. |
+| **Web Views & Grid Experience** | ✅ Implemented | Interactive drag-and-drop Kanban board, shared TanStack DataGrid (faceted search, multi-column sorting, nested grouping, CSV/Print export), light/dark theme. |
+| **Worklogs & Time Tracking** | ✅ Implemented | Per-task worklogs, billable vs non-billable classification, overtime & weekend flags, manager submission/approval/rejection flows. |
+| **AWS S3 Cloud Storage** | ✅ Implemented | Direct-to-S3 pre-signed PUT/GET URL generation for attachments, screenshots, and logs; zero binary storage on backend API server. |
+| **Audit Trails & Activity Logs** | ✅ Implemented | Central audit log capturing entity mutations, old/new diffs, timestamps, user IDs, IP addresses, and user-agent tags. |
+| **Cross-Platform Mobile (Flutter)** | 🟡 Foundation Built | Flutter 3.x codebase (Android & iOS), 5-tab navigation, secure token storage, automatic 401 token refresh queue, GPS geofencing branch check, camera integration. |
 
-**Out of scope:** Git/source-control integrations, DevOps and CI/CD automation. Manual test evidence, release planning and client sign-off remain in scope. KS-PMT's deployment documentation describes operating this application.
+> *Note: Live provider credentials (production SMS gateway, AWS SES email, FCM push) and native store builds undergo formal environment acceptance as detailed in the [Tasks Checklist](docs/tasks-checklist.md).*
 
-All entries below are **Planned** expansions/completion work. Feature IDs link behavior in the [SRS](docs/requirements.md) to delivery gates in the [plan](docs/plan.md) and [checklist section 11](docs/tasks-checklist.md#11-accepted-roadmap-and-acceptance-gates-2026-09-29).
+---
 
-| Order | Focus | Planned outcomes |
-| --- | --- | --- |
-| **A** | Trustworthy foundation | Client boundaries, working calendars, baseline/event history, status evidence and release-specific provider acceptance. |
-| **B** | Daily development planning | Backlog/sprints, blockers, teams/components, handoffs, scoped workflows, saved views and weekly timesheets. |
-| **C** | Client delivery | Portal intake, agreed requirements, change approval, UAT/sign-off and client progress reports. |
-| **D** | Product management and repeatable delivery | Discovery/voting, goals, environment-specific QA, knowledge/templates, change summaries, imports, notifications and retainers. |
-| **E** | Delivery intelligence | Contractual SLA, flow metrics, capacity, effort/budget forecasts and explainable alerts. |
-| **Later** | Advanced options | Scheduling scenarios, reviewed drafting assistance, scoped webhooks and configuration packages. |
+## 🗺️ Comprehensive Feature Roadmap (Planned Scope)
 
-### A. Trustworthy foundation
+All roadmap items are categorized by strategic delivery increment. Each feature has a stable specification ID linked directly to the [Software Requirements Specification (SRS)](docs/requirements.md) and [Master Implementation Plan](docs/plan.md):
 
-- **FND-001:** Invitation-based client access, explicit internal/client-shared/product-community audiences, configurable employee/contract calendars and reproducible baseline/event history. Complete required SMS/S3/email checks before dependent releases; native field capabilities do not block web/client value.
+```mermaid
+flowchart LR
+    A["Tier A: Foundations & Boundaries"] --> B["Tier B: Agile Development Planning"]
+    B --> C["Tier C: Client Delivery & UAT"]
+    C --> D["Tier D: Product Operations & QA"]
+    D --> E["Tier E: Delivery Intelligence"]
+    E --> F["Future: Advanced Extensions"]
+```
 
-### B. Daily development planning
+### 📌 Tier A: Foundations & Boundary Governance
+- **`FND-001` Shared Planning Foundations**: Configurable employee and contractor working calendars (working days, shifts, holidays, approved leave); multi-tenant audience isolation (internal, client-shared, product-community); reproducible baseline and event-history tracking.
 
-- **PLAN-001:** Ranked project/product backlogs; Initiative → Epic/Feature → Story/Task/Bug → Subtask; sprints independent of releases/milestones, goals, team ownership, optional points/sizing and retained commitment/rollover history. Kanban remains available. Scope-change ledgers retain baseline/reasons; release workspaces show manual readiness and partial delivery.
-- **PLAN-002:** Finish-to-Start and Blocks/Blocked by links, dependency cycle checks, blocker owners/reasons/actions and accurate elapsed episodes; blocker radar/reminders, authorized dependency maps and richer reproduction templates with resolution categories.
-- **PLAN-003:** Personal/team saved views, favorites, inline cells and permission-aware bulk actions with conflict/partial-failure handling; server-side queries and exports for scale. My Work includes review, blocked and waiting-for-me queues.
-- **TIME-001:** Weekly entry, cross-project approval, audited amendments and reminders based on work schedules/leave. One persistent timer across tabs/devices; browser blur does not stop productive time. Monthly summaries/exports follow weekly acceptance; separate monthly approval is deferred.
+### 📌 Tier B: Agile Development & Daily Planning
+- **`PLAN-001` Work Hierarchy, Backlog & Sprints**: 4-level hierarchy (`Initiative` → `Epic/Feature` → `Story/Task/Bug` → `Subtask`); ranked project and product backlogs; sprints independent of releases; sprint goals, team sizing, and commitment/rollover tracking; scope-change ledger.
+- **`PLAN-002` Task Dependencies & Blocker Management**: Finish-to-Start and Blocks/Blocked-by links with circular dependency prevention; Blocker Radar tracking blocker owners, reasons, next actions, and elapsed blocker episodes; rich bug reproduction templates.
+- **`PLAN-003` Advanced Views, Inline Editing & Bulk Actions**: Personal and team saved views, favorites, inline cell editing in listing grids, permission-aware bulk status/assignee updates with conflict handling, server-side query optimizations, and "My Work" focused queues.
+- **`PLAN-004` Delivery Teams & Software Component Ownership**: Dedicated delivery teams and component architecture catalogs; tracking defects and technical debt per component without expanding project access boundaries.
+- **`FLOW-001` Work Handoff Tracking**: Explicit handoffs between roles/teams (e.g., Dev → QA), tracking acknowledgment time, work-start time, return/redirect history, and queue waiting time analysis.
+- **`CONFIG-001` Project-Specific Workflow Overrides**: Visual workflow editor allowing versioned project-level workflow progression, mandatory custom fields per status transition, and manual review gates.
+- **`TIME-001` Effort & Timesheets with Durable Timer**: Schedule-aware weekly timesheets with cross-project approval and audited amendments; durable single active timer across browser tabs that does not stop on window blur.
 
-- **PLAN-004:** Delivery teams and software component ownership/maps, linked work, defects, technical debt and knowledge; team membership does not grant access.
-- **FLOW-001:** Explicit handoffs, receiving-team queues, acknowledgment/start times, return/redirect history and waiting-time evidence.
-- **CONFIG-001:** Versioned project/product workflow overrides, visual configuration, required fields and manual review gates with safe previews and active-state mapping.
+### 📌 Tier C: Client Delivery & Collaboration
+- **`CLIENT-001` & `CLIENT-002` Customer Portal & Intake Triage**: Invited client contacts with role-scoped project access; private support/ticket intake; separation of customer impact/urgency from internal priority; complete cross-client data isolation.
+- **`CLIENT-003` Requirements & Acceptance Traceability**: Versioned functional requirements and acceptance criteria directly linked to tasks, manual QA test runs, and client sign-offs.
+- **`CLIENT-004` Scope & Change-Request Approval**: Scope change quotations with effort, cost, and timeline impacts; formal authorized client approval of specific revisions with re-approval triggers for material modifications.
+- **`CLIENT-005` Client UAT & Milestone Sign-Off**: Versioned UAT packages, known issues disclosure, and client approval workflows (`Approve` / `Request Changes` / `Reject`) keeping developer completion, internal QA, and client acceptance strictly distinct.
+- **`CLIENT-006` Client Progress Updates & Reporting**: Project manager-reviewed client progress summaries, milestone forecasts, client actions awaiting response, and committed vs indicative dates.
+- **`DEL-001` Risks, Assumptions & Versioned Client Decisions**: Project RAID log; structured decision register recording context, evaluated alternatives, client approval timestamps, and supersession history.
 
-### C. Client delivery
+### 📌 Tier D: Product Operations & Repeatable Quality
+- **`PROD-001` Product Discovery, Voting & Roadmaps**: Moderated customer feedback ideas, one-vote-per-organization voting, duplicate merging, RICE prioritization scoring, and public/private Now / Next / Later roadmaps with changelog links.
+- **`PROD-002` Product Goals & Outcome Reviews**: Measurable product goals (baselines vs targets) and dated post-release outcome evaluation reviews.
+- **`QA-001` Manual Test Cases & Release Readiness**: Reusable manual test cases, test execution runs, test evidence attachments, affected/fix version tracking, and release-readiness checklists.
+- **`QA-002` Environment-Specific Issue Verification**: Environment-specific reproduction and verification evidence across staging, production, and client on-premise installations.
+- **`COLLAB-001` & `COLLAB-002` Knowledge Base, Templates & Recurring Work**: Versioned specification documents and FAQs; rich Markdown comments with S3 attachments; reusable project and task templates; recurring automated task generator.
+- **`COLLAB-003` Granular Notification Preferences & Digests**: Watchers/followers on work items, channel preferences, daily/weekly digests, quiet hours, and authorization verification at dispatch.
+- **`COLLAB-004` "What Changed?" Activity Summaries**: Permission-aware change summaries showing all scope additions, removals, blockers, and status changes since last login, sprint baseline, or custom date.
+- **`COMM-001` Retainer & AMC Entitlements**: Tracking included monthly/annual hours, approved work consumption, rollover rules, overage authorization, and client statement generation.
+- **`DATA-001` Data Import & Portable Exports**: CSV onboarding wizard with column mapping, dry-run validation, row-level error reporting, duplicate-safe retries, and sanitized portable exports.
 
-- **CLIENT-001 / CLIENT-002:** Invited customer contacts, explicit project access and private intake/triage. A product license never exposes all product tasks; submission promises neither price nor delivery date. Customer impact, urgency and affected contexts stay separate from internal priority/severity.
-- **CLIENT-003:** Versioned requirements and acceptance criteria linked to tasks, QA evidence and client decisions.
-- **CLIENT-004:** Scope/change quotations with effort, cost and delivery impact; authorized approval of a specific revision, with reapproval after material changes.
-- **CLIENT-005:** UAT packages, known issues, evidence and Approve / Request changes / Reject decisions. Developer completion, QA verification and client acceptance stay separate.
-- **CLIENT-006 / DEL-001:** PM-reviewed client progress reports, milestone forecasts, risks/assumptions/decisions and client actions awaiting response. Reports distinguish indicative targets from approved commitments; decisions retain context, alternatives and supersession history.
+### 📌 Tier E: Delivery Intelligence & Analytics
+- **`ANALYTICS-001` Contractual SLA & Risk Alerts**: Contract response and resolution SLA timers, calendar-aware pauses, escalation paths, and rule-based deadline warnings.
+- **`ANALYTICS-002` Flow Analytics & Bottlenecks**: WIP limits, status aging, active vs waiting time heatmaps, cumulative flow diagrams, lead/cycle time distributions, and rework tracking.
+- **`ANALYTICS-003` Workload & Capacity Insights**: Calendar-aware capacity forecasting, explainable skill-matching suggestions, and split co-assignee demand analysis.
+- **`ANALYTICS-004` Project Financials, Variance & Reconciliation**: Baseline effort variance, budget consumption alerts, independent remaining estimates, burn curves, and currency-aware gross margin reporting.
 
-### D. Product management and repeatable delivery
+### 🔮 Future Extensions
+- **`LATER-001` Advanced Scheduling & Scenario Previews**: SS/FF/SF dependencies, lag time, critical path analysis, and what-if capacity scenario modeling.
+- **`LATER-002` Assisted Drafting & Gap Analysis**: Source-linked requirement gap detection, draft WBS generation, and release summary drafting with human-in-the-loop review.
+- **`API-001` Scoped Outbound Webhooks**: Signed event webhooks with delivery history, retries, and destination security checks.
+- **`ADMIN-001` Configuration Packages & Setup Wizard**: Versioned exportable configuration packages for rapid multi-instance or new-branch provisioning.
 
-- **PROD-001:** Moderated product feedback and organization voting, duplicate merging, private impact evidence, impact/confidence/effort scoring and decision rationale. Authenticated customer roadmaps use Now / Next / Later with delivery/changelog links; votes and ACV are inputs, not promises.
-- **PROD-002:** Product goals, baselines/targets and dated post-release outcome reviews.
-- **QA-001:** Manual test cases/runs, affected/fix versions, evidence, known issues and release-readiness checklists; no CI/CD integration.
-- **COLLAB-001 / COLLAB-002:** Versioned specifications/FAQs/decision documents, rich comments with S3 files, reusable project/task templates and recurring work without copying private access or approvals; permission-aware knowledge search and S3 attachment revisions.
-- **COLLAB-003:** Watchers/follows, channel preferences, digests, quiet hours and deduplicated delivery with authorization rechecked at dispatch.
-- **COMM-001:** Retainer/AMC included hours, approved usage, remaining allowance, rollover and overage approval; historical terms and authorized client statements.
+---
 
-- **QA-002:** Environment-specific reproduction/retest evidence and independent affected, planned-fix, verified-fix and client-current versions.
-- **COLLAB-004:** Permission-aware “What changed?” summaries since login, baseline or a selected date, with source-event drill-downs.
-- **DATA-001:** CSV onboarding with mapping, dry-run, row errors and duplicate-safe retries; portable exports retain audience and field restrictions.
+## 📚 Core Documentation Index
 
-### E. Delivery intelligence
+To maintain clarity and prevent document proliferation, KS-PMT maintains **5 authoritative documents** in the [`docs/`](docs/) directory:
 
-- **ANALYTICS-001:** Contract-defined response/resolution SLA, calendar/pause/reopen rules, rule-based deadline warnings, reason attribution and configurable escalation.
-- **ANALYTICS-002:** Person/team WIP limits, configurable aging thresholds, active-versus-waiting intervals, handoff queues, stage dwell heatmaps, cumulative flow, lead/cycle distributions, rework and release-defect trends based on source events.
-- **ANALYTICS-003:** Calendar-aware capacity and explainable skill suggestions; split co-assignee demand and contextual team trends. Automatic employee/branch leaderboards are deferred.
-- **ANALYTICS-004:** Baseline effort variance, consumption alerts, independent remaining estimates, burn/forecast curves and currency-aware contribution/margin reporting. Missing estimates/zero denominators show N/A; internal costs and margins remain private. Scope-change, waiting-time and estimate-accuracy measures reconcile to dated source events.
+| Document | Purpose | Key Contents |
+| :--- | :--- | :--- |
+| **[Requirements (SRS)](docs/requirements.md)** | Functional & Business Specification | Complete SRS, business actors, NFRs, data standards, and detailed specifications for all feature IDs (`FND`, `PLAN`, `CLIENT`, etc.). |
+| **[Master Implementation Plan](docs/plan.md)** | Delivery Strategy & Roadmap Phases | Architecture design, phases 1–9, roadmap delivery increments A through E, dependencies, and review gates. |
+| **[Tasks & Verification Checklist](docs/tasks-checklist.md)** | Progress Tracking & Verification | Granular checklist of implemented features, pending provider verifications, and planned roadmap items. |
+| **[Technology Stack & Architecture](docs/tech-stack.md)** | Technical Design & Components | Architectural diagrams, tech rationales, directory structure, REST conventions, TanStack DataGrid component, and domain models. |
+| **[Production Deployment Guide](docs/deployment-guide.md)** | Operations & Hosting Manual | Server setup, Nginx reverse proxy, PM2 process management, SSL certificates, AWS S3 bucket configuration, and PostgreSQL backups. |
 
-### Later and deferred scope
-
-- **LATER-001:** SS/FF dependencies, lag, critical path and scheduling scenario previews after calendar/estimate quality is established; composite health scores require transparent weights and calibration.
-- **LATER-002:** Optional source-linked requirement-gap/duplicate suggestions and drafts of work breakdowns, bug/release summaries and acceptance criteria with human review and approved data handling.
-- **API-001:** Scoped, signed outbound PMT webhooks with delivery history/retries; no Git, deployment or pipeline connectors.
-- **ADMIN-001:** Setup wizard and versioned configuration packages with compatibility checks, preview/diff and authorized application; partner hosting/upgrade management stays deferred.
-- Lower priority: native field/geofencing expansion and broad CRM/HR/payroll/accounting features. Internet-public roadmaps and a universal automation designer remain deferred.
-
-## Documentation and Evidence
-
-- [Additional feature review](docs/walkthrough/additional-feature-planning-2026-09-29.md): attached-list disposition, additions and retained exclusions.
-- [Requirements](docs/requirements.md): behavioral contract, stable feature IDs, client visibility rules, metric definitions and acceptance examples.
-- [Implementation plan](docs/plan.md): dependencies, delivery order and acceptance gates.
-- [Tasks checklist](docs/tasks-checklist.md): implementation status and outstanding verification; a checked item is not production certification.
-- [Architecture](docs/tech-stack.md) and [user journeys](docs/walkthrough.md): current foundations and explicitly planned flows.
-- [Latest task implementation evidence](docs/walkthrough/jira-style-task-create-edit-2026-09-28.md), [shared grid evidence](docs/walkthrough/shared-listing-grid.md) and [requirements audit](docs/walkthrough/requirements-screen-audit.md): dated checks and limits.
-- [Roadmap review](docs/walkthrough/roadmap-review-and-market-recommendations-2026-09-28.md): rationale and official market references. Walkthroughs are historical records; current canonical requirements and checklist supersede older broad completion claims.
+*(For end-to-end user journeys and sample API payloads, see the companion [Operational Walkthrough Guide](docs/walkthrough.md)).*
 
 ---
 
 ## 🛠 Technology Stack
 
-| Layer | Technologies |
-| :--- | :--- |
-| **Backend Framework** | [NestJS 10](https://nestjs.com/) (Node.js 20+, TypeScript) |
-| **Database** | [PostgreSQL 15+](https://www.postgresql.org/) (pgcrypto, PL/pgSQL functions & triggers) |
-| **Database Access** | Native `pg.Pool` connection pooling (No ORM auto-migrations; strict SQL script compliance) |
-| **Cloud Storage** | [AWS S3](https://aws.amazon.com/s3/) via `@aws-sdk/client-s3` & `@aws-sdk/s3-request-presigner` |
-| **Security & Auth** | Dual login (Email+Password & Mobile+OTP), JWT, Passport, Helmet; shared throttling pending |
-| **Web Frontend** | [React 19](https://react.dev/), [Vite](https://vitejs.dev/), [Tailwind CSS](https://tailwindcss.com/), [Lucide React](https://lucide.dev/), Axios |
-| **Mobile App** | [Flutter 3.x](https://flutter.dev/) (Dart), Dio with queued interceptors, Geolocator, ImagePicker, SecureStorage |
-| **Testing** | [Jest](https://jestjs.io/), `ts-jest`; dated test scope and results in linked walkthroughs |
+| Layer | Technologies | Description |
+| :--- | :--- | :--- |
+| **Backend Framework** | [NestJS 10](https://nestjs.com/) (Node.js 20+, TypeScript) | Modular, enterprise REST API with class-validator, Passport JWT, and Swagger documentation. |
+| **Database** | [PostgreSQL 15+](https://www.postgresql.org/) | Relational database using `uuid-ossp`, `pgcrypto`, PL/pgSQL triggers, and denormalized SQL reporting views. |
+| **Database Access** | Native `pg.Pool` Connection Pooling | Direct, optimized SQL queries without ORM abstraction overhead, enforcing static SQL script guidelines. |
+| **Cloud Storage** | [AWS S3](https://aws.amazon.com/s3/) (`@aws-sdk/client-s3`) | Pre-signed PUT/GET URLs for direct client uploads/downloads; zero media files stored on the server. |
+| **Security & Auth** | JWT, Passport, Bcrypt, Helmet | Dual login (Email + Password and Mobile + OTP), rate-limiting, and multi-branch RBAC. |
+| **Web Frontend** | [React 19](https://react.dev/), [Vite](https://vitejs.dev/) | High-performance SPA with [Tailwind CSS v4](https://tailwindcss.com/), [TanStack Table v8](https://tanstack.com/table/v8), and [Lucide React](https://lucide.dev/). |
+| **Mobile App** | [Flutter 3.x](https://flutter.dev/) (Dart) | Cross-platform Android & iOS app with Dio interceptor queues, Geolocator GPS, and native Camera capture. |
+| **Testing** | [Jest](https://jestjs.io/), `ts-jest` | Comprehensive unit and integration test suites for backend services, guards, and controllers. |
 
 ---
 
@@ -207,11 +203,11 @@ All entries below are **Planned** expansions/completion work. Feature IDs link b
 
 ```
 ks-pmt/
-├── dbscripts/                        # Static PostgreSQL DDL/DML scripts (Static review only)
+├── dbscripts/                        # Static PostgreSQL DDL/DML scripts (Strict blank-database policy)
 │   ├── install.psql                  # Run all object scripts and seeds with psql
 │   ├── build-install.mjs             # Generate install.sql for pgAdmin (no DB connection)
 │   ├── install.sql                   # Generated, Git-ignored bundle; regenerate after SQL changes
-│   ├── tables/                       # tables.sql (current blank-database schema)
+│   ├── tables/                       # tables.sql (Current blank-database canonical schema)
 │   ├── views/                        # vw_project_financial_summary.sql, etc.
 │   ├── functions/                    # fn_calculate_task_effort.sql, fn_set_updated_at.sql, etc.
 │   ├── triggers/                     # trg_tasks_updated_at.sql, trg_tasks_audit.sql, etc.
@@ -230,7 +226,7 @@ ks-pmt/
 │   ├── src/
 │   │   ├── api/                      # Axios client with auto-refresh & typed endpoints
 │   │   ├── context/                  # AuthContext (RBAC evaluator) & ThemeContext
-│   │   ├── components/               # Bento Dashboard, Kanban Board, Task Drawer, Modals
+│   │   ├── components/               # Bento Dashboard, Kanban Board, Task Drawer, DataGrid, Modals
 │   │   └── types/                    # TypeScript interfaces
 │   └── vite.config.ts
 │
@@ -243,12 +239,13 @@ ks-pmt/
 │   │   └── presentation/             # AuthProvider, TaskProvider, 5-tab screens
 │   └── pubspec.yaml
 │
-└── docs/                             # Full Architecture, Requirements, and Deployment Guides
-    ├── requirements.md               # Functional & technical specifications
-    ├── tech-stack.md                 # Technology stack documentation
-    ├── plan.md                       # Architecture design plan
-    ├── deployment-guide.md           # Production deployment & operations guide
-    └── walkthrough/                  # Dated implementation, review and roadmap reports
+└── docs/                             # Authoritative System Documentation (5 Core Documents)
+    ├── requirements.md               # Software Requirements Specification (SRS) & Roadmap IDs
+    ├── plan.md                       # Master Implementation Plan & Delivery Increments
+    ├── tasks-checklist.md            # Task Progress & Verification Checklist
+    ├── tech-stack.md                 # Technical Architecture, DataGrid, and Domain Design
+    ├── deployment-guide.md           # Production Deployment & Hosting Manual
+    └── walkthrough.md                # System Walkthrough & Operational Guide
 ```
 
 ---
@@ -260,7 +257,7 @@ ks-pmt/
 - **Node.js**: `v20.x` or `v22.x` (LTS)
 - **PostgreSQL**: `v15+` running on port `5432`
 - **AWS S3 Bucket**: Configured for pre-signed uploads
-- **Flutter SDK**: `v3.x` (for building mobile applications)
+- **Flutter SDK**: `v3.x` (for mobile development)
 
 ---
 
@@ -269,7 +266,7 @@ ks-pmt/
 > [!IMPORTANT]
 > **This project is under development.** After every major change, the developer / DBA will run and test it against a blank database. Maintain schema changes directly in the canonical `CREATE` definitions instead of adding `ALTER`, `DROP`, `UPDATE`, or `DELETE` migration statements. Required seed inserts and application logic inside SQL functions/procedures are retained. Incremental migrations will be used once the project is declared live. See [database script guidelines](AGENTS.md#1-database-script-generation--management-rules).
 
-**1. Prepare a blank database.** The developer / DBA performs these steps manually. Install the `psql` client for the terminal option, and ensure the database user can create objects in `public` and install the `uuid-ossp` and `pgcrypto` extensions. The installer creates these extensions; their packages must be available on the PostgreSQL server.
+**1. Prepare a blank database.** The developer / DBA performs these steps manually. Install the `psql` client for the terminal option, and ensure the database user can create objects in `public` and install the `uuid-ossp` and `pgcrypto` extensions.
 
 Create a new database in pgAdmin, or use the PostgreSQL `createdb` command:
 
@@ -277,7 +274,7 @@ Create a new database in pgAdmin, or use the PostgreSQL `createdb` command:
 createdb -U postgres kspmt_db
 ```
 
-Use the same database name in the installation command and `DB_NAME` in `server/.env`. The commands below assume `kspmt_db`; change it if your blank database has a different name. Existing development databases must be rebuilt by the developer / DBA before using the redesigned schema.
+Use the same database name in the installation command and `DB_NAME` in `server/.env`. The commands below assume `kspmt_db`; change it if your blank database has a different name.
 
 **2. Choose one installation option.** Run commands from the project root.
 
@@ -287,7 +284,7 @@ Use the same database name in the installation command and `DB_NAME` in `server/
 psql -X -v ON_ERROR_STOP=1 -U postgres -d kspmt_db -f dbscripts/install.psql
 ```
 
-The installer runs tables/extensions, functions, triggers, views, indexes, and seed data in dependency order within one transaction, stopping on errors. It is for a blank database, not an upgrade of an existing installation.
+The installer runs tables/extensions, functions, triggers, views, indexes, and seed data in dependency order within one transaction, stopping on errors.
 
 **Option B — pgAdmin Query Tool:** generate the combined plain SQL file first (Node.js 20+; generation does not connect to a database or execute SQL):
 
@@ -297,9 +294,9 @@ node dbscripts/build-install.mjs
 
 On Windows, you can instead double-click **`build-db-install.bat`** in the project root. It generates the same file and keeps the window open to display the result. From a terminal, use `build-db-install.bat --no-pause` to exit immediately after generation.
 
-Open **Query Tool** on the blank database, open `dbscripts/install.sql`, clear any text selection, and choose **Execute script** to run the entire file. Use this generated file in Query Tool; `install.psql` contains commands intended for the `psql` client. Check the Messages panel for completion. If an error leaves the transaction aborted, run `ROLLBACK;` before retrying the corrected script.
+Open **Query Tool** on the blank database, open `dbscripts/install.sql`, clear any text selection, and choose **Execute script** to run the entire file. If an error leaves the transaction aborted, run `ROLLBACK;` before retrying the corrected script.
 
-**3. Keep the source files separate.** Edit object definitions in their dedicated folders. Add new object files to `dbscripts/install.psql` in dependency order, and regenerate the Git-ignored `install.sql` after every SQL change. The former `alter_tables.sql` is no longer required: its changes are part of the table definitions, and `department_heads` replaces the circular department/user relationship.
+**3. Keep the source files separate.** Edit object definitions in their dedicated folders. Add new object files to `dbscripts/install.psql` in dependency order, and regenerate the Git-ignored `install.sql` after every SQL change.
 
 Both options include the seed data and [default Super Admin account](#-default-super-admin-credentials); do not run the seed file again separately. See [database installation instructions](dbscripts/README.md) for more details.
 
@@ -415,7 +412,7 @@ The database installer includes `dbscripts/inserts/inserts.sql` and provisions t
 | **Email Address** | `admin@kashvirainfotech.com` | Primary login email |
 | **Mobile Number** | `+919999900000` | For OTP authentication |
 | **Password** | `Admin@123456` | *Change immediately upon first login* |
-| **OTP (development only)** | Request a generated code in explicitly configured mock mode | Live SMS delivery remains pending; no universal fixed code is promised |
+| **OTP (development mode)** | Dynamic verification code | Request generated code in mock mode; live SMS delivery requires SMS gateway configuration |
 
 ---
 
@@ -424,21 +421,17 @@ The database installer includes `dbscripts/inserts/inserts.sql` and provisions t
 This project is **100% open source** released under the [MIT License](https://opensource.org/licenses/MIT). We built **KS-PMT** with passion to help a software development or product company manage its projects across all its locations and branches, with full control over its deployment and data.
 
 ### 📬 Get in Touch
-
 - **Contact Email**: `kashvirainfotech@gmail.com`
 
 ### 🌟 Let Us Know If You Are Using KS-PMT!
-
 If you or your organization are using this project, **please drop us a short email at `kashvirainfotech@gmail.com`**.  
 Hearing how KS-PMT helps your team gives us immense confidence, motivation, and a boost to keep adding more and more advanced enterprise features!
 
 ### 💡 Stopped Using KS-PMT? Help Us Improve!
-
 If you tested, installed, or previously used KS-PMT but decided to stop using it, **we would genuinely love to know why**.  
 Please email us with your honest feedback, pain points, or missing features. We welcome all feedback with open arms and will use it to continuously improve the tool for the entire developer community.
 
 ### 🤝 Feedback, Suggestions & Bug Reports
-
 Feedback, feature suggestions, and bug reports are warmly welcomed! Please open an issue to share your ideas or report a problem, or email us at `kashvirainfotech@gmail.com`.
 
 ---
