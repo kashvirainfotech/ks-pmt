@@ -224,3 +224,20 @@ CREATE INDEX IF NOT EXISTS idx_req_criteria_signoff ON requirement_acceptance_cr
 CREATE INDEX IF NOT EXISTS idx_req_criterion_tasks_crit ON requirement_criterion_tasks(criterion_id);
 CREATE INDEX IF NOT EXISTS idx_req_criterion_tasks_task ON requirement_criterion_tasks(task_id);
 
+-- ========================================================
+-- Date & Time: 2026-09-29 19:53:00 IST
+-- Description: CLIENT-004 - Indexes for Scope & Change Requests, Revisions, and Tasks
+-- ========================================================
+CREATE INDEX IF NOT EXISTS idx_change_requests_project ON change_requests(project_id, status) WHERE project_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_change_requests_product ON change_requests(product_id, status) WHERE product_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_change_requests_originating ON change_requests(originating_intake_request_id) WHERE originating_intake_request_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_change_requests_requirement ON change_requests(requirement_id) WHERE requirement_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_change_requests_status ON change_requests(status);
+CREATE INDEX IF NOT EXISTS idx_change_requests_pm ON change_requests(accountable_pm_user_id);
+CREATE INDEX IF NOT EXISTS idx_cr_revisions_cr ON change_request_revisions(change_request_id, revision_number);
+CREATE INDEX IF NOT EXISTS idx_cr_revisions_status ON change_request_revisions(status);
+CREATE INDEX IF NOT EXISTS idx_cr_revisions_decision ON change_request_revisions(client_decision) WHERE client_decision IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_cr_tasks_cr ON change_request_tasks(change_request_id);
+CREATE INDEX IF NOT EXISTS idx_cr_tasks_task ON change_request_tasks(task_id);
+
+

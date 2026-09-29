@@ -298,7 +298,10 @@ BEGIN
         ('CLIENT_INTAKE', 'TRIAGE', 'CLIENT_INTAKE:TRIAGE', 'Permission to triage, review, accept/decline client intake requests and link to internal tasks', TRUE, v_admin_id),
         ('REQUIREMENTS', 'READ', 'REQUIREMENTS:READ', 'Permission to view requirement specifications, baselines, and acceptance criteria', TRUE, v_admin_id),
         ('REQUIREMENTS', 'MANAGE', 'REQUIREMENTS:MANAGE', 'Permission to create, edit, baseline, and manage requirements, acceptance criteria, and task mappings', TRUE, v_admin_id),
-        ('REQUIREMENTS', 'SIGNOFF', 'REQUIREMENTS:SIGNOFF', 'Permission to record QA verification and client sign-offs on acceptance criteria', TRUE, v_admin_id)
+        ('REQUIREMENTS', 'SIGNOFF', 'REQUIREMENTS:SIGNOFF', 'Permission to record QA verification and client sign-offs on acceptance criteria', TRUE, v_admin_id),
+        ('CHANGE_REQUESTS', 'READ', 'CHANGE_REQUESTS:READ', 'Permission to view change requests, quotations, and revisions', TRUE, v_admin_id),
+        ('CHANGE_REQUESTS', 'MANAGE', 'CHANGE_REQUESTS:MANAGE', 'Permission to create change requests, draft revisions, and submit to client', TRUE, v_admin_id),
+        ('CHANGE_REQUESTS', 'APPROVE', 'CHANGE_REQUESTS:APPROVE', 'Permission to approve, reject, or request changes on change requests', TRUE, v_admin_id)
     ON CONFLICT (permission_code) DO NOTHING;
 
     INSERT INTO role_permissions (role_id, permission_id, created_by)
@@ -315,7 +318,8 @@ BEGIN
         'WORKFLOWS:READ', 'WORKFLOWS:MANAGE',
         'CLIENT_PORTAL:READ', 'CLIENT_PORTAL:MANAGE',
         'CLIENT_INTAKE:READ', 'CLIENT_INTAKE:TRIAGE',
-        'REQUIREMENTS:READ', 'REQUIREMENTS:MANAGE', 'REQUIREMENTS:SIGNOFF'
+        'REQUIREMENTS:READ', 'REQUIREMENTS:MANAGE', 'REQUIREMENTS:SIGNOFF',
+        'CHANGE_REQUESTS:READ', 'CHANGE_REQUESTS:MANAGE', 'CHANGE_REQUESTS:APPROVE'
     )
     ON CONFLICT (role_id, permission_id) DO NOTHING;
 
@@ -325,7 +329,8 @@ BEGIN
     WHERE p.permission_code IN (
         'CLIENT_PORTAL:READ', 'CLIENT_PORTAL:MANAGE',
         'CLIENT_INTAKE:READ', 'CLIENT_INTAKE:TRIAGE',
-        'REQUIREMENTS:READ', 'REQUIREMENTS:MANAGE', 'REQUIREMENTS:SIGNOFF'
+        'REQUIREMENTS:READ', 'REQUIREMENTS:MANAGE', 'REQUIREMENTS:SIGNOFF',
+        'CHANGE_REQUESTS:READ', 'CHANGE_REQUESTS:MANAGE', 'CHANGE_REQUESTS:APPROVE'
     )
     ON CONFLICT (role_id, permission_id) DO NOTHING;
 
@@ -333,7 +338,8 @@ BEGIN
     SELECT v_role_support, p.id, v_admin_id
     FROM permissions p
     WHERE p.permission_code IN (
-        'CLIENT_INTAKE:READ', 'CLIENT_INTAKE:TRIAGE'
+        'CLIENT_INTAKE:READ', 'CLIENT_INTAKE:TRIAGE',
+        'CHANGE_REQUESTS:READ'
     )
     ON CONFLICT (role_id, permission_id) DO NOTHING;
 

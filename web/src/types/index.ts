@@ -1240,6 +1240,127 @@ export interface TraceabilityMatrixResponse {
   traceability: TraceabilityMatrixRow[];
 }
 
+// ========================================================
+// Change Requests & Quotations (CLIENT-004)
+// ========================================================
+
+export type ChangeRequestStatus =
+  | 'DRAFT'
+  | 'INTERNAL_REVIEW'
+  | 'AWAITING_CLIENT'
+  | 'APPROVED'
+  | 'CHANGES_REQUESTED'
+  | 'REJECTED'
+  | 'DEFERRED'
+  | 'WITHDRAWN';
+
+export type ChangeRequestRevisionStatus =
+  | 'DRAFT'
+  | 'INTERNAL_REVIEW'
+  | 'AWAITING_CLIENT'
+  | 'APPROVED'
+  | 'CHANGES_REQUESTED'
+  | 'REJECTED'
+  | 'SUPERSEDED';
+
+export interface ChangeRequestDeliverable {
+  title: string;
+  description?: string;
+  targetDate?: string;
+}
+
+export interface ChangeRequestRevision {
+  id: string;
+  change_request_id: string;
+  revision_number: number;
+  scope_description: string;
+  deliverables: ChangeRequestDeliverable[];
+  estimated_hours: number;
+  quoted_price: number;
+  currency: string;
+  schedule_delay_days: number;
+  revised_delivery_date?: string;
+  revision_reason?: string;
+  status: ChangeRequestRevisionStatus;
+  submitted_by_user_id: string;
+  submitted_by_name?: string;
+  submitted_at: string;
+  internal_reviewed_by?: string;
+  internal_reviewed_by_name?: string;
+  internal_reviewed_at?: string;
+  internal_review_notes?: string;
+  client_decision?: 'APPROVED' | 'CHANGES_REQUESTED' | 'REJECTED';
+  decided_by_contact_id?: string;
+  decided_by_contact_name?: string;
+  decided_by_contact_email?: string;
+  decided_by_client_company?: string;
+  decided_at?: string;
+  client_remarks?: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ChangeRequestTask {
+  mapping_id: string;
+  task_id: string;
+  task_code: string;
+  task_title: string;
+  task_status: string;
+  task_priority?: string;
+  estimated_hours?: number;
+  actual_hours?: number;
+  assignee_name?: string;
+  is_scope_addition: boolean;
+  mapping_notes?: string;
+  linked_at: string;
+}
+
+export interface ChangeRequest {
+  id: string;
+  cr_number: string;
+  project_id?: string;
+  product_id?: string;
+  project_name?: string;
+  project_code?: string;
+  product_name?: string;
+  product_code?: string;
+  originating_intake_request_id?: string;
+  originating_request_number?: string;
+  originating_request_title?: string;
+  requirement_id?: string;
+  title: string;
+  description: string;
+  business_justification: string;
+  impact_summary?: string;
+  accountable_pm_user_id: string;
+  accountable_pm_name?: string;
+  accountable_pm_email?: string;
+  current_revision: number;
+  status: ChangeRequestStatus;
+  linked_milestone_id?: string;
+  linked_milestone_name?: string;
+  // Current revision fields flattened in list view
+  scope_description?: string;
+  deliverables?: ChangeRequestDeliverable[];
+  estimated_hours?: number;
+  quoted_price?: number;
+  currency?: string;
+  schedule_delay_days?: number;
+  revised_delivery_date?: string;
+  revision_status?: string;
+  client_decision?: string;
+  decided_at?: string;
+  client_remarks?: string;
+  linked_tasks_count?: number;
+  is_active?: boolean;
+  created_at: string;
+  updated_at: string;
+  // Populated in detail view
+  revisions?: ChangeRequestRevision[];
+  tasks?: ChangeRequestTask[];
+}
+
 
 
 

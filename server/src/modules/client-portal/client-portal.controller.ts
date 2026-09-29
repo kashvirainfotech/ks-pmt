@@ -4,6 +4,7 @@ import {
   Get,
   Ip,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
   Put,
@@ -13,6 +14,8 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ClientPortalService } from './client-portal.service';
+import { ChangeRequestsService } from '../change-requests/change-requests.service';
+import { ClientDecisionDto } from '../change-requests/dto/client-decision.dto';
 import { Public } from '../../common/guards/jwt-auth.guard';
 import { ClientContactGuard } from '../../common/guards/client-contact.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -25,10 +28,13 @@ import { CreateIntakeRequestDto } from './dto/create-intake-request.dto';
 import { TriageRequestDto } from './dto/triage-request.dto';
 import { CreateRequestMessageDto, QueryRequestsDto } from './dto/request-message.dto';
 
-@ApiTags('Client Portal & Customer Intake (CLIENT-001, CLIENT-002)')
+@ApiTags('Client Portal & Customer Intake (CLIENT-001, CLIENT-002, CLIENT-003, CLIENT-004)')
 @Controller()
 export class ClientPortalController {
-  constructor(private readonly clientPortalService: ClientPortalService) {}
+  constructor(
+    private readonly clientPortalService: ClientPortalService,
+    private readonly changeRequestsService: ChangeRequestsService,
+  ) {}
 
   // ========================================================
   // 1. Client Portal Public Authentication (CLIENT-001)
@@ -382,6 +388,57 @@ export class ClientPortalController {
     const data = await this.clientPortalService.recordClientSignoff(criterionId, dto, req.user);
     return {
       message: 'Client sign-off recorded successfully',
+      data,
+    };
+  }
+
+  // ========================================================
+  // 7. Client Portal Change Requests & Scope Approvals (CLIENT-004)
+  // ========================================================
+
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(ClientContactGuard)
+  @Get('client-portal/change-requests')
+  @ApiOperation({ summary: 'List published change requests for permitted projects' })
+  async getClientChangeRequests(
+    @Req() req: any,
+    @Query('projectId') projectId?: string,
+  ) {
+    const data = await this.changeRequestsService.getClientPortalChangeRequests(req.user, projectId);
+    return {
+      message: 'Change requests retrieved successfully',
+      data,
+    };
+  }
+
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(ClientContactGuard)
+  @Get('client-portal/change-requests/:id')
+  @ApiOperation({ summary: 'Get change request quotation details and customer-safe revisions' })
+  async getClientChangeRequestDetail(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: any,
+  ) {
+    const data = await this.changeRequestsService.getClientPortalChangeRequestDetail(id, req.user);
+    return {
+      message: 'Change request details retrieved successfully',
+      data,
+    };
+  }
+
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(ClientContactGuard)
+  @Post('client-portal/change-requests/:id/revisions/:rev/decision')
+  @ApiOperation({ summary: 'Client approver records approval, changes requested, or rejection for revision' })
+  async submitClientDecision(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('rev', ParseIntPipe) rev: number,
+    @Body() dto: ClientDecisionDto,
+    @Req() req: any,
+  ) {
+    const data = await this.changeRequestsService.recordClientDecision(id, rev, dto, req.user);
+    return {
+      message: 'Client decision recorded successfully',
       data,
     };
   }

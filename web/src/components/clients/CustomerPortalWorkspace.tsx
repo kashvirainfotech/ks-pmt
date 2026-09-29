@@ -17,15 +17,17 @@ import {
   ShieldCheck,
   ChevronRight,
   User,
+  DollarSign,
+  History,
 } from 'lucide-react';
 import { clientPortalApi } from '../../api/endpoints';
-import { ClientIntakeRequest } from '../../types';
+import { ClientIntakeRequest, ChangeRequest } from '../../types';
 
 export const CustomerPortalWorkspace: React.FC = () => {
   const [portalContext, setPortalContext] = useState<any>(null);
   const [requests, setRequests] = useState<ClientIntakeRequest[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [activeTab, setActiveTab] = useState<'REQUESTS' | 'PROJECTS' | 'PRODUCTS' | 'REQUIREMENTS'>('REQUESTS');
+  const [activeTab, setActiveTab] = useState<'REQUESTS' | 'PROJECTS' | 'PRODUCTS' | 'REQUIREMENTS' | 'CHANGE_REQUESTS'>('REQUESTS');
 
   // Requirements & Acceptance state (CLIENT-003)
   const [portalRequirements, setPortalRequirements] = useState<any[]>([]);
@@ -41,6 +43,22 @@ export const CustomerPortalWorkspace: React.FC = () => {
     criterion: null,
     decision: 'ACCEPTED',
     notes: '',
+  });
+
+  // Change Requests & Quotations state (CLIENT-004)
+  const [portalChangeRequests, setPortalChangeRequests] = useState<ChangeRequest[]>([]);
+  const [selectedCrDetail, setSelectedCrDetail] = useState<ChangeRequest | null>(null);
+  const [loadingCrs, setLoadingCrs] = useState<boolean>(false);
+  const [crDecisionModal, setCrDecisionModal] = useState<{
+    show: boolean;
+    cr: ChangeRequest | null;
+    decision: 'APPROVED' | 'CHANGES_REQUESTED' | 'REJECTED';
+    remarks: string;
+  }>({
+    show: false,
+    cr: null,
+    decision: 'APPROVED',
+    remarks: '',
   });
 
   // Submit Modal
@@ -130,6 +148,50 @@ export const CustomerPortalWorkspace: React.FC = () => {
       loadPortalRequirements();
     } catch (err: any) {
       alert(err.response?.data?.message || 'Failed to record sign-off');
+    }
+  };
+
+  const loadPortalChangeRequests = async () => {
+    try {
+      setLoadingCrs(true);
+      const res = await clientPortalApi.getChangeRequests();
+      setPortalChangeRequests(res.data || []);
+    } catch (err) {
+      console.error('Failed to load portal change requests', err);
+    } finally {
+      setLoadingCrs(false);
+    }
+  };
+
+  const handleOpenCrDetail = async (crId: string) => {
+    try {
+      const res = await clientPortalApi.getChangeRequestDetail(crId);
+      setSelectedCrDetail(res.data);
+    } catch (err) {
+      console.error('Failed to load change request details', err);
+    }
+  };
+
+  const handleCrDecisionSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!crDecisionModal.cr) return;
+    try {
+      await clientPortalApi.submitChangeRequestDecision(
+        crDecisionModal.cr.id,
+        crDecisionModal.cr.current_revision,
+        {
+          decision: crDecisionModal.decision,
+          remarks: crDecisionModal.remarks,
+        },
+      );
+      alert(`Decision recorded as ${crDecisionModal.decision} for ${crDecisionModal.cr.cr_number} (Rev ${crDecisionModal.cr.current_revision})`);
+      setCrDecisionModal({ show: false, cr: null, decision: 'APPROVED', remarks: '' });
+      if (selectedCrDetail) {
+        handleOpenCrDetail(selectedCrDetail.id);
+      }
+      loadPortalChangeRequests();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to submit decision');
     }
   };
 
@@ -267,6 +329,17 @@ export const CustomerPortalWorkspace: React.FC = () => {
             }`}
           >
             Requirements & Acceptance ({portalRequirements.length})
+          </button>
+          <button
+            onClick={() => {
+              setActiveTab('CHANGE_REQUESTS');
+              loadPortalChangeRequests();
+            }}
+            className={`px-3 py-1.5 rounded-lg transition ${
+              activeTab === 'CHANGE_REQUESTS' ? 'bg-white text-indigo-900' : 'text-white/80 hover:bg-white/10'
+            }`}
+          >
+            Change Requests & Quotations ({portalChangeRequests.length})
           </button>
         </div>
       </div>
@@ -573,6 +646,350 @@ export const CustomerPortalWorkspace: React.FC = () => {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Change Requests & Quotations (CLIENT-004) */}
+      {activeTab === 'CHANGE_REQUESTS' && (
+        <div className="space-y-4">
+          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 flex items-center justify-between shadow-sm">
+            <div>
+              <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <DollarSign className="w-5 h-5 text-indigo-600" />
+                Scope Quotations & Change Requests
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Review formal change quotations, scope revisions, deliverables, and record authoritative client sign-offs.
+              </p>
+            </div>
+            {portalContext?.contact?.isApprover && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300">
+                <ShieldCheck className="w-3.5 h-3.5" />
+                Authorized Scope Approver
+              </span>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Left: Change Requests List */}
+            <div className="lg:col-span-5 space-y-3">
+              {loadingCrs ? (
+                <div className="p-8 text-center text-slate-400 bg-white dark:bg-slate-800 rounded-xl border">
+                  Loading quotations...
+                </div>
+              ) : portalChangeRequests.length === 0 ? (
+                <div className="p-12 text-center text-slate-400 bg-white dark:bg-slate-800 rounded-xl border space-y-2">
+                  <DollarSign className="w-10 h-10 text-slate-300 mx-auto" />
+                  <p className="text-sm font-medium">No change requests currently pending client review.</p>
+                </div>
+              ) : (
+                portalChangeRequests.map((cr) => {
+                  const isSelected = selectedCrDetail?.id === cr.id;
+                  return (
+                    <div
+                      key={cr.id}
+                      onClick={() => handleOpenCrDetail(cr.id)}
+                      className={`p-4 rounded-xl border transition cursor-pointer ${
+                        isSelected
+                          ? 'bg-indigo-50/60 dark:bg-indigo-950/30 border-indigo-400 dark:border-indigo-600 shadow-sm'
+                          : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-indigo-300'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-mono text-xs font-bold text-indigo-600 dark:text-indigo-400">
+                          {cr.cr_number}
+                        </span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[11px] font-semibold bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded">
+                            Rev {cr.current_revision}
+                          </span>
+                          <span
+                            className={`px-2 py-0.5 text-xs font-bold rounded ${
+                              cr.status === 'APPROVED'
+                                ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300'
+                                : cr.status === 'AWAITING_CLIENT'
+                                ? 'bg-blue-100 text-blue-800 dark:bg-blue-950/50 dark:text-blue-300 animate-pulse'
+                                : cr.status === 'CHANGES_REQUESTED'
+                                ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300'
+                                : 'bg-slate-100 text-slate-700'
+                            }`}
+                          >
+                            {cr.status}
+                          </span>
+                        </div>
+                      </div>
+
+                      <h3 className="font-bold text-sm text-slate-900 dark:text-white mt-1.5">{cr.title}</h3>
+                      <div className="text-xs text-slate-500 mt-0.5">
+                        Project: {cr.project_name || cr.product_name} &bull; PM: {cr.accountable_pm_name}
+                      </div>
+
+                      <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between text-xs">
+                        <div className="font-bold text-slate-900 dark:text-white">
+                          {cr.currency} {Number(cr.quoted_price || 0).toLocaleString()}
+                        </div>
+                        <div className="text-slate-500">
+                          {cr.schedule_delay_days && cr.schedule_delay_days > 0 ? (
+                            <span className="text-amber-600 font-medium">+{cr.schedule_delay_days}d delay</span>
+                          ) : (
+                            <span className="text-emerald-600">On schedule</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Right: Selected Change Request Quotation & Revisions */}
+            <div className="lg:col-span-7">
+              {selectedCrDetail ? (
+                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 space-y-6 shadow-sm">
+                  {/* Header */}
+                  <div className="flex items-start justify-between border-b pb-4">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-sm font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 px-2.5 py-0.5 rounded">
+                          {selectedCrDetail.cr_number}
+                        </span>
+                        <span className="text-xs font-semibold bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded">
+                          Revision {selectedCrDetail.current_revision}
+                        </span>
+                        <span
+                          className={`px-2 py-0.5 text-xs font-bold rounded ${
+                            selectedCrDetail.status === 'APPROVED'
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : selectedCrDetail.status === 'AWAITING_CLIENT'
+                              ? 'bg-blue-100 text-blue-800'
+                              : 'bg-slate-100 text-slate-700'
+                          }`}
+                        >
+                          {selectedCrDetail.status}
+                        </span>
+                      </div>
+                      <h2 className="text-lg font-bold text-slate-900 dark:text-white mt-2">
+                        {selectedCrDetail.title}
+                      </h2>
+                      <div className="text-xs text-slate-500 mt-1">
+                        Scope Container: <strong>{selectedCrDetail.project_name || selectedCrDetail.product_name}</strong> &bull; Lead PM: {selectedCrDetail.accountable_pm_name}
+                      </div>
+                    </div>
+
+                    {/* Approver Action Bar */}
+                    {portalContext?.contact?.isApprover && selectedCrDetail.status === 'AWAITING_CLIENT' && (
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() =>
+                            setCrDecisionModal({
+                              show: true,
+                              cr: selectedCrDetail,
+                              decision: 'CHANGES_REQUESTED',
+                              remarks: '',
+                            })
+                          }
+                          className="px-3 py-1.5 text-xs font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 dark:text-amber-300 rounded-lg border border-amber-200"
+                        >
+                          Request Changes
+                        </button>
+                        <button
+                          onClick={() =>
+                            setCrDecisionModal({
+                              show: true,
+                              cr: selectedCrDetail,
+                              decision: 'APPROVED',
+                              remarks: '',
+                            })
+                          }
+                          className="px-3 py-1.5 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm"
+                        >
+                          Approve Quotation
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Active Revision Commercial Quotation Box */}
+                  {selectedCrDetail.revisions && selectedCrDetail.revisions.length > 0 && (
+                    (() => {
+                      const currentRev = selectedCrDetail.revisions[0]; // ordered desc
+                      return (
+                        <div className="space-y-4">
+                          <div className="grid grid-cols-3 gap-3 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-700 text-xs">
+                            <div>
+                              <span className="text-slate-500 block">Quoted Price:</span>
+                              <span className="text-base font-bold text-slate-900 dark:text-white">
+                                {currentRev.currency} {Number(currentRev.quoted_price).toLocaleString()}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="text-slate-500 block">Estimated Hours:</span>
+                              <span className="text-base font-bold text-slate-900 dark:text-white">
+                                {currentRev.estimated_hours} hrs
+                              </span>
+                            </div>
+                            <div>
+                              <span className="text-slate-500 block">Schedule Impact:</span>
+                              <span className="text-base font-bold text-slate-900 dark:text-white">
+                                {currentRev.schedule_delay_days > 0 ? `+${currentRev.schedule_delay_days} days` : 'No delay'}
+                              </span>
+                              {currentRev.revised_delivery_date && (
+                                <div className="text-[11px] text-slate-400">
+                                  Target: {currentRev.revised_delivery_date}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Scope description */}
+                          <div className="text-xs space-y-1">
+                            <span className="font-semibold text-slate-700 dark:text-slate-300">Scope Description (Rev {currentRev.revision_number}):</span>
+                            <p className="p-3 bg-white dark:bg-slate-900 rounded-lg border text-slate-700 dark:text-slate-300 whitespace-pre-wrap">
+                              {currentRev.scope_description}
+                            </p>
+                          </div>
+
+                          {/* Deliverables checklist */}
+                          {currentRev.deliverables && currentRev.deliverables.length > 0 && (
+                            <div className="text-xs space-y-2">
+                              <span className="font-semibold text-slate-700 dark:text-slate-300">Deliverables:</span>
+                              <div className="space-y-1.5">
+                                {currentRev.deliverables.map((d, i) => (
+                                  <div key={i} className="p-2.5 rounded-lg border bg-white dark:bg-slate-900 flex items-center justify-between">
+                                    <div>
+                                      <div className="font-medium text-slate-900 dark:text-white">{d.title}</div>
+                                      {d.description && <div className="text-slate-400 text-[11px]">{d.description}</div>}
+                                    </div>
+                                    {d.targetDate && (
+                                      <span className="font-mono text-[11px] text-slate-500">Target: {d.targetDate}</span>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Revision Sign-off status banner */}
+                          {currentRev.client_decision && (
+                            <div
+                              className={`p-3 rounded-lg border text-xs ${
+                                currentRev.client_decision === 'APPROVED'
+                                  ? 'bg-emerald-50 border-emerald-200 text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300'
+                                  : 'bg-amber-50 border-amber-200 text-amber-900 dark:bg-amber-950/40 dark:text-amber-300'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between font-bold">
+                                <span>Client Sign-off: {currentRev.client_decision}</span>
+                                {currentRev.decided_at && (
+                                  <span className="font-normal text-[11px]">
+                                    {new Date(currentRev.decided_at).toLocaleString()}
+                                  </span>
+                                )}
+                              </div>
+                              {currentRev.decided_by_contact_name && (
+                                <div className="text-[11px] mt-0.5">Signed by: {currentRev.decided_by_contact_name}</div>
+                              )}
+                              {currentRev.client_remarks && (
+                                <div className="mt-1 italic font-normal">"{currentRev.client_remarks}"</div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Material Revisions History */}
+                          {selectedCrDetail.revisions.length > 1 && (
+                            <div className="pt-4 border-t space-y-3">
+                              <h4 className="font-bold text-xs text-slate-900 dark:text-white flex items-center gap-1.5">
+                                <History className="w-4 h-4 text-indigo-600" />
+                                Revision History ({selectedCrDetail.revisions.length})
+                              </h4>
+                              <div className="space-y-2">
+                                {selectedCrDetail.revisions.slice(1).map((hist) => (
+                                  <div key={hist.id} className="p-3 rounded-lg border bg-slate-50 dark:bg-slate-900/40 text-xs">
+                                    <div className="flex items-center justify-between">
+                                      <span className="font-bold text-slate-700 dark:text-slate-300">
+                                        Revision {hist.revision_number} &bull; {hist.status}
+                                      </span>
+                                      <span className="text-slate-400 text-[11px]">
+                                        {hist.currency} {Number(hist.quoted_price).toLocaleString()} &bull; {hist.estimated_hours}h
+                                      </span>
+                                    </div>
+                                    {hist.revision_reason && (
+                                      <div className="text-slate-500 mt-1">Reason: {hist.revision_reason}</div>
+                                    )}
+                                    {hist.client_remarks && (
+                                      <div className="text-slate-600 italic mt-0.5">Client Remarks: "{hist.client_remarks}"</div>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()
+                  )}
+                </div>
+              ) : (
+                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-12 text-center text-slate-400">
+                  Select a change request quotation on the left to review its scope and financials.
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Client CR Decision */}
+      {crDecisionModal.show && crDecisionModal.cr && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-md w-full border border-slate-200 dark:border-slate-700 p-6 space-y-4">
+            <h3 className="font-bold text-base text-slate-900 dark:text-white">
+              {crDecisionModal.decision === 'APPROVED' ? 'Approve Scope & Quotation' : 'Request Changes on Quotation'}
+            </h3>
+            <p className="text-xs text-slate-500">
+              Quotation: <strong className="font-mono">{crDecisionModal.cr.cr_number}</strong> (Rev {crDecisionModal.cr.current_revision})
+            </p>
+
+            <form onSubmit={handleCrDecisionSubmit} className="space-y-3 text-xs">
+              <div>
+                <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Remarks / Conditions *
+                </label>
+                <textarea
+                  rows={3}
+                  required
+                  placeholder={
+                    crDecisionModal.decision === 'APPROVED'
+                      ? 'e.g. Scope and commercials approved. Please commence work per agreed schedule.'
+                      : 'Please explain what needs to be changed in scope, timeline, or price.'
+                  }
+                  value={crDecisionModal.remarks}
+                  onChange={(e) => setCrDecisionModal({ ...crDecisionModal, remarks: e.target.value })}
+                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-slate-900 dark:text-white"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-700">
+                <button
+                  type="button"
+                  onClick={() => setCrDecisionModal({ show: false, cr: null, decision: 'APPROVED', remarks: '' })}
+                  className="px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className={`px-4 py-2 text-white font-medium rounded-lg ${
+                    crDecisionModal.decision === 'APPROVED'
+                      ? 'bg-emerald-600 hover:bg-emerald-700'
+                      : 'bg-amber-600 hover:bg-amber-700'
+                  }`}
+                >
+                  Submit Decision
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

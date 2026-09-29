@@ -55,6 +55,8 @@ import {
   RequirementBaseline,
   RequirementAcceptanceCriterion,
   TraceabilityMatrixResponse,
+  ChangeRequest,
+  ChangeRequestRevision,
 } from '../types';
 
 // ==========================================
@@ -824,6 +826,15 @@ export const clientPortalApi = {
 
   signoffCriterion: (criterionId: string, data: { signoffStatus: 'ACCEPTED' | 'REJECTED' | 'WAIVED'; notes?: string }) =>
     api.post(`/client-portal/requirements/criteria/${criterionId}/sign-off`, data),
+
+  getChangeRequests: (params?: { projectId?: string }): Promise<{ data: ChangeRequest[] }> =>
+    api.get('/client-portal/change-requests', { params }),
+
+  getChangeRequestDetail: (id: string): Promise<{ data: ChangeRequest }> =>
+    api.get(`/client-portal/change-requests/${id}`),
+
+  submitChangeRequestDecision: (id: string, rev: number, data: { decision: 'APPROVED' | 'CHANGES_REQUESTED' | 'REJECTED'; remarks?: string }) =>
+    api.post(`/client-portal/change-requests/${id}/revisions/${rev}/decision`, data),
 };
 
 export const clientIntakeApi = {
@@ -891,6 +902,38 @@ export const requirementsApi = {
 
   getTraceabilityMatrix: (params?: { projectId?: string; productId?: string }): Promise<{ data: TraceabilityMatrixResponse }> =>
     api.get('/requirements/traceability/matrix', { params }),
+};
+
+// ==========================================
+// Change Requests & Quotations (CLIENT-004)
+// ==========================================
+export const changeRequestsApi = {
+  create: (data: any): Promise<{ data: ChangeRequest }> =>
+    api.post('/change-requests', data),
+
+  getAll: (params?: any): Promise<{ data: { data: ChangeRequest[]; total: number; page: number; limit: number; totalPages: number } }> =>
+    api.get('/change-requests', { params }),
+
+  getById: (id: string): Promise<{ data: ChangeRequest }> =>
+    api.get(`/change-requests/${id}`),
+
+  submitForReview: (id: string): Promise<{ data: ChangeRequest }> =>
+    api.post(`/change-requests/${id}/submit-review`),
+
+  reviewRevision: (id: string, rev: number, data: { status: string; internalReviewNotes?: string }): Promise<{ data: ChangeRequestRevision }> =>
+    api.post(`/change-requests/${id}/revisions/${rev}/review`, data),
+
+  createRevision: (id: string, data: any): Promise<{ data: ChangeRequest }> =>
+    api.post(`/change-requests/${id}/revisions`, data),
+
+  recordDecision: (id: string, rev: number, data: { decision: string; remarks?: string }): Promise<{ data: ChangeRequest }> =>
+    api.post(`/change-requests/${id}/revisions/${rev}/decision`, data),
+
+  linkTasks: (id: string, data: { taskIds: string[]; isScopeAddition?: boolean }): Promise<{ data: any }> =>
+    api.post(`/change-requests/${id}/tasks`, data),
+
+  unlinkTask: (id: string, taskId: string) =>
+    api.delete(`/change-requests/${id}/tasks/${taskId}`),
 };
 
 

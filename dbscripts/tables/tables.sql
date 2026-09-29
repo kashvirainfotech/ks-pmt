@@ -1340,3 +1340,82 @@ CREATE TABLE IF NOT EXISTS requirement_criterion_tasks (
     CONSTRAINT uq_criterion_task UNIQUE (criterion_id, task_id)
 );
 
+-- ========================================================
+-- Date & Time: 2026-09-29 19:53:00 IST
+-- Description: Scope & Change-Request Approval (CLIENT-004)
+-- ========================================================
+
+-- 48. Change Requests (CLIENT-004)
+CREATE TABLE IF NOT EXISTS change_requests (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    cr_number VARCHAR(50) NOT NULL UNIQUE,
+    project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+    product_id UUID REFERENCES products(id) ON DELETE CASCADE,
+    originating_intake_request_id UUID REFERENCES client_intake_requests(id) ON DELETE SET NULL,
+    requirement_id UUID REFERENCES requirement_specifications(id) ON DELETE SET NULL,
+    title VARCHAR(255) NOT NULL,
+    description TEXT NOT NULL,
+    business_justification TEXT NOT NULL,
+    impact_summary TEXT,
+    accountable_pm_user_id UUID NOT NULL REFERENCES users(id),
+    current_revision INTEGER NOT NULL DEFAULT 1 CHECK (current_revision > 0),
+    status VARCHAR(30) NOT NULL DEFAULT 'DRAFT' CHECK (status IN ('DRAFT', 'INTERNAL_REVIEW', 'AWAITING_CLIENT', 'APPROVED', 'CHANGES_REQUESTED', 'REJECTED', 'DEFERRED', 'WITHDRAWN')),
+    linked_milestone_id UUID REFERENCES milestones(id) ON DELETE SET NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_cr_scope CHECK (
+        (project_id IS NOT NULL AND product_id IS NULL) OR
+        (product_id IS NOT NULL AND project_id IS NULL)
+    )
+);
+
+-- 49. Change Request Revisions (CLIENT-004)
+CREATE TABLE IF NOT EXISTS change_request_revisions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    change_request_id UUID NOT NULL REFERENCES change_requests(id) ON DELETE CASCADE,
+    revision_number INTEGER NOT NULL CHECK (revision_number > 0),
+    scope_description TEXT NOT NULL,
+    deliverables JSONB NOT NULL DEFAULT '[]'::jsonb,
+    estimated_hours NUMERIC(10, 2) NOT NULL DEFAULT 0.00 CHECK (estimated_hours >= 0),
+    quoted_price NUMERIC(15, 2) NOT NULL DEFAULT 0.00 CHECK (quoted_price >= 0),
+    currency VARCHAR(10) NOT NULL DEFAULT 'INR',
+    schedule_delay_days INTEGER NOT NULL DEFAULT 0,
+    revised_delivery_date DATE,
+    revision_reason TEXT,
+    status VARCHAR(30) NOT NULL DEFAULT 'DRAFT' CHECK (status IN ('DRAFT', 'INTERNAL_REVIEW', 'AWAITING_CLIENT', 'APPROVED', 'CHANGES_REQUESTED', 'REJECTED', 'SUPERSEDED')),
+    submitted_by_user_id UUID NOT NULL REFERENCES users(id),
+    submitted_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    internal_reviewed_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    internal_reviewed_at TIMESTAMP WITH TIME ZONE,
+    internal_review_notes TEXT,
+    client_decision VARCHAR(30) CHECK (client_decision IS NULL OR client_decision IN ('APPROVED', 'CHANGES_REQUESTED', 'REJECTED')),
+    decided_by_contact_id UUID REFERENCES client_contacts(id) ON DELETE SET NULL,
+    decided_at TIMESTAMP WITH TIME ZONE,
+    client_remarks TEXT,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_cr_revision UNIQUE (change_request_id, revision_number)
+);
+
+-- 50. Change Request Tasks (CLIENT-004)
+CREATE TABLE IF NOT EXISTS change_request_tasks (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    change_request_id UUID NOT NULL REFERENCES change_requests(id) ON DELETE CASCADE,
+    task_id UUID NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+    is_scope_addition BOOLEAN NOT NULL DEFAULT TRUE,
+    notes TEXT,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_cr_task UNIQUE (change_request_id, task_id)
+);
+
+

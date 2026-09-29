@@ -26,6 +26,7 @@ import { ClientContactsView } from './components/clients/ClientContactsView';
 import { ClientIntakeTriageView } from './components/clients/ClientIntakeTriageView';
 import { CustomerPortalWorkspace } from './components/clients/CustomerPortalWorkspace';
 import { RequirementsTraceabilityView } from './components/requirements/RequirementsTraceabilityView';
+import { ChangeRequestsView } from './components/change-requests/ChangeRequestsView';
 
 // Protected Route Wrapper
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
@@ -82,6 +83,7 @@ export const App: React.FC = () => {
         <Route path="client-contacts" element={<ClientContactsView />} />
         <Route path="client-intake" element={<ClientIntakeTriageView />} />
         <Route path="requirements" element={<RequirementsTraceabilityView />} />
+        <Route path="change-requests" element={<ChangeRequestsView />} />
         <Route path="customer-portal" element={<CustomerPortalWorkspace />} />
         <Route path="admin" element={<Navigate to="/admin/branches" replace />} />
         {adminScreens.map(screen => (

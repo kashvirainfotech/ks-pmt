@@ -25,6 +25,7 @@ import {
   FileCheck,
   UserCheck,
   ExternalLink,
+  DollarSign,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -59,6 +60,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { title: 'Client Delivery', items: [
       { label: 'Intake & Triage', path: '/client-intake', icon: LifeBuoy, show: true },
       { label: 'Requirements & Traceability', path: '/requirements', icon: FileCheck, show: true },
+      { label: 'Change Requests & Scope', path: '/change-requests', icon: DollarSign, show: true },
       { label: 'Client contacts', path: '/client-contacts', icon: UserCheck, show: true },
       { label: 'Customer portal', path: '/customer-portal', icon: ExternalLink, show: true },
     ]},
