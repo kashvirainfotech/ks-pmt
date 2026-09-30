@@ -293,5 +293,27 @@ CREATE INDEX IF NOT EXISTS idx_client_action_contact ON client_action_requests(a
 
 CREATE INDEX IF NOT EXISTS idx_raid_revisions_item ON raid_item_revisions(raid_item_id, revision_number);
 
+-- ========================================================
+-- Date & Time: 2026-09-30 10:05:00 IST
+-- Description: PROD-001 - Indexes for Product Ideas, Votes, Follows & Merge History
+-- ========================================================
+CREATE INDEX IF NOT EXISTS idx_product_ideas_prod_status ON product_ideas(product_id, status);
+CREATE INDEX IF NOT EXISTS idx_product_ideas_roadmap ON product_ideas(product_id, roadmap_bucket) WHERE roadmap_bucket IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_product_ideas_published ON product_ideas(product_id, is_published, visibility);
+CREATE INDEX IF NOT EXISTS idx_product_ideas_rice ON product_ideas(product_id, rice_score DESC);
+CREATE INDEX IF NOT EXISTS idx_product_ideas_votes ON product_ideas(product_id, vote_count DESC);
+CREATE INDEX IF NOT EXISTS idx_product_ideas_merged ON product_ideas(merged_into_idea_id) WHERE merged_into_idea_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_product_ideas_version ON product_ideas(target_version_id) WHERE target_version_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_product_ideas_task ON product_ideas(delivery_task_id) WHERE delivery_task_id IS NOT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_idea_votes_client ON product_idea_votes(client_id, is_active);
+CREATE INDEX IF NOT EXISTS idx_idea_votes_idea ON product_idea_votes(idea_id, is_active);
+
+CREATE INDEX IF NOT EXISTS idx_idea_follows_contact ON product_idea_follows(contact_id) WHERE contact_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_idea_follows_user ON product_idea_follows(user_id) WHERE user_id IS NOT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_idea_merge_canonical ON product_idea_merge_history(canonical_idea_id);
+
+
 
 

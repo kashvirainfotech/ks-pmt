@@ -30,6 +30,10 @@ import {
   FileCheck,
   GitMerge,
   ArrowRight,
+  ThumbsUp,
+  Compass,
+  Bookmark,
+  Sparkles,
 } from 'lucide-react';
 import { clientPortalApi } from '../../api/endpoints';
 import {
@@ -40,6 +44,8 @@ import {
   ClientProgressReport,
   ClientActionRequest,
   RaidItem,
+  ClientProductIdea,
+  RoadmapBoard,
 } from '../../types';
 
 export const CustomerPortalWorkspace: React.FC = () => {
@@ -47,7 +53,17 @@ export const CustomerPortalWorkspace: React.FC = () => {
   const [requests, setRequests] = useState<ClientIntakeRequest[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState<
-    'REQUESTS' | 'PROJECTS' | 'PRODUCTS' | 'REQUIREMENTS' | 'CHANGE_REQUESTS' | 'UAT_PACKAGES' | 'PROGRESS_REPORTS' | 'ACTION_REQUESTS' | 'DECISIONS'
+    | 'REQUESTS'
+    | 'PROJECTS'
+    | 'PRODUCTS'
+    | 'REQUIREMENTS'
+    | 'CHANGE_REQUESTS'
+    | 'UAT_PACKAGES'
+    | 'PROGRESS_REPORTS'
+    | 'ACTION_REQUESTS'
+    | 'DECISIONS'
+    | 'COMMUNITY_IDEAS'
+    | 'ROADMAP'
   >('REQUESTS');
 
   // Requirements & Acceptance state (CLIENT-003)
@@ -132,6 +148,24 @@ export const CustomerPortalWorkspace: React.FC = () => {
     responseText: '',
     decision: 'APPROVED',
   });
+
+  // PROD-001: Community Ideas & Voting state
+  const [portalIdeas, setPortalIdeas] = useState<ClientProductIdea[]>([]);
+  const [selectedIdeaDetail, setSelectedIdeaDetail] = useState<ClientProductIdea | null>(null);
+  const [loadingIdeas, setLoadingIdeas] = useState<boolean>(false);
+  const [ideaSearchQuery, setIdeaSearchQuery] = useState<string>('');
+  const [selectedIdeaProductId, setSelectedIdeaProductId] = useState<string>('');
+  const [showIdeaSubmitModal, setShowIdeaSubmitModal] = useState<boolean>(false);
+  const [ideaSubmitForm, setIdeaSubmitForm] = useState({
+    productId: '',
+    title: '',
+    customerProblem: '',
+    expectedOutcome: '',
+  });
+
+  // PROD-001: Customer Roadmap state
+  const [portalRoadmap, setPortalRoadmap] = useState<RoadmapBoard>({ now: [], next: [], later: [] });
+  const [loadingRoadmap, setLoadingRoadmap] = useState<boolean>(false);
 
   // Submit Modal
   const [showSubmitModal, setShowSubmitModal] = useState<boolean>(false);
@@ -391,6 +425,77 @@ export const CustomerPortalWorkspace: React.FC = () => {
     }
   };
 
+  const loadPortalIdeas = async () => {
+    try {
+      setLoadingIdeas(true);
+      const res = await clientPortalApi.getProductIdeas({
+        productId: selectedIdeaProductId || undefined,
+        search: ideaSearchQuery || undefined,
+      });
+      setPortalIdeas(res.data || []);
+    } catch (err) {
+      console.error('Failed to load community ideas', err);
+    } finally {
+      setLoadingIdeas(false);
+    }
+  };
+
+  const handleToggleVote = async (ideaId: string) => {
+    try {
+      const res = await clientPortalApi.toggleProductIdeaVote(ideaId);
+      alert(res.message);
+      loadPortalIdeas();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to toggle organization vote');
+    }
+  };
+
+  const handleToggleFollow = async (ideaId: string) => {
+    try {
+      const res = await clientPortalApi.toggleProductIdeaFollow(ideaId);
+      alert(res.message);
+      loadPortalIdeas();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to toggle follow');
+    }
+  };
+
+  const handleClientSubmitIdea = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!ideaSubmitForm.productId || !ideaSubmitForm.title || !ideaSubmitForm.customerProblem) {
+      alert('Please fill in Product, Title, and Customer Problem');
+      return;
+    }
+    try {
+      await clientPortalApi.submitProductIdea(ideaSubmitForm);
+      alert('Your improvement proposal has been submitted to the product team for review and triage.');
+      setShowIdeaSubmitModal(false);
+      setIdeaSubmitForm({
+        productId: '',
+        title: '',
+        customerProblem: '',
+        expectedOutcome: '',
+      });
+      loadPortalIdeas();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to submit proposal');
+    }
+  };
+
+  const loadPortalRoadmap = async () => {
+    try {
+      setLoadingRoadmap(true);
+      const res = await clientPortalApi.getRoadmap({
+        productId: selectedIdeaProductId || undefined,
+      });
+      setPortalRoadmap(res.data || { now: [], next: [], later: [] });
+    } catch (err) {
+      console.error('Failed to load roadmap', err);
+    } finally {
+      setLoadingRoadmap(false);
+    }
+  };
+
   const handleRespondActionSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!actionResponseModal.action) return;
@@ -596,6 +701,28 @@ export const CustomerPortalWorkspace: React.FC = () => {
             }`}
           >
             Decisions Log ({portalDecisions.length})
+          </button>
+          <button
+            onClick={() => {
+              setActiveTab('COMMUNITY_IDEAS');
+              loadPortalIdeas();
+            }}
+            className={`px-3 py-1.5 rounded-lg transition ${
+              activeTab === 'COMMUNITY_IDEAS' ? 'bg-white text-indigo-900' : 'text-white/80 hover:bg-white/10'
+            }`}
+          >
+            Ideas & Voting ({portalIdeas.length})
+          </button>
+          <button
+            onClick={() => {
+              setActiveTab('ROADMAP');
+              loadPortalRoadmap();
+            }}
+            className={`px-3 py-1.5 rounded-lg transition ${
+              activeTab === 'ROADMAP' ? 'bg-white text-indigo-900' : 'text-white/80 hover:bg-white/10'
+            }`}
+          >
+            Product Roadmap
           </button>
         </div>
       </div>
@@ -2157,6 +2284,466 @@ export const CustomerPortalWorkspace: React.FC = () => {
                 ))}
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Tab: Community Ideas & Voting (PROD-001) */}
+      {activeTab === 'COMMUNITY_IDEAS' && (
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm space-y-4 p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-700 pb-4">
+            <div>
+              <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <Compass className="w-5 h-5 text-indigo-600" />
+                Community Feature Voting & Ideas
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Review moderated enhancement proposals for your licensed products. Each client organization holds exactly one vote per idea.
+              </p>
+            </div>
+            <button
+              onClick={() => {
+                setIdeaSubmitForm({
+                  productId: portalContext?.licensedProducts?.[0]?.id || '',
+                  title: '',
+                  customerProblem: '',
+                  expectedOutcome: '',
+                });
+                setShowIdeaSubmitModal(true);
+              }}
+              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold inline-flex items-center gap-1.5 self-start"
+            >
+              <Plus className="w-4 h-4" />
+              Submit Feedback Proposal
+            </button>
+          </div>
+
+          {/* Search & Filter */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex-1 relative">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+              <input
+                type="text"
+                placeholder="Search moderated ideas..."
+                value={ideaSearchQuery}
+                onChange={(e) => setIdeaSearchQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') loadPortalIdeas();
+                }}
+                className="w-full pl-9 text-xs border-slate-300 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white"
+              />
+            </div>
+            {portalContext?.licensedProducts && portalContext.licensedProducts.length > 1 && (
+              <select
+                value={selectedIdeaProductId}
+                onChange={(e) => {
+                  setSelectedIdeaProductId(e.target.value);
+                  setTimeout(loadPortalIdeas, 0);
+                }}
+                className="text-xs border-slate-300 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white"
+              >
+                <option value="">All Licensed Products</option>
+                {portalContext.licensedProducts.map((p: any) => (
+                  <option key={p.id} value={p.id}>
+                    {p.product_name}
+                  </option>
+                ))}
+              </select>
+            )}
+            <button
+              onClick={loadPortalIdeas}
+              className="px-3 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 rounded-lg text-xs font-medium"
+            >
+              Filter
+            </button>
+          </div>
+
+          {/* Ideas List */}
+          {loadingIdeas ? (
+            <div className="p-8 text-center text-slate-400">Loading community ideas...</div>
+          ) : portalIdeas.length === 0 ? (
+            <div className="p-12 text-center text-slate-400 space-y-3">
+              <Compass className="w-12 h-12 text-slate-300 mx-auto" />
+              <p className="text-sm font-medium">No published community ideas yet for your licensed products.</p>
+              <p className="text-xs">Have a feature request or improvement? Propose one to the product team!</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {portalIdeas.map((idea) => (
+                <div
+                  key={idea.id}
+                  className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-indigo-300 transition-all bg-white dark:bg-slate-800/80 space-y-3"
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-xs font-bold text-indigo-700 bg-indigo-50 dark:bg-indigo-950/40 dark:text-indigo-300 px-2 py-0.5 rounded">
+                        {idea.idea_code}
+                      </span>
+                      <span className="text-xs text-slate-500 font-medium">{idea.product_name}</span>
+                      {idea.roadmap_bucket && (
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            idea.roadmap_bucket === 'NOW'
+                              ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300'
+                              : idea.roadmap_bucket === 'NEXT'
+                              ? 'bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300'
+                              : 'bg-purple-100 text-purple-800 dark:bg-purple-950/40 dark:text-purple-300'
+                          }`}
+                        >
+                          Roadmap: {idea.roadmap_bucket}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Voting & Following Action Controls */}
+                    <div className="flex items-center gap-2">
+                      {/* One Vote Per Org button */}
+                      <button
+                        onClick={() => handleToggleVote(idea.id)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold inline-flex items-center gap-1.5 transition ${
+                          idea.has_client_voted
+                            ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs'
+                            : 'border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700'
+                        }`}
+                        title={
+                          idea.has_client_voted
+                            ? 'Your organization has voted for this idea. Click to retract vote.'
+                            : 'Cast your organization vote for this idea.'
+                        }
+                      >
+                        <ThumbsUp className={`w-3.5 h-3.5 ${idea.has_client_voted ? 'fill-current' : ''}`} />
+                        <span>{idea.has_client_voted ? 'Voted (Org)' : 'Vote'}</span>
+                        <span
+                          className={`ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                            idea.has_client_voted
+                              ? 'bg-emerald-700 text-white'
+                              : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
+                          }`}
+                        >
+                          {idea.vote_count}
+                        </span>
+                      </button>
+
+                      {/* Follow Button */}
+                      <button
+                        onClick={() => handleToggleFollow(idea.id)}
+                        className={`p-1.5 rounded-lg border text-xs transition ${
+                          idea.is_following
+                            ? 'border-indigo-300 bg-indigo-50 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300'
+                            : 'border-slate-300 dark:border-slate-600 text-slate-500 hover:bg-slate-50'
+                        }`}
+                        title={idea.is_following ? 'Following for updates' : 'Follow this idea'}
+                      >
+                        <Bookmark className={`w-4 h-4 ${idea.is_following ? 'fill-current text-indigo-600' : ''}`} />
+                      </button>
+                    </div>
+                  </div>
+
+                  <h3 className="font-bold text-sm text-slate-900 dark:text-white">{idea.title}</h3>
+                  <p className="text-xs text-slate-600 dark:text-slate-300">{idea.sanitized_description}</p>
+
+                  {idea.expected_outcome && (
+                    <div className="p-2.5 bg-slate-50 dark:bg-slate-900 rounded-lg text-xs text-slate-600 dark:text-slate-400">
+                      <strong>Expected Outcome: </strong> {idea.expected_outcome}
+                    </div>
+                  )}
+
+                  {idea.indicative_target && (
+                    <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                      <Clock className="w-3.5 h-3.5 text-slate-400" />
+                      <span>Target: {idea.indicative_target} (Indicative estimate)</span>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Tab: Customer Roadmap (PROD-001) */}
+      {activeTab === 'ROADMAP' && (
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm space-y-4 p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-700 pb-4">
+            <div>
+              <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-indigo-600" />
+                Product Roadmap (Now / Next / Later)
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Overview of planned product direction for your licensed solutions.
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-3 text-xs text-amber-800 dark:text-amber-300 flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+            <span>
+              <strong>Contractual Notice:</strong> Targets and delivery horizons displayed here are indicative estimates for planning purposes and do not alter contractual commitments or SLAs.
+            </span>
+          </div>
+
+          {loadingRoadmap ? (
+            <div className="p-8 text-center text-slate-400">Loading product roadmap...</div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+              {/* NOW Column */}
+              <div className="bg-slate-50 dark:bg-slate-900/60 rounded-xl p-4 border border-slate-200 dark:border-slate-700 space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                    <h3 className="font-bold text-xs text-slate-900 dark:text-white uppercase tracking-wider">
+                      NOW (Active / Immediate)
+                    </h3>
+                  </div>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                    {portalRoadmap.now.length}
+                  </span>
+                </div>
+
+                <div className="space-y-3">
+                  {portalRoadmap.now.length === 0 ? (
+                    <div className="text-center py-6 text-xs text-slate-400">No items in active release</div>
+                  ) : (
+                    portalRoadmap.now.map((item) => (
+                      <div
+                        key={item.id}
+                        className="bg-white dark:bg-slate-800 p-3.5 rounded-lg border border-slate-200 dark:border-slate-700 shadow-xs space-y-2"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-mono font-bold text-indigo-600 bg-indigo-50 dark:bg-indigo-950/40 px-2 py-0.5 rounded">
+                            {item.idea_code}
+                          </span>
+                          {item.indicative_target && (
+                            <span className="text-[11px] text-slate-500 flex items-center gap-1 font-medium">
+                              <Clock className="w-3 h-3 text-slate-400" />
+                              {item.indicative_target}
+                            </span>
+                          )}
+                        </div>
+                        <h4 className="font-bold text-xs text-slate-900 dark:text-white">{item.title}</h4>
+                        <p className="text-[11px] text-slate-600 dark:text-slate-300 line-clamp-2">
+                          {item.sanitized_description}
+                        </p>
+                        {item.changelog_summary && (
+                          <div className="p-2 bg-emerald-50 dark:bg-emerald-950/30 rounded text-[11px] text-emerald-800 dark:text-emerald-300">
+                            <strong>Release Notes: </strong> {item.changelog_summary}
+                          </div>
+                        )}
+                        <div className="flex items-center justify-between pt-1 text-[11px] text-slate-400">
+                          <span>{item.product_name}</span>
+                          <span className="flex items-center gap-1">
+                            <ThumbsUp className="w-3 h-3 text-slate-400" /> {item.vote_count} votes
+                          </span>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* NEXT Column */}
+              <div className="bg-slate-50 dark:bg-slate-900/60 rounded-xl p-4 border border-slate-200 dark:border-slate-700 space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+                    <h3 className="font-bold text-xs text-slate-900 dark:text-white uppercase tracking-wider">
+                      NEXT (Planned Releases)
+                    </h3>
+                  </div>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300">
+                    {portalRoadmap.next.length}
+                  </span>
+                </div>
+
+                <div className="space-y-3">
+                  {portalRoadmap.next.length === 0 ? (
+                    <div className="text-center py-6 text-xs text-slate-400">No items scheduled next</div>
+                  ) : (
+                    portalRoadmap.next.map((item) => (
+                      <div
+                        key={item.id}
+                        className="bg-white dark:bg-slate-800 p-3.5 rounded-lg border border-slate-200 dark:border-slate-700 shadow-xs space-y-2"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-mono font-bold text-indigo-600 bg-indigo-50 dark:bg-indigo-950/40 px-2 py-0.5 rounded">
+                            {item.idea_code}
+                          </span>
+                          {item.indicative_target && (
+                            <span className="text-[11px] text-slate-500 flex items-center gap-1 font-medium">
+                              <Clock className="w-3 h-3 text-slate-400" />
+                              {item.indicative_target}
+                            </span>
+                          )}
+                        </div>
+                        <h4 className="font-bold text-xs text-slate-900 dark:text-white">{item.title}</h4>
+                        <p className="text-[11px] text-slate-600 dark:text-slate-300 line-clamp-2">
+                          {item.sanitized_description}
+                        </p>
+                        <div className="flex items-center justify-between pt-1 text-[11px] text-slate-400">
+                          <span>{item.product_name}</span>
+                          <span className="flex items-center gap-1">
+                            <ThumbsUp className="w-3 h-3 text-slate-400" /> {item.vote_count} votes
+                          </span>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* LATER Column */}
+              <div className="bg-slate-50 dark:bg-slate-900/60 rounded-xl p-4 border border-slate-200 dark:border-slate-700 space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-purple-500"></span>
+                    <h3 className="font-bold text-xs text-slate-900 dark:text-white uppercase tracking-wider">
+                      LATER (Future Horizon)
+                    </h3>
+                  </div>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300">
+                    {portalRoadmap.later.length}
+                  </span>
+                </div>
+
+                <div className="space-y-3">
+                  {portalRoadmap.later.length === 0 ? (
+                    <div className="text-center py-6 text-xs text-slate-400">No items on later horizon</div>
+                  ) : (
+                    portalRoadmap.later.map((item) => (
+                      <div
+                        key={item.id}
+                        className="bg-white dark:bg-slate-800 p-3.5 rounded-lg border border-slate-200 dark:border-slate-700 shadow-xs space-y-2"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-mono font-bold text-indigo-600 bg-indigo-50 dark:bg-indigo-950/40 px-2 py-0.5 rounded">
+                            {item.idea_code}
+                          </span>
+                          {item.indicative_target && (
+                            <span className="text-[11px] text-slate-500 flex items-center gap-1 font-medium">
+                              <Clock className="w-3 h-3 text-slate-400" />
+                              {item.indicative_target}
+                            </span>
+                          )}
+                        </div>
+                        <h4 className="font-bold text-xs text-slate-900 dark:text-white">{item.title}</h4>
+                        <p className="text-[11px] text-slate-600 dark:text-slate-300 line-clamp-2">
+                          {item.sanitized_description}
+                        </p>
+                        <div className="flex items-center justify-between pt-1 text-[11px] text-slate-400">
+                          <span>{item.product_name}</span>
+                          <span className="flex items-center gap-1">
+                            <ThumbsUp className="w-3 h-3 text-slate-400" /> {item.vote_count} votes
+                          </span>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Modal: Client Submit Feedback Proposal */}
+      {showIdeaSubmitModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-lg w-full border border-slate-200 dark:border-slate-700 p-6 space-y-4">
+            <div className="flex items-center justify-between border-b pb-3">
+              <h3 className="font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
+                <Compass className="w-5 h-5 text-indigo-600" />
+                Submit Product Improvement Proposal
+              </h3>
+              <button
+                onClick={() => setShowIdeaSubmitModal(false)}
+                className="text-slate-400 hover:text-slate-600 text-lg font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-500">
+              Submit an enhancement proposal directly to the product management team. Our team will review, evaluate, and moderate it for community voting.
+            </p>
+
+            <form onSubmit={handleClientSubmitIdea} className="space-y-4 text-xs">
+              <div>
+                <label className="block font-semibold mb-1 text-slate-800 dark:text-slate-200">
+                  Licensed Product *
+                </label>
+                <select
+                  required
+                  value={ideaSubmitForm.productId}
+                  onChange={(e) => setIdeaSubmitForm({ ...ideaSubmitForm, productId: e.target.value })}
+                  className="w-full p-2 bg-slate-50 dark:bg-slate-900 border rounded-lg text-slate-900 dark:text-white"
+                >
+                  <option value="">Select Product</option>
+                  {portalContext?.licensedProducts?.map((p: any) => (
+                    <option key={p.id} value={p.id}>
+                      {p.product_name} ({p.product_code})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-semibold mb-1 text-slate-800 dark:text-slate-200">
+                  Proposal Title *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Export Transaction Audit Trail to CSV"
+                  value={ideaSubmitForm.title}
+                  onChange={(e) => setIdeaSubmitForm({ ...ideaSubmitForm, title: e.target.value })}
+                  className="w-full p-2 bg-slate-50 dark:bg-slate-900 border rounded-lg text-slate-900 dark:text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold mb-1 text-slate-800 dark:text-slate-200">
+                  Customer Problem Statement *
+                </label>
+                <textarea
+                  required
+                  rows={3}
+                  placeholder="Describe the operational challenge or friction point your organization experiences today..."
+                  value={ideaSubmitForm.customerProblem}
+                  onChange={(e) => setIdeaSubmitForm({ ...ideaSubmitForm, customerProblem: e.target.value })}
+                  className="w-full p-2 bg-slate-50 dark:bg-slate-900 border rounded-lg text-slate-900 dark:text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold mb-1 text-slate-800 dark:text-slate-200">
+                  Expected Outcome (Optional)
+                </label>
+                <textarea
+                  rows={2}
+                  placeholder="What is the ideal workflow or capability you would like to see?"
+                  value={ideaSubmitForm.expectedOutcome}
+                  onChange={(e) => setIdeaSubmitForm({ ...ideaSubmitForm, expectedOutcome: e.target.value })}
+                  className="w-full p-2 bg-slate-50 dark:bg-slate-900 border rounded-lg text-slate-900 dark:text-white"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-3 border-t">
+                <button
+                  type="button"
+                  onClick={() => setShowIdeaSubmitModal(false)}
+                  className="px-4 py-2 border rounded-lg font-semibold text-slate-600"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold"
+                >
+                  Submit Proposal
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

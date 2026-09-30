@@ -1681,5 +1681,101 @@ CREATE TABLE IF NOT EXISTS raid_item_revisions (
     CONSTRAINT uq_raid_item_revision UNIQUE (raid_item_id, revision_number)
 );
 
+-- ========================================================
+-- Date & Time: 2026-09-30 10:05:00 IST
+-- Description: Product Discovery, Organization Voting, Duplicate Merging & Roadmaps (PROD-001)
+-- ========================================================
+
+-- 60. Product Discovery Ideas (PROD-001)
+CREATE TABLE IF NOT EXISTS product_ideas (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    idea_code VARCHAR(50) NOT NULL UNIQUE,
+    product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    sanitized_description TEXT NOT NULL,
+    customer_problem TEXT,
+    expected_outcome TEXT,
+    module_or_component_id UUID REFERENCES software_components(id) ON DELETE SET NULL,
+    target_segment VARCHAR(100),
+    status VARCHAR(30) NOT NULL DEFAULT 'PROPOSED' CHECK (
+        status IN ('PROPOSED', 'UNDER_EVALUATION', 'PLANNED', 'IN_DEVELOPMENT', 'RELEASED', 'DECLINED', 'DEFERRED', 'MERGED')
+    ),
+    status_reason TEXT,
+    roadmap_bucket VARCHAR(20) CHECK (roadmap_bucket IN ('NOW', 'NEXT', 'LATER')),
+    indicative_target VARCHAR(100),
+    reach INTEGER NOT NULL DEFAULT 0,
+    impact_score NUMERIC(4,2) NOT NULL DEFAULT 1.00,
+    confidence_score NUMERIC(4,2) NOT NULL DEFAULT 1.00,
+    effort_score NUMERIC(4,2) NOT NULL DEFAULT 1.00,
+    strategic_fit INTEGER NOT NULL DEFAULT 3,
+    rice_score NUMERIC(8,2) NOT NULL DEFAULT 0.00,
+    scoring_rationale TEXT,
+    is_published BOOLEAN NOT NULL DEFAULT FALSE,
+    published_at TIMESTAMP WITH TIME ZONE,
+    moderated_by_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    visibility VARCHAR(30) NOT NULL DEFAULT 'PRODUCT_COMMUNITY' CHECK (visibility IN ('INTERNAL_ONLY', 'PRODUCT_COMMUNITY', 'PUBLIC')),
+    submitted_by_client_id UUID REFERENCES clients(id) ON DELETE SET NULL,
+    submitted_by_contact_id UUID REFERENCES client_contacts(id) ON DELETE SET NULL,
+    submitted_by_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    private_evidence_notes TEXT,
+    internal_commercial_impact TEXT,
+    merged_into_idea_id UUID REFERENCES product_ideas(id) ON DELETE SET NULL,
+    merged_at TIMESTAMP WITH TIME ZONE,
+    merged_by_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    target_version_id UUID REFERENCES versions(id) ON DELETE SET NULL,
+    delivery_task_id UUID REFERENCES tasks(id) ON DELETE SET NULL,
+    changelog_summary TEXT,
+    vote_count INTEGER NOT NULL DEFAULT 0,
+    follower_count INTEGER NOT NULL DEFAULT 0,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 61. Product Idea Votes (One Vote per Organization Atomic Enforcement - PROD-001)
+CREATE TABLE IF NOT EXISTS product_idea_votes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    idea_id UUID NOT NULL REFERENCES product_ideas(id) ON DELETE CASCADE,
+    client_id UUID NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+    voted_by_contact_id UUID REFERENCES client_contacts(id) ON DELETE SET NULL,
+    voted_by_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    vote_revision INTEGER NOT NULL DEFAULT 1,
+    original_idea_id UUID REFERENCES product_ideas(id) ON DELETE SET NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_idea_client_vote UNIQUE (idea_id, client_id)
+);
+
+-- 62. Product Idea Follows (Independent of Organization Votes - PROD-001)
+CREATE TABLE IF NOT EXISTS product_idea_follows (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    idea_id UUID NOT NULL REFERENCES product_ideas(id) ON DELETE CASCADE,
+    contact_id UUID REFERENCES client_contacts(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_idea_follow_actor CHECK (
+        (contact_id IS NOT NULL AND user_id IS NULL) OR
+        (contact_id IS NULL AND user_id IS NOT NULL)
+    ),
+    CONSTRAINT uq_idea_contact_follow UNIQUE (idea_id, contact_id),
+    CONSTRAINT uq_idea_user_follow UNIQUE (idea_id, user_id)
+);
+
+-- 63. Product Idea Merge History (Deduplication Audit Trail - PROD-001)
+CREATE TABLE IF NOT EXISTS product_idea_merge_history (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    canonical_idea_id UUID NOT NULL REFERENCES product_ideas(id) ON DELETE CASCADE,
+    merged_idea_id UUID NOT NULL REFERENCES product_ideas(id) ON DELETE CASCADE,
+    merged_by_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    migrated_votes_count INTEGER NOT NULL DEFAULT 0,
+    deduplicated_votes_count INTEGER NOT NULL DEFAULT 0,
+    merge_notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+
 
 

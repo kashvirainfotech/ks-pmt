@@ -29,6 +29,7 @@ import {
   ClipboardCheck,
   FileText,
   ShieldAlert,
+  Compass,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -67,6 +68,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       { label: 'UAT & Milestones', path: '/uat-packages', icon: ClipboardCheck, show: true },
       { label: 'Progress Reports', path: '/client-reports', icon: FileText, show: true },
       { label: 'RAID & Decisions', path: '/raid', icon: ShieldAlert, show: true },
+      { label: 'Discovery & Roadmaps', path: '/product-roadmap', icon: Compass, show: true },
       { label: 'Client contacts', path: '/client-contacts', icon: UserCheck, show: true },
       { label: 'Customer portal', path: '/customer-portal', icon: ExternalLink, show: true },
     ]},

@@ -65,6 +65,9 @@ import {
   ClientProgressReportRevision,
   RaidItem,
   ClientActionRequest,
+  ProductIdea,
+  ClientProductIdea,
+  RoadmapBoard,
 } from '../types';
 
 // ==========================================
@@ -879,6 +882,25 @@ export const clientPortalApi = {
 
   getDecisions: (params?: { projectId?: string }): Promise<{ data: RaidItem[] }> =>
     api.get('/client-portal/decisions', { params }),
+
+  // PROD-001: Product Community Ideas & Roadmap
+  getProductIdeas: (params?: { productId?: string; search?: string; roadmapBucket?: string }): Promise<{ data: ClientProductIdea[] }> =>
+    api.get('/client-portal/product-ideas', { params }),
+
+  getProductIdeaDetail: (id: string): Promise<{ data: ClientProductIdea }> =>
+    api.get(`/client-portal/product-ideas/${id}`),
+
+  submitProductIdea: (data: { productId: string; title: string; customerProblem: string; expectedOutcome?: string }): Promise<{ message: string; idea: any }> =>
+    api.post('/client-portal/product-ideas', data),
+
+  toggleProductIdeaVote: (id: string): Promise<{ message: string; hasVoted: boolean; voteCount: number }> =>
+    api.post(`/client-portal/product-ideas/${id}/vote`),
+
+  toggleProductIdeaFollow: (id: string): Promise<{ message: string; isFollowing: boolean; followerCount: number }> =>
+    api.post(`/client-portal/product-ideas/${id}/follow`),
+
+  getRoadmap: (params?: { productId?: string }): Promise<{ data: RoadmapBoard }> =>
+    api.get('/client-portal/roadmap', { params }),
 };
 
 export const clientIntakeApi = {
@@ -1075,6 +1097,50 @@ export const raidApi = {
   resolveActionRequest: (id: string, data: any): Promise<{ data: ClientActionRequest }> =>
     api.post(`/raid/action-requests/${id}/resolve`, data),
 };
+
+// ==========================================
+// Product Discovery, Voting & Roadmaps (PROD-001)
+// ==========================================
+export const productIdeasApi = {
+  createIdea: (data: any): Promise<{ data: ProductIdea }> =>
+    api.post('/product-ideas', data),
+
+  getIdeas: (params?: any): Promise<{ data: ProductIdea[]; meta?: any }> =>
+    api.get('/product-ideas', { params }),
+
+  getIdeaById: (id: string): Promise<{ data: ProductIdea }> =>
+    api.get(`/product-ideas/${id}`),
+
+  updateIdea: (id: string, data: any): Promise<{ data: ProductIdea }> =>
+    api.patch(`/product-ideas/${id}`, data),
+
+  scoreIdea: (id: string, data: any): Promise<{ data: ProductIdea }> =>
+    api.post(`/product-ideas/${id}/score`, data),
+
+  moderateIdea: (id: string, data: any): Promise<{ data: ProductIdea }> =>
+    api.post(`/product-ideas/${id}/moderate`, data),
+
+  updateRoadmap: (id: string, data: any): Promise<{ data: ProductIdea }> =>
+    api.patch(`/product-ideas/${id}/roadmap`, data),
+
+  mergeDuplicates: (
+    sourceIdeaId: string,
+    data: { canonicalIdeaId: string; mergeNotes?: string },
+  ): Promise<{
+    message: string;
+    canonicalIdeaId: string;
+    migratedVotesCount: number;
+    deduplicatedVotesCount: number;
+    totalCanonicalVotes: number;
+  }> => api.post(`/product-ideas/${sourceIdeaId}/merge`, data),
+
+  deleteIdea: (id: string) =>
+    api.delete(`/product-ideas/${id}`),
+
+  getRoadmapBoard: (params?: { productId?: string }): Promise<{ data: { now: ProductIdea[]; next: ProductIdea[]; later: ProductIdea[] } }> =>
+    api.get('/product-ideas/roadmap/board', { params }),
+};
+
 
 
 

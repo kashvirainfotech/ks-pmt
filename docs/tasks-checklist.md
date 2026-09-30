@@ -373,9 +373,9 @@ All boxes in this section remain unchecked. Feature IDs reference [requirements]
 
 ### 11.4 Increment D — Product Management and Repeatable Delivery
 
-- [ ] **PROD-001 — discovery**: Problems/evidence/segments, impact/confidence/effort/strategic fit and recorded product decisions; moderated sanitized publication.
-- [ ] **PROD-001 — voting**: Authorized organization representatives, one vote per client/idea, conflict handling, retraction and duplicate merging with deduplication; private identities/impact/commercials.
-- [ ] **PROD-001 — roadmap**: Authenticated Now/Next/Later views, indicative versus committed dates, deferred/merged outcomes, delivery/release links and approved changelogs.
+- [x] **PROD-001 — discovery**: Problems/evidence/segments, impact/confidence/effort/strategic fit and recorded product decisions; moderated sanitized publication.
+- [x] **PROD-001 — voting**: Authorized organization representatives, one vote per client/idea, conflict handling, retraction and duplicate merging with deduplication; private identities/impact/commercials.
+- [x] **PROD-001 — roadmap**: Authenticated Now/Next/Later views, indicative versus committed dates, deferred/merged outcomes, delivery/release links and approved changelogs.
 - [ ] **PROD-002**: Product goals, baselines/targets, owners and dated outcome reviews linked to released features.
 - [ ] **QA-001**: Reusable manual test cases/runs, evidence, affected/fix versions, known issues and reviewed release readiness; no CI/CD or automated test execution integration.
 - [ ] **COLLAB-001**: Versioned knowledge/decision documents with explicit audiences and permission-preserving task links; rich comments and comment-specific S3 composition.

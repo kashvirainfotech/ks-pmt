@@ -36,6 +36,7 @@ import { ChangeRequestsModule } from './modules/change-requests/change-requests.
 import { UatPackagesModule } from './modules/uat-packages/uat-packages.module';
 import { ClientReportsModule } from './modules/client-reports/client-reports.module';
 import { RaidModule } from './modules/raid/raid.module';
+import { ProductIdeasModule } from './modules/product-ideas/product-ideas.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { DynamicRbacGuard } from './modules/rbac/rbac.guard';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
@@ -83,6 +84,7 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
     UatPackagesModule,
     ClientReportsModule,
     RaidModule,
+    ProductIdeasModule,
   ],
   providers: [
     {

@@ -22,6 +22,8 @@ import { RecordChecklistProgressDto } from '../uat-packages/dto/record-checklist
 import { ClientReportsService } from '../client-reports/client-reports.service';
 import { RaidService } from '../raid/raid.service';
 import { RespondClientActionRequestDto } from '../raid/dto/respond-client-action-request.dto';
+import { ProductIdeasService } from '../product-ideas/product-ideas.service';
+import { SubmitClientIdeaDto } from '../product-ideas/dto/submit-client-idea.dto';
 import { Public } from '../../common/guards/jwt-auth.guard';
 import { ClientContactGuard } from '../../common/guards/client-contact.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -34,7 +36,7 @@ import { CreateIntakeRequestDto } from './dto/create-intake-request.dto';
 import { TriageRequestDto } from './dto/triage-request.dto';
 import { CreateRequestMessageDto, QueryRequestsDto } from './dto/request-message.dto';
 
-@ApiTags('Client Portal & Customer Intake (CLIENT-001 to CLIENT-006, DEL-001)')
+@ApiTags('Client Portal & Customer Intake (CLIENT-001 to CLIENT-006, DEL-001, PROD-001)')
 @Controller()
 export class ClientPortalController {
   constructor(
@@ -43,6 +45,7 @@ export class ClientPortalController {
     private readonly uatPackagesService: UatPackagesService,
     private readonly clientReportsService: ClientReportsService,
     private readonly raidService: RaidService,
+    private readonly productIdeasService: ProductIdeasService,
   ) {}
 
   // ========================================================
@@ -629,6 +632,137 @@ export class ClientPortalController {
     const data = await this.raidService.getClientPortalDecisions(req.user, projectId);
     return {
       message: 'Client-shared decisions retrieved successfully',
+      data,
+    };
+  }
+
+  // ========================================================
+  // 9. Product Discovery, Voting & Customer Roadmaps (PROD-001)
+  // ========================================================
+
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(ClientContactGuard)
+  @Get('client-portal/product-ideas')
+  @ApiOperation({ summary: 'Browse moderated product ideas for licensed products (zero internal leakage)' })
+  async getClientProductIdeas(
+    @Req() req: any,
+    @Query('productId') productId?: string,
+    @Query('search') search?: string,
+    @Query('roadmapBucket') roadmapBucket?: string,
+  ) {
+    const contact = {
+      clientId: req.user.clientId,
+      contactId: req.user.contactId || req.user.sub,
+      id: req.user.contactId || req.user.sub,
+      email: req.user.email,
+      isClientContact: true,
+    };
+    const data = await this.productIdeasService.getClientPortalIdeas(
+      contact,
+      productId,
+      search,
+      roadmapBucket,
+    );
+    return {
+      message: 'Moderated product ideas retrieved successfully',
+      data,
+    };
+  }
+
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(ClientContactGuard)
+  @Get('client-portal/product-ideas/:id')
+  @ApiOperation({ summary: 'Get published product idea detail for licensed products' })
+  async getClientProductIdeaDetail(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: any,
+  ) {
+    const contact = {
+      clientId: req.user.clientId,
+      contactId: req.user.contactId || req.user.sub,
+      id: req.user.contactId || req.user.sub,
+      email: req.user.email,
+      isClientContact: true,
+    };
+    const data = await this.productIdeasService.getClientPortalIdeaDetail(id, contact);
+    return {
+      message: 'Product idea detail retrieved successfully',
+      data,
+    };
+  }
+
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(ClientContactGuard)
+  @Post('client-portal/product-ideas')
+  @ApiOperation({ summary: 'Submit a product improvement proposal for triage and moderation' })
+  async submitClientProductIdea(
+    @Body() dto: SubmitClientIdeaDto,
+    @Req() req: any,
+  ) {
+    const contact = {
+      clientId: req.user.clientId,
+      contactId: req.user.contactId || req.user.sub,
+      id: req.user.contactId || req.user.sub,
+      email: req.user.email,
+      isClientContact: true,
+    };
+    return this.productIdeasService.clientSubmitIdea(dto, contact);
+  }
+
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(ClientContactGuard)
+  @Post('client-portal/product-ideas/:id/vote')
+  @ApiOperation({ summary: 'Toggle organization vote (one vote per client organization)' })
+  async toggleClientIdeaVote(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: any,
+  ) {
+    const contact = {
+      clientId: req.user.clientId,
+      contactId: req.user.contactId || req.user.sub,
+      id: req.user.contactId || req.user.sub,
+      email: req.user.email,
+      isClientContact: true,
+    };
+    return this.productIdeasService.toggleOrganizationVote(id, contact);
+  }
+
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(ClientContactGuard)
+  @Post('client-portal/product-ideas/:id/follow')
+  @ApiOperation({ summary: 'Toggle following an idea for updates' })
+  async toggleClientIdeaFollow(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: any,
+  ) {
+    const contact = {
+      clientId: req.user.clientId,
+      contactId: req.user.contactId || req.user.sub,
+      id: req.user.contactId || req.user.sub,
+      email: req.user.email,
+      isClientContact: true,
+    };
+    return this.productIdeasService.toggleIdeaFollow(id, contact);
+  }
+
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(ClientContactGuard)
+  @Get('client-portal/roadmap')
+  @ApiOperation({ summary: 'View Now / Next / Later public roadmap for licensed products' })
+  async getClientPortalRoadmap(
+    @Req() req: any,
+    @Query('productId') productId?: string,
+  ) {
+    const contact = {
+      clientId: req.user.clientId,
+      contactId: req.user.contactId || req.user.sub,
+      id: req.user.contactId || req.user.sub,
+      email: req.user.email,
+      isClientContact: true,
+    };
+    const data = await this.productIdeasService.getClientPortalRoadmap(contact, productId);
+    return {
+      message: 'Product roadmap retrieved successfully',
       data,
     };
   }

@@ -1712,6 +1712,127 @@ export interface ClientActionRequest {
   updated_at: string;
 }
 
+// ========================================================
+// PROD-001: Product Discovery, Voting & Customer Roadmaps
+// ========================================================
+
+export type ProductIdeaStatus =
+  | 'PROPOSED'
+  | 'UNDER_EVALUATION'
+  | 'PLANNED'
+  | 'IN_DEVELOPMENT'
+  | 'RELEASED'
+  | 'DECLINED'
+  | 'DEFERRED'
+  | 'MERGED';
+
+export type RoadmapBucket = 'NOW' | 'NEXT' | 'LATER';
+
+export type ProductIdeaVisibility = 'INTERNAL_ONLY' | 'PRODUCT_COMMUNITY' | 'PUBLIC';
+
+export interface ProductIdeaMergeHistory {
+  id: string;
+  canonical_idea_id: string;
+  merged_idea_id: string;
+  merged_idea_code: string;
+  merged_idea_title: string;
+  merged_by_user_id: string;
+  merged_by_name?: string;
+  migrated_votes_count: number;
+  deduplicated_votes_count: number;
+  merge_notes?: string;
+  created_at: string;
+}
+
+export interface ProductIdea {
+  id: string;
+  idea_code: string;
+  product_id: string;
+  product_name?: string;
+  product_code?: string;
+  module_or_component_id?: string;
+  component_name?: string;
+  title: string;
+  sanitized_description: string;
+  customer_problem?: string;
+  expected_outcome?: string;
+  target_segment?: string;
+  status: ProductIdeaStatus;
+  status_reason?: string;
+  roadmap_bucket?: RoadmapBucket;
+  indicative_target?: string;
+  // RICE Prioritization
+  reach?: number;
+  impact_score?: number;
+  confidence_score?: number;
+  effort_score?: number;
+  strategic_fit?: number;
+  rice_score?: number;
+  scoring_rationale?: string;
+  // Moderation & Community
+  is_published: boolean;
+  visibility: ProductIdeaVisibility;
+  published_at?: string;
+  moderated_by_user_id?: string;
+  moderator_name?: string;
+  vote_count: number;
+  follower_count: number;
+  // Confidential internal audit
+  submitted_by_client_id?: string;
+  submitted_by_client_name?: string;
+  submitted_by_contact_id?: string;
+  submitted_by_contact_name?: string;
+  submitted_by_user_id?: string;
+  submitted_by_user_name?: string;
+  private_evidence_notes?: string;
+  internal_commercial_impact?: string;
+  // Duplicate Merging
+  merged_into_idea_id?: string;
+  merged_into_code?: string;
+  merged_into_title?: string;
+  merged_at?: string;
+  merge_sources?: ProductIdeaMergeHistory[];
+  // Linkages
+  target_version_id?: string;
+  target_version_name?: string;
+  delivery_task_id?: string;
+  delivery_task_title?: string;
+  changelog_summary?: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ClientProductIdea {
+  id: string;
+  idea_code: string;
+  product_id: string;
+  product_name: string;
+  product_code: string;
+  title: string;
+  sanitized_description: string;
+  expected_outcome?: string;
+  target_segment?: string;
+  status: ProductIdeaStatus;
+  status_reason?: string;
+  roadmap_bucket?: RoadmapBucket;
+  indicative_target?: string;
+  changelog_summary?: string;
+  vote_count: number;
+  follower_count: number;
+  target_version_name?: string;
+  published_at?: string;
+  has_client_voted: boolean;
+  is_following: boolean;
+}
+
+export interface RoadmapBoard {
+  now: ClientProductIdea[];
+  next: ClientProductIdea[];
+  later: ClientProductIdea[];
+}
+
+
 
 
 
