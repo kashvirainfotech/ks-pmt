@@ -29,6 +29,7 @@ import { RequirementsTraceabilityView } from './components/requirements/Requirem
 import { ChangeRequestsView } from './components/change-requests/ChangeRequestsView';
 import { UatPackagesView } from './components/uat-packages/UatPackagesView';
 import { ClientReportsView } from './components/client-reports/ClientReportsView';
+import { RaidWorkspaceView } from './components/raid/RaidWorkspaceView';
 
 // Protected Route Wrapper
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
@@ -88,6 +89,7 @@ export const App: React.FC = () => {
         <Route path="change-requests" element={<ChangeRequestsView />} />
         <Route path="uat-packages" element={<UatPackagesView />} />
         <Route path="client-reports" element={<ClientReportsView />} />
+        <Route path="raid" element={<RaidWorkspaceView />} />
         <Route path="customer-portal" element={<CustomerPortalWorkspace />} />
         <Route path="admin" element={<Navigate to="/admin/branches" replace />} />
         {adminScreens.map(screen => (

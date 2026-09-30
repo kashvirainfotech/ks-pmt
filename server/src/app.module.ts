@@ -35,6 +35,7 @@ import { RequirementsModule } from './modules/requirements/requirements.module';
 import { ChangeRequestsModule } from './modules/change-requests/change-requests.module';
 import { UatPackagesModule } from './modules/uat-packages/uat-packages.module';
 import { ClientReportsModule } from './modules/client-reports/client-reports.module';
+import { RaidModule } from './modules/raid/raid.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { DynamicRbacGuard } from './modules/rbac/rbac.guard';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
@@ -81,6 +82,7 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
     ChangeRequestsModule,
     UatPackagesModule,
     ClientReportsModule,
+    RaidModule,
   ],
   providers: [
     {

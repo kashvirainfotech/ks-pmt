@@ -1583,4 +1583,103 @@ CREATE TABLE IF NOT EXISTS client_progress_report_revisions (
     CONSTRAINT uq_report_revision UNIQUE (report_id, revision_number)
 );
 
+-- ========================================================
+-- Date & Time: 2026-09-29 22:00:00 IST
+-- Description: Risks, Assumptions, Decisions & Client Action Requests (DEL-001)
+-- ========================================================
+
+-- 57. RAID Items (Risks, Assumptions, Issues, Decisions - DEL-001)
+CREATE TABLE IF NOT EXISTS raid_items (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    item_code VARCHAR(50) NOT NULL UNIQUE,
+    category VARCHAR(20) NOT NULL CHECK (category IN ('RISK', 'ASSUMPTION', 'DECISION', 'ISSUE')),
+    project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+    product_id UUID REFERENCES products(id) ON DELETE SET NULL,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    owner_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    review_date DATE,
+    status VARCHAR(30) NOT NULL DEFAULT 'OPEN' CHECK (
+        status IN (
+            'IDENTIFIED', 'MONITORING', 'MITIGATING', 'CLOSED', 'REALIZED',
+            'VALIDATING', 'CONFIRMED', 'INVALIDATED',
+            'PROPOSED', 'ACCEPTED', 'REJECTED', 'SUPERSEDED',
+            'OPEN', 'RESOLVED'
+        )
+    ),
+    likelihood VARCHAR(20) CHECK (likelihood IN ('LOW', 'MEDIUM', 'HIGH', 'VERY_HIGH')),
+    impact VARCHAR(20) CHECK (impact IN ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL')),
+    risk_score INTEGER,
+    mitigation_plan TEXT,
+    contingency_plan TEXT,
+    internal_discussion TEXT,
+    requirement_id UUID REFERENCES requirements(id) ON DELETE SET NULL,
+    milestone_id UUID REFERENCES milestones(id) ON DELETE SET NULL,
+    task_id UUID REFERENCES tasks(id) ON DELETE SET NULL,
+    component_id UUID REFERENCES software_components(id) ON DELETE SET NULL,
+    realized_blocker_episode_id UUID REFERENCES task_blocker_episodes(id) ON DELETE SET NULL,
+    participants JSONB NOT NULL DEFAULT '[]'::jsonb,
+    context TEXT,
+    alternatives_considered JSONB NOT NULL DEFAULT '[]'::jsonb,
+    rationale TEXT,
+    consequences TEXT,
+    technical_impact TEXT,
+    business_impact TEXT,
+    superseded_by_id UUID REFERENCES raid_items(id) ON DELETE SET NULL,
+    supersedes_id UUID REFERENCES raid_items(id) ON DELETE SET NULL,
+    is_client_shared BOOLEAN NOT NULL DEFAULT FALSE,
+    client_visibility VARCHAR(30) NOT NULL DEFAULT 'INTERNAL_ONLY' CHECK (client_visibility IN ('INTERNAL_ONLY', 'CLIENT_SUMMARY', 'CLIENT_FULL')),
+    client_summary TEXT,
+    current_revision INTEGER NOT NULL DEFAULT 1,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 58. Client Action Requests (Published Actions & Decisions Needed from Client - DEL-001)
+CREATE TABLE IF NOT EXISTS client_action_requests (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    action_code VARCHAR(50) NOT NULL UNIQUE,
+    raid_item_id UUID REFERENCES raid_items(id) ON DELETE SET NULL,
+    project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    product_id UUID REFERENCES products(id) ON DELETE SET NULL,
+    client_id UUID NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    description TEXT NOT NULL,
+    context_for_client TEXT NOT NULL,
+    priority VARCHAR(20) NOT NULL DEFAULT 'MEDIUM' CHECK (priority IN ('LOW', 'MEDIUM', 'HIGH', 'URGENT')),
+    due_date DATE NOT NULL,
+    assigned_contact_id UUID REFERENCES client_contacts(id) ON DELETE SET NULL,
+    requires_approver BOOLEAN NOT NULL DEFAULT FALSE,
+    status VARCHAR(30) NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'IN_REVIEW', 'RESPONDED', 'RESOLVED', 'CANCELLED')),
+    response_text TEXT,
+    responded_by_contact_id UUID REFERENCES client_contacts(id) ON DELETE SET NULL,
+    responded_at TIMESTAMP WITH TIME ZONE,
+    resulting_decision VARCHAR(30) CHECK (resulting_decision IN ('APPROVED', 'REJECTED', 'INFO_PROVIDED', 'SCOPE_CHANGE_REQUESTED')),
+    resulting_change_request_id UUID REFERENCES change_requests(id) ON DELETE SET NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 59. RAID Item Revisions (Immutable Audit Trail for Decisions & Risks - DEL-001)
+CREATE TABLE IF NOT EXISTS raid_item_revisions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    raid_item_id UUID NOT NULL REFERENCES raid_items(id) ON DELETE CASCADE,
+    revision_number INTEGER NOT NULL,
+    snapshot JSONB NOT NULL,
+    change_summary TEXT,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    CONSTRAINT uq_raid_item_revision UNIQUE (raid_item_id, revision_number)
+);
+
+
 

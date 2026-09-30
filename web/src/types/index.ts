@@ -1589,6 +1589,130 @@ export interface ClientProgressReport {
   updated_at: string;
 }
 
+// ==========================================
+// 21. RAID Items, Architecture Decisions & Client Actions (DEL-001)
+// ==========================================
+
+export type RaidCategory = 'RISK' | 'ASSUMPTION' | 'DECISION' | 'ISSUE';
+export type RaidLikelihood = 'LOW' | 'MEDIUM' | 'HIGH' | 'VERY_HIGH';
+export type RaidImpact = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+export type ClientVisibility = 'INTERNAL_ONLY' | 'CLIENT_SUMMARY' | 'CLIENT_FULL';
+
+export interface AlternativeConsidered {
+  title: string;
+  pros?: string;
+  cons?: string;
+  estimatedCostOrEffort?: string;
+  rejectedReason?: string;
+}
+
+export interface RaidItemRevision {
+  id: string;
+  raid_item_id: string;
+  revision_number: number;
+  snapshot: any;
+  change_summary?: string;
+  author_name?: string;
+  created_at: string;
+}
+
+export interface RaidItem {
+  id: string;
+  item_code: string;
+  category: RaidCategory;
+  project_id?: string;
+  project_name?: string;
+  project_code?: string;
+  product_id?: string;
+  product_name?: string;
+  product_code?: string;
+  title: string;
+  description?: string;
+  owner_user_id?: string;
+  owner_name?: string;
+  owner_email?: string;
+  review_date?: string;
+  status: string;
+  likelihood?: RaidLikelihood;
+  impact?: RaidImpact;
+  risk_score?: number;
+  mitigation_plan?: string;
+  contingency_plan?: string;
+  internal_discussion?: string;
+  requirement_id?: string;
+  requirement_title?: string;
+  req_code?: string;
+  milestone_id?: string;
+  milestone_name?: string;
+  milestone_code?: string;
+  component_id?: string;
+  component_name?: string;
+  component_code?: string;
+  task_id?: string;
+  task_title?: string;
+  task_code?: string;
+  blocker_reason?: string;
+  participants?: any[];
+  context?: string;
+  alternatives_considered?: AlternativeConsidered[];
+  rationale?: string;
+  consequences?: string;
+  technical_impact?: string;
+  business_impact?: string;
+  superseded_by_id?: string;
+  superseded_by_code?: string;
+  superseded_by_title?: string;
+  supersedes_id?: string;
+  supersedes_code?: string;
+  supersedes_title?: string;
+  is_client_shared: boolean;
+  client_visibility: ClientVisibility;
+  client_summary?: string;
+  current_revision: number;
+  revisions?: RaidItemRevision[];
+  action_requests?: ClientActionRequest[];
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export type ActionPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+export type ActionStatus = 'PENDING' | 'IN_REVIEW' | 'RESPONDED' | 'RESOLVED' | 'CANCELLED';
+export type ActionDecision = 'APPROVED' | 'REJECTED' | 'INFO_PROVIDED' | 'SCOPE_CHANGE_REQUESTED';
+
+export interface ClientActionRequest {
+  id: string;
+  action_code: string;
+  raid_item_id?: string;
+  raid_item_code?: string;
+  raid_category?: string;
+  project_id: string;
+  project_name?: string;
+  project_code?: string;
+  product_id?: string;
+  client_id: string;
+  client_name?: string;
+  title: string;
+  description: string;
+  context_for_client: string;
+  priority: ActionPriority;
+  due_date: string;
+  assigned_contact_id?: string;
+  assigned_contact_name?: string;
+  requires_approver: boolean;
+  status: ActionStatus;
+  response_text?: string;
+  responded_by_contact_id?: string;
+  responded_by_contact_name?: string;
+  responded_by_name?: string;
+  responded_at?: string;
+  resulting_decision?: ActionDecision;
+  resulting_change_request_id?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+
 
 
 

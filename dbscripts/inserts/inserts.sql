@@ -307,7 +307,10 @@ BEGIN
         ('UAT_PACKAGES', 'APPROVE', 'UAT_PACKAGES:APPROVE', 'Permission to sign off or record client decisions on UAT packages', TRUE, v_admin_id),
         ('CLIENT_REPORTS', 'READ', 'CLIENT_REPORTS:READ', 'Permission to view client progress reports and revision history', TRUE, v_admin_id),
         ('CLIENT_REPORTS', 'MANAGE', 'CLIENT_REPORTS:MANAGE', 'Permission to prepare, draft, and edit client progress reports', TRUE, v_admin_id),
-        ('CLIENT_REPORTS', 'PUBLISH', 'CLIENT_REPORTS:PUBLISH', 'Permission to review, publish, and distribute client progress reports', TRUE, v_admin_id)
+        ('CLIENT_REPORTS', 'PUBLISH', 'CLIENT_REPORTS:PUBLISH', 'Permission to review, publish, and distribute client progress reports', TRUE, v_admin_id),
+        ('RAID', 'READ', 'RAID:READ', 'Permission to view RAID items, decisions, and action requests', TRUE, v_admin_id),
+        ('RAID', 'MANAGE', 'RAID:MANAGE', 'Permission to create, update, review RAID items, architecture decisions, and action requests', TRUE, v_admin_id),
+        ('CLIENT_ACTIONS', 'MANAGE', 'CLIENT_ACTIONS:MANAGE', 'Permission to publish client action requests and record resolutions', TRUE, v_admin_id)
     ON CONFLICT (permission_code) DO NOTHING;
 
     INSERT INTO role_permissions (role_id, permission_id, created_by)
@@ -327,7 +330,8 @@ BEGIN
         'REQUIREMENTS:READ', 'REQUIREMENTS:MANAGE', 'REQUIREMENTS:SIGNOFF',
         'CHANGE_REQUESTS:READ', 'CHANGE_REQUESTS:MANAGE', 'CHANGE_REQUESTS:APPROVE',
         'UAT_PACKAGES:READ', 'UAT_PACKAGES:MANAGE', 'UAT_PACKAGES:APPROVE',
-        'CLIENT_REPORTS:READ', 'CLIENT_REPORTS:MANAGE', 'CLIENT_REPORTS:PUBLISH'
+        'CLIENT_REPORTS:READ', 'CLIENT_REPORTS:MANAGE', 'CLIENT_REPORTS:PUBLISH',
+        'RAID:READ', 'RAID:MANAGE', 'CLIENT_ACTIONS:MANAGE'
     )
     ON CONFLICT (role_id, permission_id) DO NOTHING;
 
@@ -340,7 +344,8 @@ BEGIN
         'REQUIREMENTS:READ', 'REQUIREMENTS:MANAGE', 'REQUIREMENTS:SIGNOFF',
         'CHANGE_REQUESTS:READ', 'CHANGE_REQUESTS:MANAGE', 'CHANGE_REQUESTS:APPROVE',
         'UAT_PACKAGES:READ', 'UAT_PACKAGES:MANAGE', 'UAT_PACKAGES:APPROVE',
-        'CLIENT_REPORTS:READ', 'CLIENT_REPORTS:MANAGE', 'CLIENT_REPORTS:PUBLISH'
+        'CLIENT_REPORTS:READ', 'CLIENT_REPORTS:MANAGE', 'CLIENT_REPORTS:PUBLISH',
+        'RAID:READ', 'RAID:MANAGE', 'CLIENT_ACTIONS:MANAGE'
     )
     ON CONFLICT (role_id, permission_id) DO NOTHING;
 
@@ -351,7 +356,8 @@ BEGIN
         'CLIENT_INTAKE:READ', 'CLIENT_INTAKE:TRIAGE',
         'CHANGE_REQUESTS:READ',
         'UAT_PACKAGES:READ',
-        'CLIENT_REPORTS:READ'
+        'CLIENT_REPORTS:READ',
+        'RAID:READ'
     )
     ON CONFLICT (role_id, permission_id) DO NOTHING;
 

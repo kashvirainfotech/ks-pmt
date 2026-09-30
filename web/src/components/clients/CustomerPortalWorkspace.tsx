@@ -26,15 +26,29 @@ import {
   TrendingUp,
   AlertTriangle,
   Target,
+  Lock,
+  FileCheck,
+  GitMerge,
+  ArrowRight,
 } from 'lucide-react';
 import { clientPortalApi } from '../../api/endpoints';
-import { ClientIntakeRequest, ChangeRequest, UatPackage, UatChecklistItem, ClientProgressReport } from '../../types';
+import {
+  ClientIntakeRequest,
+  ChangeRequest,
+  UatPackage,
+  UatChecklistItem,
+  ClientProgressReport,
+  ClientActionRequest,
+  RaidItem,
+} from '../../types';
 
 export const CustomerPortalWorkspace: React.FC = () => {
   const [portalContext, setPortalContext] = useState<any>(null);
   const [requests, setRequests] = useState<ClientIntakeRequest[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [activeTab, setActiveTab] = useState<'REQUESTS' | 'PROJECTS' | 'PRODUCTS' | 'REQUIREMENTS' | 'CHANGE_REQUESTS' | 'UAT_PACKAGES' | 'PROGRESS_REPORTS'>('REQUESTS');
+  const [activeTab, setActiveTab] = useState<
+    'REQUESTS' | 'PROJECTS' | 'PRODUCTS' | 'REQUIREMENTS' | 'CHANGE_REQUESTS' | 'UAT_PACKAGES' | 'PROGRESS_REPORTS' | 'ACTION_REQUESTS' | 'DECISIONS'
+  >('REQUESTS');
 
   // Requirements & Acceptance state (CLIENT-003)
   const [portalRequirements, setPortalRequirements] = useState<any[]>([]);
@@ -101,6 +115,23 @@ export const CustomerPortalWorkspace: React.FC = () => {
   const [loadingReports, setLoadingReports] = useState<boolean>(false);
   const [portalDigestModal, setPortalDigestModal] = useState<{ show: boolean; digest: string }>({ show: false, digest: '' });
   const [portalDigestCopied, setPortalDigestCopied] = useState(false);
+
+  // Client Actions & Decisions state (DEL-001)
+  const [portalActions, setPortalActions] = useState<ClientActionRequest[]>([]);
+  const [loadingActions, setLoadingActions] = useState<boolean>(false);
+  const [portalDecisions, setPortalDecisions] = useState<RaidItem[]>([]);
+  const [loadingDecisions, setLoadingDecisions] = useState<boolean>(false);
+  const [actionResponseModal, setActionResponseModal] = useState<{
+    show: boolean;
+    action: ClientActionRequest | null;
+    responseText: string;
+    decision: 'APPROVED' | 'REJECTED' | 'INFO_PROVIDED' | 'SCOPE_CHANGE_REQUESTED';
+  }>({
+    show: false,
+    action: null,
+    responseText: '',
+    decision: 'APPROVED',
+  });
 
   // Submit Modal
   const [showSubmitModal, setShowSubmitModal] = useState<boolean>(false);
@@ -336,6 +367,46 @@ export const CustomerPortalWorkspace: React.FC = () => {
     }
   };
 
+  const loadPortalActions = async () => {
+    try {
+      setLoadingActions(true);
+      const res = await clientPortalApi.getActionRequests();
+      setPortalActions(res.data || []);
+    } catch (err) {
+      console.error('Failed to load portal actions', err);
+    } finally {
+      setLoadingActions(false);
+    }
+  };
+
+  const loadPortalDecisions = async () => {
+    try {
+      setLoadingDecisions(true);
+      const res = await clientPortalApi.getDecisions();
+      setPortalDecisions(res.data || []);
+    } catch (err) {
+      console.error('Failed to load portal decisions', err);
+    } finally {
+      setLoadingDecisions(false);
+    }
+  };
+
+  const handleRespondActionSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!actionResponseModal.action) return;
+    try {
+      await clientPortalApi.respondActionRequest(actionResponseModal.action.id, {
+        responseText: actionResponseModal.responseText,
+        resultingDecision: actionResponseModal.decision,
+      });
+      alert('Your response and decision have been submitted successfully.');
+      setActionResponseModal({ show: false, action: null, responseText: '', decision: 'APPROVED' });
+      loadPortalActions();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to submit response');
+    }
+  };
+
   const handleSubmitRequest = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -503,6 +574,28 @@ export const CustomerPortalWorkspace: React.FC = () => {
             }`}
           >
             Progress Reports ({portalReports.length})
+          </button>
+          <button
+            onClick={() => {
+              setActiveTab('ACTION_REQUESTS');
+              loadPortalActions();
+            }}
+            className={`px-3 py-1.5 rounded-lg transition ${
+              activeTab === 'ACTION_REQUESTS' ? 'bg-white text-indigo-900' : 'text-white/80 hover:bg-white/10'
+            }`}
+          >
+            Actions Needed ({portalActions.length})
+          </button>
+          <button
+            onClick={() => {
+              setActiveTab('DECISIONS');
+              loadPortalDecisions();
+            }}
+            className={`px-3 py-1.5 rounded-lg transition ${
+              activeTab === 'DECISIONS' ? 'bg-white text-indigo-900' : 'text-white/80 hover:bg-white/10'
+            }`}
+          >
+            Decisions Log ({portalDecisions.length})
           </button>
         </div>
       </div>
@@ -1833,6 +1926,319 @@ export const CustomerPortalWorkspace: React.FC = () => {
                 </div>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Client Action Requests Tab (DEL-001) */}
+      {activeTab === 'ACTION_REQUESTS' && (
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
+          <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+            <div>
+              <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <Clock className="w-5 h-5 text-indigo-600" />
+                Actions & Decisions Awaiting Client Response
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Explicit decisions, approvals, and inputs requested by the project management team with SLA deadlines.
+              </p>
+            </div>
+            <div className="text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300">
+              {portalActions.filter((a) => a.status === 'PENDING').length} Pending Decisions
+            </div>
+          </div>
+
+          <div className="p-4 space-y-4">
+            {loadingActions ? (
+              <div className="p-12 text-center text-slate-400 text-xs">Loading action requests...</div>
+            ) : portalActions.length === 0 ? (
+              <div className="p-12 text-center text-slate-400 text-xs">
+                No action requests or decisions awaiting your input at this time.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {portalActions.map((action) => {
+                  const isApprover = portalContext?.contact?.is_approver === true;
+                  const canRespond = !action.requires_approver || isApprover;
+                  const isPending = action.status === 'PENDING' || action.status === 'IN_REVIEW';
+
+                  return (
+                    <div
+                      key={action.id}
+                      className="p-5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 space-y-3 shadow-xs"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <span className="font-mono text-[10px] text-slate-400 uppercase tracking-wider block">
+                            {action.action_code} &bull; {action.project_name}
+                          </span>
+                          <h3 className="font-bold text-sm text-slate-900 dark:text-white mt-0.5">
+                            {action.title}
+                          </h3>
+                        </div>
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-semibold shrink-0 ${
+                            action.status === 'RESPONDED' || action.status === 'RESOLVED'
+                              ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400'
+                              : 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400'
+                          }`}
+                        >
+                          {action.status}
+                        </span>
+                      </div>
+
+                      <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg text-xs text-slate-700 dark:text-slate-300">
+                        {action.context_for_client}
+                      </div>
+
+                      <div className="flex flex-wrap items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100 dark:border-slate-800 gap-2">
+                        <div className="flex items-center gap-3">
+                          <span className="flex items-center gap-1 font-medium">
+                            <Clock className="w-3.5 h-3.5 text-slate-400" />
+                            Due: {action.due_date ? action.due_date.slice(0, 10) : 'N/A'}
+                          </span>
+                          {action.requires_approver && (
+                            <span className="flex items-center gap-1 text-[11px] text-amber-600 dark:text-amber-400 font-medium">
+                              <Lock className="w-3 h-3" /> Approver Authority Required
+                            </span>
+                          )}
+                        </div>
+
+                        {isPending ? (
+                          canRespond ? (
+                            <button
+                              onClick={() => {
+                                setActionResponseModal({
+                                  show: true,
+                                  action,
+                                  responseText: '',
+                                  decision: 'APPROVED',
+                                });
+                              }}
+                              className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-lg flex items-center gap-1"
+                            >
+                              <Send className="w-3.5 h-3.5" />
+                              Submit Response / Decision
+                            </button>
+                          ) : (
+                            <span className="text-[11px] text-slate-400 italic">
+                              Requires authorized approver contact to sign off
+                            </span>
+                          )
+                        ) : (
+                          <div className="text-right text-[11px]">
+                            <span className="font-semibold text-emerald-600 dark:text-emerald-400 block">
+                              Decision: {action.resulting_decision}
+                            </span>
+                            <span className="text-slate-400">
+                              By {action.responded_by_name || 'Contact'} on{' '}
+                              {action.responded_at ? action.responded_at.slice(0, 10) : ''}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Decisions Log Tab (DEL-001) */}
+      {activeTab === 'DECISIONS' && (
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
+          <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+            <div>
+              <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <FileCheck className="w-5 h-5 text-indigo-600" />
+                Agreed Architecture & Delivery Decisions (ADR)
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Official decisions, architectural trade-offs, and agreed technical direction shared with client stakeholders.
+              </p>
+            </div>
+            <div className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
+              {portalDecisions.length} Decisions Recorded
+            </div>
+          </div>
+
+          <div className="p-4 space-y-4">
+            {loadingDecisions ? (
+              <div className="p-12 text-center text-slate-400 text-xs">Loading decisions log...</div>
+            ) : portalDecisions.length === 0 ? (
+              <div className="p-12 text-center text-slate-400 text-xs">
+                No client-shared decisions published for your projects yet.
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {portalDecisions.map((dec) => (
+                  <div
+                    key={dec.id}
+                    className="p-5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 space-y-3"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-xs font-bold text-indigo-600 dark:text-indigo-400">
+                            {dec.item_code}
+                          </span>
+                          <span className="text-slate-400">&bull;</span>
+                          <span className="text-xs text-slate-500 font-medium">{dec.project_name}</span>
+                          {dec.superseded_by_code && (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-purple-100 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300 flex items-center gap-1">
+                              <GitMerge className="w-3 h-3" /> Superseded by {dec.superseded_by_code}
+                            </span>
+                          )}
+                          {dec.supersedes_code && (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 flex items-center gap-1">
+                              <ArrowRight className="w-3 h-3" /> Successor of {dec.supersedes_code}
+                            </span>
+                          )}
+                        </div>
+                        <h3 className="font-bold text-sm text-slate-900 dark:text-white mt-1">{dec.title}</h3>
+                      </div>
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                          dec.status === 'ACCEPTED'
+                            ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400'
+                            : dec.status === 'SUPERSEDED'
+                            ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/40 dark:text-purple-400'
+                            : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
+                        }`}
+                      >
+                        {dec.status}
+                      </span>
+                    </div>
+
+                    {dec.context && (
+                      <div className="text-xs text-slate-600 dark:text-slate-300">
+                        <strong className="text-slate-800 dark:text-slate-200">Context: </strong>
+                        {dec.context}
+                      </div>
+                    )}
+
+                    {dec.rationale && (
+                      <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg text-xs text-slate-700 dark:text-slate-300">
+                        <strong className="text-slate-900 dark:text-white block mb-0.5">Agreed Rationale:</strong>
+                        {dec.rationale}
+                      </div>
+                    )}
+
+                    {dec.consequences && (
+                      <div className="text-xs text-slate-500">
+                        <strong>Anticipated Trade-offs & Outcomes: </strong>
+                        {dec.consequences}
+                      </div>
+                    )}
+
+                    {dec.alternatives_considered && dec.alternatives_considered.length > 0 && (
+                      <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+                        <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+                          Alternatives Considered ({dec.alternatives_considered.length})
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {dec.alternatives_considered.map((alt, idx) => (
+                            <div key={idx} className="p-2.5 rounded-lg border bg-slate-50/50 dark:bg-slate-800/30 text-xs">
+                              <div className="font-semibold text-slate-800 dark:text-slate-200">{alt.title}</div>
+                              {alt.rejectedReason && (
+                                <div className="text-[11px] text-slate-500 mt-0.5">
+                                  <strong>Reason Declined: </strong>
+                                  {alt.rejectedReason}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Client Action Request Response */}
+      {actionResponseModal.show && actionResponseModal.action && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-lg w-full border border-slate-200 dark:border-slate-700 p-6 space-y-4">
+            <h3 className="font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
+              <Send className="w-5 h-5 text-indigo-600" />
+              Submit Response to Action Request
+            </h3>
+            <p className="text-xs text-slate-500">
+              <strong>{actionResponseModal.action.action_code}: </strong>
+              {actionResponseModal.action.title}
+            </p>
+
+            <form onSubmit={handleRespondActionSubmit} className="space-y-4 text-xs">
+              <div>
+                <label className="block font-semibold mb-1 text-slate-800 dark:text-slate-200">
+                  Decision Outcome *
+                </label>
+                <select
+                  required
+                  value={actionResponseModal.decision}
+                  onChange={(e) =>
+                    setActionResponseModal({
+                      ...actionResponseModal,
+                      decision: e.target.value as any,
+                    })
+                  }
+                  className="w-full p-2 bg-slate-50 dark:bg-slate-900 border rounded-lg"
+                >
+                  <option value="APPROVED">Accept / Approve Recommendation</option>
+                  <option value="REJECTED">Decline / Object to Recommendation</option>
+                  <option value="INFO_PROVIDED">Provide Required Clarification</option>
+                  <option value="SCOPE_CHANGE_REQUESTED">Request Scope Change / Quotation</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-semibold mb-1 text-slate-800 dark:text-slate-200">
+                  Response Details & Remarks *
+                </label>
+                <textarea
+                  required
+                  rows={4}
+                  placeholder="Provide your rationale, decisions, or clarification..."
+                  value={actionResponseModal.responseText}
+                  onChange={(e) =>
+                    setActionResponseModal({
+                      ...actionResponseModal,
+                      responseText: e.target.value,
+                    })
+                  }
+                  className="w-full p-2 bg-slate-50 dark:bg-slate-900 border rounded-lg"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-3 border-t">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setActionResponseModal({
+                      show: false,
+                      action: null,
+                      responseText: '',
+                      decision: 'APPROVED',
+                    })
+                  }
+                  className="px-4 py-2 border rounded-lg font-semibold"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold"
+                >
+                  Submit Decision
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

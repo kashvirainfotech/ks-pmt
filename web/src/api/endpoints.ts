@@ -63,6 +63,8 @@ import {
   ClientInstalledVersion,
   ClientProgressReport,
   ClientProgressReportRevision,
+  RaidItem,
+  ClientActionRequest,
 } from '../types';
 
 // ==========================================
@@ -862,6 +864,21 @@ export const clientPortalApi = {
 
   getProgressReportDigest: (id: string): Promise<{ data: { digest: string } }> =>
     api.get(`/client-portal/progress-reports/${id}/digest`),
+
+  getActionRequests: (params?: { projectId?: string }): Promise<{ data: ClientActionRequest[] }> =>
+    api.get('/client-portal/action-requests', { params }),
+
+  getActionRequestDetail: (id: string): Promise<{ data: ClientActionRequest }> =>
+    api.get(`/client-portal/action-requests/${id}`),
+
+  respondActionRequest: (
+    id: string,
+    data: { responseText: string; resultingDecision: string; resultingChangeRequestId?: string },
+  ): Promise<{ data: any; message: string }> =>
+    api.post(`/client-portal/action-requests/${id}/respond`, data),
+
+  getDecisions: (params?: { projectId?: string }): Promise<{ data: RaidItem[] }> =>
+    api.get('/client-portal/decisions', { params }),
 };
 
 export const clientIntakeApi = {
@@ -1026,6 +1043,39 @@ export const clientReportsApi = {
   archive: (id: string): Promise<{ data: ClientProgressReport }> =>
     api.post(`/client-reports/${id}/archive`),
 };
+
+// ==========================================
+// RAID Items, Decisions & Client Actions (DEL-001)
+// ==========================================
+export const raidApi = {
+  createItem: (data: any): Promise<{ data: RaidItem }> =>
+    api.post('/raid/items', data),
+
+  getItems: (params?: any): Promise<{ data: RaidItem[] }> =>
+    api.get('/raid/items', { params }),
+
+  getItemById: (id: string): Promise<{ data: RaidItem }> =>
+    api.get(`/raid/items/${id}`),
+
+  updateItem: (id: string, data: any): Promise<{ data: RaidItem }> =>
+    api.put(`/raid/items/${id}`, data),
+
+  deleteItem: (id: string) =>
+    api.delete(`/raid/items/${id}`),
+
+  supersedeDecision: (id: string, data: any) =>
+    api.post(`/raid/items/${id}/supersede`, data),
+
+  createActionRequest: (data: any): Promise<{ data: ClientActionRequest }> =>
+    api.post('/raid/action-requests', data),
+
+  getActionRequests: (params?: any): Promise<{ data: ClientActionRequest[] }> =>
+    api.get('/raid/action-requests', { params }),
+
+  resolveActionRequest: (id: string, data: any): Promise<{ data: ClientActionRequest }> =>
+    api.post(`/raid/action-requests/${id}/resolve`, data),
+};
+
 
 
 

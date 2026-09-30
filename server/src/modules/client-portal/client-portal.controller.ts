@@ -20,6 +20,8 @@ import { UatPackagesService } from '../uat-packages/uat-packages.service';
 import { ClientUatDecisionDto } from '../uat-packages/dto/client-uat-decision.dto';
 import { RecordChecklistProgressDto } from '../uat-packages/dto/record-checklist-progress.dto';
 import { ClientReportsService } from '../client-reports/client-reports.service';
+import { RaidService } from '../raid/raid.service';
+import { RespondClientActionRequestDto } from '../raid/dto/respond-client-action-request.dto';
 import { Public } from '../../common/guards/jwt-auth.guard';
 import { ClientContactGuard } from '../../common/guards/client-contact.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -32,7 +34,7 @@ import { CreateIntakeRequestDto } from './dto/create-intake-request.dto';
 import { TriageRequestDto } from './dto/triage-request.dto';
 import { CreateRequestMessageDto, QueryRequestsDto } from './dto/request-message.dto';
 
-@ApiTags('Client Portal & Customer Intake (CLIENT-001, CLIENT-002, CLIENT-003, CLIENT-004, CLIENT-005, CLIENT-006)')
+@ApiTags('Client Portal & Customer Intake (CLIENT-001 to CLIENT-006, DEL-001)')
 @Controller()
 export class ClientPortalController {
   constructor(
@@ -40,6 +42,7 @@ export class ClientPortalController {
     private readonly changeRequestsService: ChangeRequestsService,
     private readonly uatPackagesService: UatPackagesService,
     private readonly clientReportsService: ClientReportsService,
+    private readonly raidService: RaidService,
   ) {}
 
   // ========================================================
@@ -567,6 +570,69 @@ export class ClientPortalController {
     const digest = await this.clientReportsService.generateDigest(id);
     return { digest };
   }
+
+  // ========================================================
+  // 10. Client Action Requests & Decisions (DEL-001)
+  // ==========================================
+
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(ClientContactGuard)
+  @Get('client-portal/action-requests')
+  @ApiOperation({ summary: 'List client action requests and decisions awaiting feedback' })
+  async getClientActionRequests(
+    @Req() req: any,
+    @Query('projectId') projectId?: string,
+  ) {
+    const data = await this.raidService.getClientPortalActionRequests(req.user, projectId);
+    return {
+      message: 'Client action requests retrieved successfully',
+      data,
+    };
+  }
+
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(ClientContactGuard)
+  @Get('client-portal/action-requests/:id')
+  @ApiOperation({ summary: 'Get client action request detail with zero internal leakage' })
+  async getClientActionRequestDetail(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: any,
+  ) {
+    const data = await this.raidService.getClientPortalActionRequestDetail(id, req.user);
+    return {
+      message: 'Client action request detail retrieved successfully',
+      data,
+    };
+  }
+
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(ClientContactGuard)
+  @Post('client-portal/action-requests/:id/respond')
+  @ApiOperation({ summary: 'Submit response/decision for a client action request' })
+  async respondToClientActionRequest(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: RespondClientActionRequestDto,
+    @Req() req: any,
+  ) {
+    const data = await this.raidService.respondToClientActionRequest(id, dto, req.user);
+    return data;
+  }
+
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(ClientContactGuard)
+  @Get('client-portal/decisions')
+  @ApiOperation({ summary: 'List client-shared architecture and project decisions' })
+  async getClientPortalDecisions(
+    @Req() req: any,
+    @Query('projectId') projectId?: string,
+  ) {
+    const data = await this.raidService.getClientPortalDecisions(req.user, projectId);
+    return {
+      message: 'Client-shared decisions retrieved successfully',
+      data,
+    };
+  }
 }
+
 
 

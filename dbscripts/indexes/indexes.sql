@@ -270,4 +270,28 @@ CREATE INDEX IF NOT EXISTS idx_cpr_period ON client_progress_reports(period_star
 CREATE INDEX IF NOT EXISTS idx_cpr_health ON client_progress_reports(overall_health);
 CREATE INDEX IF NOT EXISTS idx_cpr_revisions_rep ON client_progress_report_revisions(report_id, revision_number);
 
+-- ========================================================
+-- Date & Time: 2026-09-29 22:00:00 IST
+-- Description: DEL-001 - Indexes for RAID Items, Client Actions & Revisions
+-- ========================================================
+CREATE INDEX IF NOT EXISTS idx_raid_items_project ON raid_items(project_id, category, status);
+CREATE INDEX IF NOT EXISTS idx_raid_items_product ON raid_items(product_id, category, status) WHERE product_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_raid_items_category ON raid_items(category);
+CREATE INDEX IF NOT EXISTS idx_raid_items_status ON raid_items(status);
+CREATE INDEX IF NOT EXISTS idx_raid_items_owner ON raid_items(owner_user_id) WHERE owner_user_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_raid_items_review_date ON raid_items(review_date);
+CREATE INDEX IF NOT EXISTS idx_raid_items_req ON raid_items(requirement_id) WHERE requirement_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_raid_items_milestone ON raid_items(milestone_id) WHERE milestone_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_raid_items_client_shared ON raid_items(is_client_shared, client_visibility);
+CREATE INDEX IF NOT EXISTS idx_raid_items_superseded ON raid_items(superseded_by_id) WHERE superseded_by_id IS NOT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_client_action_project ON client_action_requests(project_id, status);
+CREATE INDEX IF NOT EXISTS idx_client_action_client ON client_action_requests(client_id, status);
+CREATE INDEX IF NOT EXISTS idx_client_action_due ON client_action_requests(due_date, status);
+CREATE INDEX IF NOT EXISTS idx_client_action_raid ON client_action_requests(raid_item_id) WHERE raid_item_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_client_action_contact ON client_action_requests(assigned_contact_id) WHERE assigned_contact_id IS NOT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_raid_revisions_item ON raid_item_revisions(raid_item_id, revision_number);
+
+
 

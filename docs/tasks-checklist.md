@@ -366,10 +366,10 @@ All boxes in this section remain unchecked. Feature IDs reference [requirements]
 - [x] **CLIENT-004**: PM review and authorized client approval of a specific scope/price/date revision; material edits require new approval and preserve prior decisions.
 - [x] **CLIENT-005**: Versioned UAT packages, defects, evidence and explicit approve/request-changes/reject; separate developer done, QA verified and client accepted.
 - [x] **CLIENT-006**: PM-reviewed client-safe progress updates, health narrative, decisions needed, target/committed dates and report history.
-- [ ] **DEL-001**: Risks/assumptions/decisions with owners, mitigation and review dates; client action list distinct from internal risk discussion and active blockers.
+- [x] **DEL-001**: Risks/assumptions/decisions with owners, mitigation and review dates; client action list distinct from internal risk discussion and active blockers.
 - [ ] **Client journey acceptance**: Request → triage → approved scope → development → QA → UAT → sign-off. Test client-to-client denial, hidden internal content and reapproval after material edits.
 
-- [ ] **CLIENT-002 / DEL-001 — detail acceptance**: Customer impact separate from urgency/severity/internal priority; dated affected-client/component/version evidence; decisions retain context, alternatives and supersession without exposing private source requests.
+- [x] **CLIENT-002 / DEL-001 — detail acceptance**: Customer impact separate from urgency/severity/internal priority; dated affected-client/component/version evidence; decisions retain context, alternatives and supersession without exposing private source requests.
 
 ### 11.4 Increment D — Product Management and Repeatable Delivery
 

@@ -28,6 +28,7 @@ import {
   DollarSign,
   ClipboardCheck,
   FileText,
+  ShieldAlert,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -65,6 +66,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       { label: 'Change Requests & Scope', path: '/change-requests', icon: DollarSign, show: true },
       { label: 'UAT & Milestones', path: '/uat-packages', icon: ClipboardCheck, show: true },
       { label: 'Progress Reports', path: '/client-reports', icon: FileText, show: true },
+      { label: 'RAID & Decisions', path: '/raid', icon: ShieldAlert, show: true },
       { label: 'Client contacts', path: '/client-contacts', icon: UserCheck, show: true },
       { label: 'Customer portal', path: '/customer-portal', icon: ExternalLink, show: true },
     ]},

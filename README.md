@@ -128,7 +128,7 @@ All roadmap items are categorized by strategic delivery increment. Each feature 
 ```mermaid
 flowchart LR
     A["Tier A: Foundations & Boundaries (Active)"] --> B["Tier B: Agile Development Planning (Complete)"]
-    B --> C["Tier C: Client Delivery & UAT (In Progress)"]
+    B --> C["Tier C: Client Delivery & UAT (Complete)"]
     C --> D["Tier D: Product Operations & QA"]
     D --> E["Tier E: Delivery Intelligence"]
     E --> F["Future: Advanced Extensions"]
@@ -152,7 +152,7 @@ flowchart LR
 - **`CLIENT-004` Scope & Change-Request Approval** [✅ Implemented]: Scope change quotations with effort, cost, and timeline impacts; formal authorized client approval of specific revisions with re-approval triggers for material modifications; separate internal review notes; attributable decision audit trail; and approved change delivery task mapping.
 - **`CLIENT-005` Client UAT & Milestone Sign-Off** [✅ Implemented]: Versioned UAT acceptance packages with milestone linkage and release notes; tri-state verification (`Developer-Done` &rarr; `QA-Verified` &rarr; `Client-Accepted`); transparent known issues disclosure; formal client approver sign-off (`APPROVE` / `REQUEST_CHANGES` / `REJECT`); material revision ($N+1$) re-approval enforcement; customer portal test verification without internal QA note leakage; and explicit client-installed version registry.
 - **`CLIENT-006` Client Progress Updates & Reporting** [✅ Implemented]: PM-curated periodic progress reports, health indicators (`ON_TRACK`, `NEEDS_ATTENTION`, `AT_RISK`), milestone schedule forecasts (committed date vs indicative forecast date), decisions/actions required from client with SLA deadlines, zero-leakage redaction of internal notes/commercials, immutable revision snapshots on publish, markdown digest generation for cross-channel distribution, and customer portal view.
-- **`DEL-001` Risks, Assumptions & Versioned Client Decisions**: Project RAID log; structured decision register recording context, evaluated alternatives, client approval timestamps, and supersession history.
+- **`DEL-001` Risks, Assumptions & Versioned Client Decisions** [✅ Implemented]: Project & product RAID register (Risks, Assumptions, Issues, Decisions); likelihood × impact exposure scoring, mitigation/contingency plans; separation of possible future risks from active task blocker episodes; architecture decision records (ADR) with context, alternatives considered, rationale, consequences, and immutable revision history; 1-click decision supersession with full lineage without approving commercial changes; published client action requests with SLA deadlines and approver-only restriction; and customer portal views with zero internal risk discussion leakage.
 
 ### 📌 Tier D: Product Operations & Repeatable Quality
 - **`PROD-001` Product Discovery, Voting & Roadmaps**: Moderated customer feedback ideas, one-vote-per-organization voting, duplicate merging, RICE prioritization scoring, and public/private Now / Next / Later roadmaps with changelog links.
