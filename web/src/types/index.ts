@@ -1832,6 +1832,238 @@ export interface RoadmapBoard {
   later: ClientProductIdea[];
 }
 
+// ========================================================
+// QA-001: Manual QA, Test Runs & Release Gatekeeper
+// ========================================================
+
+export type TestSeverity = 'TRIVIAL' | 'MINOR' | 'MAJOR' | 'CRITICAL' | 'BLOCKER';
+export type TestPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+export type TestExecutionType = 'MANUAL' | 'AUTOMATED';
+export type TestRunStatus = 'PLANNED' | 'IN_PROGRESS' | 'COMPLETED' | 'ABORTED';
+export type TestRunItemStatus = 'PENDING' | 'PASSED' | 'FAILED' | 'BLOCKED' | 'SKIPPED';
+export type ReleaseGateCategory =
+  | 'QA_TESTING'
+  | 'SECURITY'
+  | 'CLIENT_UAT'
+  | 'DOCUMENTATION'
+  | 'DATA_MIGRATION'
+  | 'PERFORMANCE';
+export type ReleaseGateItemStatus = 'PENDING' | 'PASSED' | 'FAILED' | 'WAIVED';
+export type ReleaseOverallStatus =
+  | 'NOT_STARTED'
+  | 'IN_REVIEW'
+  | 'READY_FOR_RELEASE'
+  | 'BLOCKED'
+  | 'CONDITIONAL_RELEASE';
+
+export interface TestSuite {
+  id: string;
+  suite_code: string;
+  suite_name: string;
+  description?: string;
+  entity_type: 'PRODUCT' | 'PROJECT';
+  product_id?: string;
+  project_id?: string;
+  component_id?: string;
+  project_name?: string;
+  product_name?: string;
+  component_name?: string;
+  total_cases_count?: number;
+  testCases?: TestCase[];
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TestCaseStep {
+  step_number: number;
+  action: string;
+  expected_result: string;
+}
+
+export interface TestCase {
+  id: string;
+  case_code: string;
+  suite_id: string;
+  title: string;
+  description?: string;
+  preconditions?: string;
+  test_steps: TestCaseStep[];
+  expected_result: string;
+  severity: TestSeverity;
+  priority: TestPriority;
+  execution_type: TestExecutionType;
+  estimated_minutes: number;
+  requirement_criterion_id?: string;
+  component_id?: string;
+  version: number;
+  suite_code?: string;
+  suite_name?: string;
+  entity_type?: 'PRODUCT' | 'PROJECT';
+  product_id?: string;
+  project_id?: string;
+  project_name?: string;
+  product_name?: string;
+  component_name?: string;
+  criterion_code?: string;
+  criterion_title?: string;
+  recentExecutions?: any[];
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TestRun {
+  id: string;
+  run_code: string;
+  title: string;
+  description?: string;
+  entity_type: 'PRODUCT' | 'PROJECT';
+  product_id?: string;
+  project_id?: string;
+  version_id?: string;
+  milestone_id?: string;
+  environment: 'LOCAL' | 'QA' | 'STAGING' | 'UAT' | 'PRODUCTION' | 'ON_PREMISE';
+  status: TestRunStatus;
+  assigned_to_user_id?: string;
+  total_cases: number;
+  passed_cases: number;
+  failed_cases: number;
+  blocked_cases: number;
+  skipped_cases: number;
+  started_at?: string;
+  completed_at?: string;
+  project_name?: string;
+  product_name?: string;
+  version_name?: string;
+  milestone_name?: string;
+  assignee_name?: string;
+  pass_rate_percentage?: number;
+  items?: TestRunItem[];
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TestRunItem {
+  id: string;
+  test_run_id: string;
+  test_case_id: string;
+  status: TestRunItemStatus;
+  actual_result?: string;
+  execution_notes?: string;
+  executed_by_user_id?: string;
+  executed_by_name?: string;
+  executed_at?: string;
+  evidence_urls: string[];
+  linked_defect_task_id?: string;
+  case_code: string;
+  case_title: string;
+  severity: TestSeverity;
+  priority: TestPriority;
+  execution_type: TestExecutionType;
+  preconditions?: string;
+  test_steps: TestCaseStep[];
+  expected_result: string;
+  suite_name?: string;
+  defect_task_code?: string;
+  defect_title?: string;
+  defect_priority?: string;
+  defect_status_name?: string;
+  defect_status_color?: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ReleaseChecklistItem {
+  id: string;
+  checklist_id: string;
+  item_code: string;
+  gate_category: ReleaseGateCategory;
+  title: string;
+  description?: string;
+  status: ReleaseGateItemStatus;
+  is_mandatory: boolean;
+  verified_by_user_id?: string;
+  verified_by_name?: string;
+  verified_at?: string;
+  evidence_notes?: string;
+  waived_reason?: string;
+  order_index: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ReleaseReadinessChecklist {
+  id: string;
+  checklist_code: string;
+  entity_type: 'PRODUCT' | 'PROJECT';
+  product_id?: string;
+  project_id?: string;
+  version_id?: string;
+  milestone_id?: string;
+  title: string;
+  overall_status: ReleaseOverallStatus;
+  target_release_date?: string;
+  lead_qa_user_id?: string;
+  signoff_pm_user_id?: string;
+  signed_off_at?: string;
+  signoff_notes?: string;
+  exceptions_notes?: string;
+  project_name?: string;
+  product_name?: string;
+  version_name?: string;
+  milestone_name?: string;
+  lead_qa_name?: string;
+  signoff_pm_name?: string;
+  total_items_count?: number;
+  passed_items_count?: number;
+  failed_items_count?: number;
+  waived_items_count?: number;
+  pending_items_count?: number;
+  items?: ReleaseChecklistItem[];
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TraceabilityItem {
+  test_case_id: string;
+  case_code: string;
+  case_title: string;
+  severity: TestSeverity;
+  priority: TestPriority;
+  execution_type: TestExecutionType;
+  suite_id: string;
+  suite_code: string;
+  suite_name: string;
+  project_name?: string;
+  product_name?: string;
+  requirement_criterion_id?: string;
+  criterion_code?: string;
+  criterion_title?: string;
+  latest_status?: TestRunItemStatus;
+  latest_executed_at?: string;
+  latest_run_code?: string;
+  linked_defect_code?: string;
+  linked_defect_title?: string;
+  defect_status_name?: string;
+  defect_status_color?: string;
+}
+
+export interface TraceabilitySummary {
+  totalCases: number;
+  passedCases: number;
+  failedCases: number;
+  blockedCases: number;
+  pendingCases: number;
+  linkedDefectsCount: number;
+  coveragePercentage: number;
+}
+
+
 
 
 

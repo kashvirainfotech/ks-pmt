@@ -64,6 +64,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { title: 'Client Delivery', items: [
       { label: 'Intake & Triage', path: '/client-intake', icon: LifeBuoy, show: true },
       { label: 'Requirements & Traceability', path: '/requirements', icon: FileCheck, show: true },
+      { label: 'Quality Assurance & Gates', path: '/qa', icon: ShieldCheck, show: true },
       { label: 'Change Requests & Scope', path: '/change-requests', icon: DollarSign, show: true },
       { label: 'UAT & Milestones', path: '/uat-packages', icon: ClipboardCheck, show: true },
       { label: 'Progress Reports', path: '/client-reports', icon: FileText, show: true },

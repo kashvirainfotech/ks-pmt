@@ -8495,4 +8495,210 @@ BEGIN
         '[{"column": "created_at", "direction": "DESC"}]'::jsonb, 'LIST', TRUE, v_admin_id)
     ON CONFLICT DO NOTHING;
 
+    -- 25. QA Manual Test Cases, Test Runs & Release Gatekeeper (QA-001)
+    INSERT INTO permissions (module, action, permission_code, description, is_active, created_by)
+    VALUES 
+        ('TESTING', 'READ', 'TESTING:READ', 'Permission to view test suites, cases, runs, and checklists', TRUE, v_admin_id),
+        ('TESTING', 'MANAGE', 'TESTING:MANAGE', 'Permission to create and manage test suites and cases', TRUE, v_admin_id),
+        ('TESTING', 'EXECUTE', 'TESTING:EXECUTE', 'Permission to execute test runs and log test run results', TRUE, v_admin_id),
+        ('TESTING', 'SIGNOFF', 'TESTING:SIGNOFF', 'Permission to approve and sign off release readiness checklists', TRUE, v_admin_id)
+    ON CONFLICT (permission_code) DO NOTHING;
+
+    INSERT INTO role_permissions (role_id, permission_id, created_by)
+    SELECT '44444444-4444-4444-4444-444444444441', p.id, v_admin_id -- Super Admin
+    FROM permissions p
+    WHERE p.permission_code IN ('TESTING:READ', 'TESTING:MANAGE', 'TESTING:EXECUTE', 'TESTING:SIGNOFF')
+    ON CONFLICT (role_id, permission_id) DO NOTHING;
+
+    INSERT INTO role_permissions (role_id, permission_id, created_by)
+    SELECT '44444444-4444-4444-4444-444444444445', p.id, v_admin_id -- QA Tester
+    FROM permissions p
+    WHERE p.permission_code IN ('TESTING:READ', 'TESTING:MANAGE', 'TESTING:EXECUTE', 'TESTING:SIGNOFF')
+    ON CONFLICT (role_id, permission_id) DO NOTHING;
+
+    INSERT INTO role_permissions (role_id, permission_id, created_by)
+    SELECT '44444444-4444-4444-4444-444444444443', p.id, v_admin_id -- PM
+    FROM permissions p
+    WHERE p.permission_code IN ('TESTING:READ', 'TESTING:SIGNOFF')
+    ON CONFLICT (role_id, permission_id) DO NOTHING;
+
+    INSERT INTO role_permissions (role_id, permission_id, created_by)
+    SELECT '44444444-4444-4444-4444-444444444444', p.id, v_admin_id -- Developer
+    FROM permissions p
+    WHERE p.permission_code IN ('TESTING:READ')
+    ON CONFLICT (role_id, permission_id) DO NOTHING;
+
+    -- Test Suites
+    INSERT INTO test_suites (
+        id, suite_code, suite_name, description, entity_type, product_id, project_id,
+        component_id, is_active, created_by
+    ) VALUES
+        ('e0000000-0000-0000-0000-000000000001', 'SUITE-ERP-CORE', 'KashFlow ERP Core Financial & Ledger Regression Suite',
+        'End-to-end regression test suite covering invoicing, tax rules, journal postings, and goods receipts.',
+        'PRODUCT', 'a0000000-0000-0000-0000-000000000001', NULL,
+        'f0000000-0000-0000-0000-000000000001', TRUE, v_admin_id),
+        ('e0000000-0000-0000-0000-000000000002', 'SUITE-ACME-MOB', 'Acme Neo-Bank Security & Payment Verification Suite',
+        'Security, biometric prompt challenge, transaction limits, and offline cache tests for mobile banking SDK.',
+        'PROJECT', NULL, 'b0000000-0000-0000-0000-000000000001',
+        NULL, TRUE, v_admin_id)
+    ON CONFLICT (suite_code) DO NOTHING;
+
+    -- Test Cases
+    INSERT INTO test_cases (
+        id, case_code, suite_id, title, description, preconditions,
+        test_steps, expected_result, severity, priority, execution_type,
+        estimated_minutes, requirement_criterion_id, component_id, version, is_active, created_by
+    ) VALUES
+        ('e1000000-0000-0000-0000-000000000001', 'TC-ERP-001', 'e0000000-0000-0000-0000-000000000001',
+        'Verify Inter-State IGST (18%) Calculation on Bulk B2B Invoices',
+        'Validates that inter-state shipments apply IGST 18% correctly without charging CGST/SGST.',
+        'Active GSTIN configured for buyer and seller across different states (e.g. MH to GJ).',
+        '[
+            {"step_number": 1, "action": "Navigate to Sales > Invoices > Create New Invoice.", "expected_result": "Invoice form opens with auto-populated series number."},
+            {"step_number": 2, "action": "Select buyer with out-of-state GSTIN and add 3 line items totaling ₹10,000.", "expected_result": "Line total shows ₹10,000; CGST and SGST remain 0%."},
+            {"step_number": 3, "action": "Click Calculate Taxes button.", "expected_result": "IGST applies at 18% (₹1,800); grand total equals ₹11,800.00 exact."}
+        ]'::jsonb,
+        'Tax ledger entry posts correctly with IGST component of ₹1,800.00 without any decimal truncation.',
+        'CRITICAL', 'HIGH', 'MANUAL', 15, NULL, 'f0000000-0000-0000-0000-000000000001', 1, TRUE, v_admin_id),
+
+        ('e1000000-0000-0000-0000-000000000002', 'TC-ERP-002', 'e0000000-0000-0000-0000-000000000001',
+        'Verify Fractional Paise Rounding on Line-Item Discount Splitting',
+        'Ensures line item discount distribution does not produce rounding errors exceeding 1 paisa.',
+        'Draft invoice with 5 items each priced at ₹33.33 with a 5% global discount coupon.',
+        '[
+            {"step_number": 1, "action": "Open Draft Invoice #INV-2026-9041.", "expected_result": "Form loads with all 5 line items at ₹33.33."},
+            {"step_number": 2, "action": "Apply global discount code FESTIVE5.", "expected_result": "Discount splits proportionally across items."},
+            {"step_number": 3, "action": "Inspect tax invoice preview footer.", "expected_result": "Rounding adjustment displays difference strictly <= ₹0.01."}
+        ]'::jsonb,
+        'Total rounding does not exceed 1 paisa and ledger balances debit and credit lines perfectly.',
+        'MAJOR', 'MEDIUM', 'MANUAL', 20, NULL, 'f0000000-0000-0000-0000-000000000001', 1, TRUE, v_admin_id),
+
+        ('e1000000-0000-0000-0000-000000000003', 'TC-ERP-003', 'e0000000-0000-0000-0000-000000000001',
+        'Barcode QR Code Scan on Goods Inward Receipt',
+        'Verifies that scanner hardware QR parser populates lot number and expiry into grid rows.',
+        'Physical Bluetooth scanner connected; Goods Inward modal open.',
+        '[
+            {"step_number": 1, "action": "Focus on QR Scan input field.", "expected_result": "Input field shows active scan indicator pulse."},
+            {"step_number": 2, "action": "Scan sample GS1-128 QR sticker.", "expected_result": "Item SKU, lot number, and expiry date auto-populate into grid rows."}
+        ]'::jsonb,
+        'GRN line items auto-generate with 100% matched batch and serial attributes.',
+        'MAJOR', 'LOW', 'MANUAL', 10, NULL, 'f0000000-0000-0000-0000-000000000001', 1, TRUE, v_admin_id),
+
+        ('e1000000-0000-0000-0000-000000000004', 'TC-ACME-001', 'e0000000-0000-0000-0000-000000000002',
+        'Biometric Fingerprint/FaceID Challenge for High-Value Transfer (> ₹1,00,000)',
+        'Verifies that payments above threshold force biometric authentication prior to dispatching payment instruction.',
+        'Acme Mobile App v1.0.0-rc1 installed; biometrics enrolled on test device.',
+        '[
+            {"step_number": 1, "action": "Initiate NEFT transfer for ₹1,50,000.", "expected_result": "Transfer review modal prompts for authentication."},
+            {"step_number": 2, "action": "Trigger biometric sensor prompt.", "expected_result": "OS biometric prompt displays with security lock icon."},
+            {"step_number": 3, "action": "Authenticate with valid fingerprint.", "expected_result": "Transfer confirms with reference UTR number."}
+        ]'::jsonb,
+        'Transfer completes securely; audit trail records biometric verification flag = true.',
+        'CRITICAL', 'CRITICAL', 'MANUAL', 15, NULL, NULL, 1, TRUE, v_admin_id)
+    ON CONFLICT (case_code) DO NOTHING;
+
+    -- Test Runs
+    INSERT INTO test_runs (
+        id, run_code, title, description, entity_type, product_id, project_id,
+        version_id, milestone_id, environment, status, assigned_to_user_id,
+        total_cases, passed_cases, failed_cases, blocked_cases, skipped_cases,
+        started_at, completed_at, is_active, created_by
+    ) VALUES
+        ('e2000000-0000-0000-0000-000000000001', 'TRUN-ERP-2026-01',
+        'KashFlow v2.4.0 Release Candidate Staging Regression Run',
+        'Pre-release staging verification of tax calculations, fractional discounts, and barcode scanning.',
+        'PRODUCT', 'a0000000-0000-0000-0000-000000000001', NULL,
+        '10000000-0000-0000-0000-000000000001', '11000000-0000-0000-0000-000000000001',
+        'STAGING', 'IN_PROGRESS', '00000000-0000-0000-0000-000000000005',
+        3, 1, 1, 0, 0,
+        CURRENT_TIMESTAMP - INTERVAL '1 day', NULL, TRUE, v_admin_id)
+    ON CONFLICT (run_code) DO NOTHING;
+
+    -- Test Run Items
+    INSERT INTO test_run_items (
+        id, test_run_id, test_case_id, status, actual_result, execution_notes,
+        executed_by_user_id, executed_at, evidence_urls, linked_defect_task_id, is_active, created_by
+    ) VALUES
+        ('e3000000-0000-0000-0000-000000000001', 'e2000000-0000-0000-0000-000000000001',
+        'e1000000-0000-0000-0000-000000000001', 'PASSED',
+        'IGST calculated precisely at 18% (₹1,800.00). Invoice generated successfully.',
+        'Tested with Gujarat to Maharashtra inter-state test GSTINs. All lines balanced.',
+        '00000000-0000-0000-0000-000000000005', CURRENT_TIMESTAMP - INTERVAL '6 hours',
+        '["https://s3.ap-south-1.amazonaws.com/ks-pmt-evidence/staging/inv-9040-tax-ok.png"]'::jsonb,
+        NULL, TRUE, v_admin_id),
+
+        ('e3000000-0000-0000-0000-000000000002', 'e2000000-0000-0000-0000-000000000001',
+        'e1000000-0000-0000-0000-000000000002', 'FAILED',
+        'Total rounding discrepancy observed: ₹0.03 difference across 5 split items, triggering debit/credit imbalance warning.',
+        'Discrepancy reproduces when discount is applied after tax line generation instead of before.',
+        '00000000-0000-0000-0000-000000000005', CURRENT_TIMESTAMP - INTERVAL '4 hours',
+        '["https://s3.ap-south-1.amazonaws.com/ks-pmt-evidence/staging/rounding-error-log.png"]'::jsonb,
+        '20000000-0000-0000-0000-0000000003ed', TRUE, v_admin_id),
+
+        ('e3000000-0000-0000-0000-000000000003', 'e2000000-0000-0000-0000-000000000001',
+        'e1000000-0000-0000-0000-000000000003', 'PENDING',
+        NULL, NULL, NULL, NULL, '[]'::jsonb, NULL, TRUE, v_admin_id)
+    ON CONFLICT (test_run_id, test_case_id) DO NOTHING;
+
+    -- Release Readiness Checklists
+    INSERT INTO release_readiness_checklists (
+        id, checklist_code, entity_type, product_id, project_id, version_id,
+        milestone_id, title, overall_status, target_release_date,
+        lead_qa_user_id, signoff_pm_user_id, signed_off_at, signoff_notes,
+        exceptions_notes, is_active, created_by
+    ) VALUES
+        ('e4000000-0000-0000-0000-000000000001', 'REL-GATE-ERP-2.4.0',
+        'PRODUCT', 'a0000000-0000-0000-0000-000000000001', NULL,
+        '10000000-0000-0000-0000-000000000001', '11000000-0000-0000-0000-000000000001',
+        'KashFlow ERP v2.4.0 Production Cutover Gatekeeper',
+        'CONDITIONAL_RELEASE', '2026-10-28',
+        '00000000-0000-0000-0000-000000000005', '00000000-0000-0000-0000-000000000003',
+        CURRENT_TIMESTAMP - INTERVAL '1 hour',
+        'Approved for deployment with mitigation. Hotfix 2.4.1 planned for minor paise rounding edge-case.',
+        'Minor rounding discrepancy (TSK-ERP-005) waived under condition of hotfix delivery within 48h.',
+        TRUE, v_admin_id)
+    ON CONFLICT (checklist_code) DO NOTHING;
+
+    -- Release Checklist Items
+    INSERT INTO release_checklist_items (
+        id, checklist_id, item_code, gate_category, title, description,
+        status, is_mandatory, verified_by_user_id, verified_at, evidence_notes, waived_reason, order_index, is_active, created_by
+    ) VALUES
+        (gen_random_uuid(), 'e4000000-0000-0000-0000-000000000001', 'GATE-01', 'QA_TESTING',
+        'Core Regression Test Suite Passing Rate >= 95%',
+        'All critical severity test cases must pass on staging environment before deployment.',
+        'PASSED', TRUE, '00000000-0000-0000-0000-000000000005', CURRENT_TIMESTAMP - INTERVAL '2 hours',
+        'TRUN-ERP-2026-01 completed with 96.2% pass rate across automated and manual test cases.', NULL, 1, TRUE, v_admin_id),
+
+        (gen_random_uuid(), 'e4000000-0000-0000-0000-000000000001', 'GATE-02', 'SECURITY',
+        'OWASP Top 10 Dynamic Vulnerability Scan Clean',
+        'DAST and SAST scans must report zero critical or high vulnerabilities.',
+        'PASSED', TRUE, '00000000-0000-0000-0000-000000000010', CURRENT_TIMESTAMP - INTERVAL '5 hours',
+        'SonarQube & OWASP ZAP automated scan report clean. Zero high/critical issues.', NULL, 2, TRUE, v_admin_id),
+
+        (gen_random_uuid(), 'e4000000-0000-0000-0000-000000000001', 'GATE-03', 'PERFORMANCE',
+        '500 Concurrent Users Stress Test Latency < 400ms',
+        'API 95th percentile response latency under benchmark load must remain under 400ms.',
+        'PASSED', FALSE, '00000000-0000-0000-0000-000000000010', CURRENT_TIMESTAMP - INTERVAL '8 hours',
+        'k6 stress test completed at p95 = 280ms on AWS staging cluster.', NULL, 3, TRUE, v_admin_id),
+
+        (gen_random_uuid(), 'e4000000-0000-0000-0000-000000000001', 'GATE-04', 'DATA_MIGRATION',
+        'Dry Run DB Schema Alterations on Replica Tested',
+        'Database scripts must be tested on blank database and staged migration replica without locking.',
+        'PASSED', TRUE, '00000000-0000-0000-0000-000000000004', CURRENT_TIMESTAMP - INTERVAL '12 hours',
+        'Executed dbscripts/build-install.mjs verification cleanly on staging replica.', NULL, 4, TRUE, v_admin_id),
+
+        (gen_random_uuid(), 'e4000000-0000-0000-0000-000000000001', 'GATE-05', 'CLIENT_UAT',
+        'Key Stakeholders & Client Pilot Signoff Recorded',
+        'Pilot branch managers must confirm acceptance of GST invoice and Goods Inward screens.',
+        'PASSED', TRUE, '00000000-0000-0000-0000-000000000003', CURRENT_TIMESTAMP - INTERVAL '3 hours',
+        'UAT signoff received from Ahmedabad & Surat branch managers.', NULL, 5, TRUE, v_admin_id),
+
+        (gen_random_uuid(), 'e4000000-0000-0000-0000-000000000001', 'GATE-06', 'DOCUMENTATION',
+        'Release Notes & API Documentation Published',
+        'User guide changes, API specs, and change logs published to internal knowledge base.',
+        'PENDING', FALSE, NULL, NULL,
+        'Drafted in Confluence; pending final review by tech writer.', NULL, 6, TRUE, v_admin_id)
+    ON CONFLICT (checklist_id, item_code) DO NOTHING;
+
 END $$;

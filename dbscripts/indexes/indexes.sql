@@ -314,6 +314,32 @@ CREATE INDEX IF NOT EXISTS idx_idea_follows_user ON product_idea_follows(user_id
 
 CREATE INDEX IF NOT EXISTS idx_idea_merge_canonical ON product_idea_merge_history(canonical_idea_id);
 
+-- ========================================================
+-- Date & Time: 2026-09-30 20:12:00 IST
+-- Description: QA-001 - Indexes for Test Suites, Test Cases, Runs, Items, and Release Readiness Checklists
+-- ========================================================
+CREATE INDEX IF NOT EXISTS idx_test_suites_prod ON test_suites(product_id) WHERE product_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_test_suites_prj ON test_suites(project_id) WHERE project_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_test_cases_suite ON test_cases(suite_id, priority);
+CREATE INDEX IF NOT EXISTS idx_test_cases_criterion ON test_cases(requirement_criterion_id) WHERE requirement_criterion_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_test_cases_component ON test_cases(component_id) WHERE component_id IS NOT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_test_runs_prod ON test_runs(product_id, status) WHERE product_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_test_runs_prj ON test_runs(project_id, status) WHERE project_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_test_runs_version ON test_runs(version_id) WHERE version_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_test_runs_milestone ON test_runs(milestone_id) WHERE milestone_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_test_runs_assigned ON test_runs(assigned_to_user_id) WHERE assigned_to_user_id IS NOT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_test_run_items_run ON test_run_items(test_run_id, status);
+CREATE INDEX IF NOT EXISTS idx_test_run_items_case ON test_run_items(test_case_id);
+CREATE INDEX IF NOT EXISTS idx_test_run_items_defect ON test_run_items(linked_defect_task_id) WHERE linked_defect_task_id IS NOT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_readiness_prod ON release_readiness_checklists(product_id, overall_status) WHERE product_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_readiness_prj ON release_readiness_checklists(project_id, overall_status) WHERE project_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_readiness_version ON release_readiness_checklists(version_id) WHERE version_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_readiness_items_chk ON release_checklist_items(checklist_id, status);
+
+
 
 
 

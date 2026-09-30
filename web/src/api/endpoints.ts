@@ -68,6 +68,14 @@ import {
   ProductIdea,
   ClientProductIdea,
   RoadmapBoard,
+  TestSuite,
+  TestCase,
+  TestRun,
+  TestRunItem,
+  ReleaseReadinessChecklist,
+  ReleaseChecklistItem,
+  TraceabilityItem,
+  TraceabilitySummary,
 } from '../types';
 
 // ==========================================
@@ -1140,6 +1148,84 @@ export const productIdeasApi = {
   getRoadmapBoard: (params?: { productId?: string }): Promise<{ data: { now: ProductIdea[]; next: ProductIdea[]; later: ProductIdea[] } }> =>
     api.get('/product-ideas/roadmap/board', { params }),
 };
+
+// ==========================================
+// QA & Testing Workspace APIs (QA-001)
+// ==========================================
+export const qaApi = {
+  // Test Suites
+  getSuites: (params?: any): Promise<{ data: TestSuite[] }> =>
+    api.get('/qa/suites', { params }),
+
+  getSuiteById: (id: string): Promise<{ data: TestSuite }> =>
+    api.get(`/qa/suites/${id}`),
+
+  createSuite: (data: any): Promise<{ data: TestSuite }> =>
+    api.post('/qa/suites', data),
+
+  updateSuite: (id: string, data: any): Promise<{ data: TestSuite }> =>
+    api.patch(`/qa/suites/${id}`, data),
+
+  deleteSuite: (id: string) =>
+    api.delete(`/qa/suites/${id}`),
+
+  // Test Cases
+  getCases: (params?: any): Promise<{ data: { items: TestCase[]; meta: any } }> =>
+    api.get('/qa/cases', { params }),
+
+  getCaseById: (id: string): Promise<{ data: TestCase }> =>
+    api.get(`/qa/cases/${id}`),
+
+  createCase: (data: any): Promise<{ data: TestCase }> =>
+    api.post('/qa/cases', data),
+
+  updateCase: (id: string, data: any): Promise<{ data: TestCase }> =>
+    api.patch(`/qa/cases/${id}`, data),
+
+  deleteCase: (id: string) =>
+    api.delete(`/qa/cases/${id}`),
+
+  // Test Runs
+  getRuns: (params?: any): Promise<{ data: TestRun[] }> =>
+    api.get('/qa/runs', { params }),
+
+  getRunById: (id: string): Promise<{ data: TestRun }> =>
+    api.get(`/qa/runs/${id}`),
+
+  createRun: (data: any): Promise<{ data: TestRun }> =>
+    api.post('/qa/runs', data),
+
+  updateRun: (id: string, data: any): Promise<{ data: TestRun }> =>
+    api.patch(`/qa/runs/${id}`, data),
+
+  // Run Execution & Defect Logging
+  executeRunItem: (itemId: string, data: any): Promise<{ data: TestRunItem }> =>
+    api.patch(`/qa/run-items/${itemId}/execute`, data),
+
+  logDefectFromRunItem: (itemId: string, data: any): Promise<{ data: { defect: any; runItemId: string; message: string } }> =>
+    api.post(`/qa/run-items/${itemId}/log-defect`, data),
+
+  // Release Readiness Checklists
+  getReleaseChecklists: (params?: any): Promise<{ data: ReleaseReadinessChecklist[] }> =>
+    api.get('/qa/release-checklists', { params }),
+
+  getReleaseChecklistById: (id: string): Promise<{ data: ReleaseReadinessChecklist }> =>
+    api.get(`/qa/release-checklists/${id}`),
+
+  createReleaseChecklist: (data: any): Promise<{ data: ReleaseReadinessChecklist }> =>
+    api.post('/qa/release-checklists', data),
+
+  updateChecklistItem: (checklistId: string, itemId: string, data: any): Promise<{ data: ReleaseChecklistItem }> =>
+    api.patch(`/qa/release-checklists/${checklistId}/items/${itemId}`, data),
+
+  signoffChecklist: (id: string, data: any): Promise<{ data: ReleaseReadinessChecklist }> =>
+    api.post(`/qa/release-checklists/${id}/signoff`, data),
+
+  // Traceability Matrix
+  getTraceabilityMatrix: (params?: { productId?: string; projectId?: string }): Promise<{ data: { summary: TraceabilitySummary; items: TraceabilityItem[] } }> =>
+    api.get('/qa/traceability', { params }),
+};
+
 
 
 

@@ -1776,6 +1776,160 @@ CREATE TABLE IF NOT EXISTS product_idea_merge_history (
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+-- ========================================================
+-- Date & Time: 2026-09-30 20:10:00 IST
+-- Description: QA-001 - Manual QA Test Cases, Test Runs & Release-Readiness Gatekeeper
+-- ========================================================
+
+-- 64. Test Suites Master (QA-001)
+CREATE TABLE IF NOT EXISTS test_suites (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    suite_code VARCHAR(50) NOT NULL UNIQUE,
+    suite_name VARCHAR(150) NOT NULL,
+    description TEXT,
+    entity_type VARCHAR(20) NOT NULL CHECK (entity_type IN ('PRODUCT', 'PROJECT')),
+    product_id UUID REFERENCES products(id) ON DELETE CASCADE,
+    project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+    component_id UUID REFERENCES software_components(id) ON DELETE SET NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_test_suite_scope CHECK (
+        (entity_type = 'PRODUCT' AND product_id IS NOT NULL AND project_id IS NULL) OR
+        (entity_type = 'PROJECT' AND project_id IS NOT NULL AND product_id IS NULL)
+    )
+);
+
+-- 65. Test Cases Master (QA-001)
+CREATE TABLE IF NOT EXISTS test_cases (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    case_code VARCHAR(50) NOT NULL UNIQUE,
+    suite_id UUID NOT NULL REFERENCES test_suites(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    preconditions TEXT,
+    test_steps JSONB NOT NULL DEFAULT '[]'::jsonb,
+    expected_result TEXT NOT NULL,
+    severity VARCHAR(20) NOT NULL DEFAULT 'MAJOR' CHECK (severity IN ('TRIVIAL', 'MINOR', 'MAJOR', 'CRITICAL', 'BLOCKER')),
+    priority VARCHAR(20) NOT NULL DEFAULT 'MEDIUM' CHECK (priority IN ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL')),
+    execution_type VARCHAR(20) NOT NULL DEFAULT 'MANUAL' CHECK (execution_type IN ('MANUAL', 'AUTOMATED')),
+    estimated_minutes INTEGER NOT NULL DEFAULT 15 CHECK (estimated_minutes >= 0),
+    requirement_criterion_id UUID REFERENCES requirement_acceptance_criteria(id) ON DELETE SET NULL,
+    component_id UUID REFERENCES software_components(id) ON DELETE SET NULL,
+    version INTEGER NOT NULL DEFAULT 1 CHECK (version > 0),
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 66. Test Runs Master (QA-001)
+CREATE TABLE IF NOT EXISTS test_runs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    run_code VARCHAR(50) NOT NULL UNIQUE,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    entity_type VARCHAR(20) NOT NULL CHECK (entity_type IN ('PRODUCT', 'PROJECT')),
+    product_id UUID REFERENCES products(id) ON DELETE CASCADE,
+    project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+    version_id UUID REFERENCES versions(id) ON DELETE SET NULL,
+    milestone_id UUID REFERENCES milestones(id) ON DELETE SET NULL,
+    environment VARCHAR(50) NOT NULL DEFAULT 'STAGING' CHECK (environment IN ('LOCAL', 'QA', 'STAGING', 'UAT', 'PRODUCTION', 'ON_PREMISE')),
+    status VARCHAR(30) NOT NULL DEFAULT 'PLANNED' CHECK (status IN ('PLANNED', 'IN_PROGRESS', 'COMPLETED', 'ABORTED')),
+    assigned_to_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    total_cases INTEGER NOT NULL DEFAULT 0 CHECK (total_cases >= 0),
+    passed_cases INTEGER NOT NULL DEFAULT 0 CHECK (passed_cases >= 0),
+    failed_cases INTEGER NOT NULL DEFAULT 0 CHECK (failed_cases >= 0),
+    blocked_cases INTEGER NOT NULL DEFAULT 0 CHECK (blocked_cases >= 0),
+    skipped_cases INTEGER NOT NULL DEFAULT 0 CHECK (skipped_cases >= 0),
+    started_at TIMESTAMP WITH TIME ZONE,
+    completed_at TIMESTAMP WITH TIME ZONE,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_test_run_scope CHECK (
+        (entity_type = 'PRODUCT' AND product_id IS NOT NULL AND project_id IS NULL) OR
+        (entity_type = 'PROJECT' AND project_id IS NOT NULL AND product_id IS NULL)
+    )
+);
+
+-- 67. Test Run Items (Execution Record per Test Case - QA-001)
+CREATE TABLE IF NOT EXISTS test_run_items (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    test_run_id UUID NOT NULL REFERENCES test_runs(id) ON DELETE CASCADE,
+    test_case_id UUID NOT NULL REFERENCES test_cases(id) ON DELETE RESTRICT,
+    status VARCHAR(30) NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'PASSED', 'FAILED', 'BLOCKED', 'SKIPPED')),
+    actual_result TEXT,
+    execution_notes TEXT,
+    executed_by_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    executed_at TIMESTAMP WITH TIME ZONE,
+    evidence_urls JSONB NOT NULL DEFAULT '[]'::jsonb,
+    linked_defect_task_id UUID REFERENCES tasks(id) ON DELETE SET NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_test_run_case UNIQUE (test_run_id, test_case_id)
+);
+
+-- 68. Release Readiness Checklists (Release Gatekeeper - QA-001)
+CREATE TABLE IF NOT EXISTS release_readiness_checklists (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    checklist_code VARCHAR(50) NOT NULL UNIQUE,
+    entity_type VARCHAR(20) NOT NULL CHECK (entity_type IN ('PRODUCT', 'PROJECT')),
+    product_id UUID REFERENCES products(id) ON DELETE CASCADE,
+    project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+    version_id UUID REFERENCES versions(id) ON DELETE SET NULL,
+    milestone_id UUID REFERENCES milestones(id) ON DELETE SET NULL,
+    title VARCHAR(255) NOT NULL,
+    overall_status VARCHAR(30) NOT NULL DEFAULT 'NOT_STARTED' CHECK (overall_status IN ('NOT_STARTED', 'IN_REVIEW', 'READY_FOR_RELEASE', 'BLOCKED', 'CONDITIONAL_RELEASE')),
+    target_release_date DATE,
+    lead_qa_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    signoff_pm_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    signed_off_at TIMESTAMP WITH TIME ZONE,
+    signoff_notes TEXT,
+    exceptions_notes TEXT,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_readiness_scope CHECK (
+        (entity_type = 'PRODUCT' AND product_id IS NOT NULL AND project_id IS NULL) OR
+        (entity_type = 'PROJECT' AND project_id IS NOT NULL AND product_id IS NULL)
+    )
+);
+
+-- 69. Release Checklist Items (QA-001)
+CREATE TABLE IF NOT EXISTS release_checklist_items (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    checklist_id UUID NOT NULL REFERENCES release_readiness_checklists(id) ON DELETE CASCADE,
+    item_code VARCHAR(50) NOT NULL,
+    gate_category VARCHAR(50) NOT NULL CHECK (gate_category IN ('QA_TESTING', 'SECURITY', 'CLIENT_UAT', 'DOCUMENTATION', 'DATA_MIGRATION', 'PERFORMANCE')),
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    status VARCHAR(30) NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'PASSED', 'FAILED', 'WAIVED')),
+    is_mandatory BOOLEAN NOT NULL DEFAULT TRUE,
+    verified_by_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    verified_at TIMESTAMP WITH TIME ZONE,
+    evidence_notes TEXT,
+    waived_reason TEXT,
+    order_index INTEGER NOT NULL DEFAULT 1,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_release_checklist_item UNIQUE (checklist_id, item_code)
+);
+
+
 
 
 
