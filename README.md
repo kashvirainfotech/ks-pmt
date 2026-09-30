@@ -37,6 +37,7 @@
   - [Step 4: Mobile App Setup (`mobile/`)](#step-4-mobile-app-setup-mobile)
 - [Default Super Admin Credentials](#-default-super-admin-credentials)
 - [Community, Feedback & Support](#-community-feedback--support)
+- [About Kashvira Infotech & Project Policy](#about-kashvira-infotech--project-policy)
 
 ---
 
@@ -436,14 +437,43 @@ This project is **100% open source** released under the [MIT License](https://op
 
 ### 🌟 Let Us Know If You Are Using KS-PMT!
 If you or your organization are using this project, **please drop us a short email at `kashvirainfotech@gmail.com`**.  
-Hearing how KS-PMT helps your team gives us immense confidence, motivation, and a boost to keep adding more and more advanced enterprise features!
+Hearing how KS-PMT helps your team encourages us and helps us understand how the project is being used.
 
 ### 💡 Stopped Using KS-PMT? Help Us Improve!
 If you tested, installed, or previously used KS-PMT but decided to stop using it, **we would genuinely love to know why**.  
-Please email us with your honest feedback, pain points, or missing features. We welcome all feedback with open arms and will use it to continuously improve the tool for the entire developer community.
+Please email us with your feedback, challenges, or missing features. We appreciate these insights and will consider them as we work toward the planned scope, subject to our team's capacity.
 
 ### 🤝 Feedback, Suggestions & Bug Reports
 Feedback, feature suggestions, and bug reports are warmly welcomed! Please open an issue to share your ideas or report a problem, or email us at `kashvirainfotech@gmail.com`.
+
+---
+
+## About Kashvira Infotech & Project Policy
+
+### Our Company & Why We Built KS-PMT
+
+Kashvira Infotech is a small IT startup providing software solutions for manufacturing companies, warehouse management systems (WMS), transportation management systems (TMS), custom software tailored to client requirements, and web and mobile application development services.
+
+After evaluating paid and free tools available in the market, we chose to develop KS-PMT for our internal project and product management needs, including task and ticket tracking. This approach helps us manage costs by avoiding recurring SaaS subscription fees while retaining full control over our workflows, deployment, and data.
+
+### Planned Professional Services
+
+Once the planned scope of this open-source version is complete, we intend to offer installation, setup, implementation, training, support, customization, and hosting services to clients who wish to use KS-PMT for their project and product management needs.
+
+For each client's customization engagement, we create a separate private GitHub repository based on this repository and share access with that client. We develop and deliver the agreed custom requirements in that private repository, maintaining a dedicated codebase for the client.
+
+### Repository Usage & Future Changes
+
+> [!IMPORTANT]
+> **Please treat this repository as a starting point for your own implementation. Future changes in this public repository, particularly database scripts, are intended for fresh installations only and should not be treated as upgrade or migration scripts for existing installations.**
+
+You are welcome to fork this repository and adapt it to your requirements under the MIT License. If you would like assistance with customization, please contact us at [kashvirainfotech@gmail.com](mailto:kashvirainfotech@gmail.com).
+
+### Contributions & Maintenance Expectations
+
+**We do not accept pull requests for this repository.** As a small team, we are focusing our available resources on completing the planned open-source scope. Ongoing community development and pull request review would require dedicated staffing that we are unable to commit to. Please refrain from submitting pull requests; you are welcome to maintain enhancements in your own fork.
+
+Feedback, suggestions, and bug reports remain welcome through issues or email. However, we cannot commit to continuous feature development, ongoing maintenance, or a response or resolution timeline for the public repository.
 
 ---
 
