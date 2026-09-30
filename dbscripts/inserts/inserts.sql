@@ -256,11 +256,23 @@ DO $$
 DECLARE
     v_admin_id UUID := '00000000-0000-0000-0000-000000000001';
     v_role_super_admin UUID;
+    v_role_pm UUID;
+    v_role_support UUID;
     v_default_cal_id UUID := '88888888-8888-8888-8888-888888888881';
 BEGIN
     SELECT id INTO v_role_super_admin FROM roles WHERE role_code = 'ROLE_SUPER_ADMIN';
     IF v_role_super_admin IS NULL THEN
         v_role_super_admin := '44444444-4444-4444-4444-444444444441';
+    END IF;
+
+    SELECT id INTO v_role_pm FROM roles WHERE role_code = 'ROLE_PROJECT_MANAGER';
+    IF v_role_pm IS NULL THEN
+        v_role_pm := '44444444-4444-4444-4444-444444444443';
+    END IF;
+
+    SELECT id INTO v_role_support FROM roles WHERE role_code = 'ROLE_SUPPORT_EXEC';
+    IF v_role_support IS NULL THEN
+        v_role_support := '44444444-4444-4444-4444-444444444446';
     END IF;
 
     -- Permissions

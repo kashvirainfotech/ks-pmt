@@ -13,7 +13,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { ClientPortalService } from './client-portal.service';
+import { ClientPortalService, ClientContactUser } from './client-portal.service';
+
+
+
 import { ChangeRequestsService } from '../change-requests/change-requests.service';
 import { ClientDecisionDto } from '../change-requests/dto/client-decision.dto';
 import { UatPackagesService } from '../uat-packages/uat-packages.service';
@@ -650,15 +653,8 @@ export class ClientPortalController {
     @Query('search') search?: string,
     @Query('roadmapBucket') roadmapBucket?: string,
   ) {
-    const contact = {
-      clientId: req.user.clientId,
-      contactId: req.user.contactId || req.user.sub,
-      id: req.user.contactId || req.user.sub,
-      email: req.user.email,
-      isClientContact: true,
-    };
     const data = await this.productIdeasService.getClientPortalIdeas(
-      contact,
+      req.user as ClientContactUser,
       productId,
       search,
       roadmapBucket,
@@ -677,14 +673,7 @@ export class ClientPortalController {
     @Param('id', ParseUUIDPipe) id: string,
     @Req() req: any,
   ) {
-    const contact = {
-      clientId: req.user.clientId,
-      contactId: req.user.contactId || req.user.sub,
-      id: req.user.contactId || req.user.sub,
-      email: req.user.email,
-      isClientContact: true,
-    };
-    const data = await this.productIdeasService.getClientPortalIdeaDetail(id, contact);
+    const data = await this.productIdeasService.getClientPortalIdeaDetail(id, req.user as ClientContactUser);
     return {
       message: 'Product idea detail retrieved successfully',
       data,
@@ -699,14 +688,7 @@ export class ClientPortalController {
     @Body() dto: SubmitClientIdeaDto,
     @Req() req: any,
   ) {
-    const contact = {
-      clientId: req.user.clientId,
-      contactId: req.user.contactId || req.user.sub,
-      id: req.user.contactId || req.user.sub,
-      email: req.user.email,
-      isClientContact: true,
-    };
-    return this.productIdeasService.clientSubmitIdea(dto, contact);
+    return this.productIdeasService.clientSubmitIdea(dto, req.user as ClientContactUser);
   }
 
   @ApiBearerAuth('JWT-auth')
@@ -717,14 +699,7 @@ export class ClientPortalController {
     @Param('id', ParseUUIDPipe) id: string,
     @Req() req: any,
   ) {
-    const contact = {
-      clientId: req.user.clientId,
-      contactId: req.user.contactId || req.user.sub,
-      id: req.user.contactId || req.user.sub,
-      email: req.user.email,
-      isClientContact: true,
-    };
-    return this.productIdeasService.toggleOrganizationVote(id, contact);
+    return this.productIdeasService.toggleOrganizationVote(id, req.user as ClientContactUser);
   }
 
   @ApiBearerAuth('JWT-auth')
@@ -735,14 +710,7 @@ export class ClientPortalController {
     @Param('id', ParseUUIDPipe) id: string,
     @Req() req: any,
   ) {
-    const contact = {
-      clientId: req.user.clientId,
-      contactId: req.user.contactId || req.user.sub,
-      id: req.user.contactId || req.user.sub,
-      email: req.user.email,
-      isClientContact: true,
-    };
-    return this.productIdeasService.toggleIdeaFollow(id, contact);
+    return this.productIdeasService.toggleIdeaFollow(id, req.user as ClientContactUser);
   }
 
   @ApiBearerAuth('JWT-auth')
@@ -753,14 +721,7 @@ export class ClientPortalController {
     @Req() req: any,
     @Query('productId') productId?: string,
   ) {
-    const contact = {
-      clientId: req.user.clientId,
-      contactId: req.user.contactId || req.user.sub,
-      id: req.user.contactId || req.user.sub,
-      email: req.user.email,
-      isClientContact: true,
-    };
-    const data = await this.productIdeasService.getClientPortalRoadmap(contact, productId);
+    const data = await this.productIdeasService.getClientPortalRoadmap(req.user as ClientContactUser, productId);
     return {
       message: 'Product roadmap retrieved successfully',
       data,

@@ -459,9 +459,9 @@ Kashvira Infotech is a small IT startup providing software solutions for manufac
 
 After evaluating paid and free tools available in the market, we chose to develop KS-PMT for our internal project and product management needs, including task and ticket tracking. This approach helps us manage costs by avoiding recurring SaaS subscription fees while retaining full control over our workflows, deployment, and data.
 
-### Planned Professional Services
+### Professional Services
 
-Once the planned scope of this open-source version is complete, we intend to offer installation, setup, implementation, training, support, customization, and hosting services to clients who wish to use KS-PMT for their project and product management needs.
+We offer installation, setup, implementation, training, support, customization, and hosting services to clients who wish to use KS-PMT for their project and product management needs.
 
 For each client's customization engagement, we create a separate private GitHub repository based on this repository and share access with that client. We develop and deliver the agreed custom requirements in that private repository, maintaining a dedicated codebase for the client.
 

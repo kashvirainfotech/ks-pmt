@@ -425,7 +425,7 @@ export class RaidService {
       LEFT JOIN projects p ON ri.project_id = p.id
       LEFT JOIN products pr ON ri.product_id = pr.id
       LEFT JOIN users u ON ri.owner_user_id = u.id
-      LEFT JOIN requirements r ON ri.requirement_id = r.id
+      LEFT JOIN requirement_specifications r ON ri.requirement_id = r.id
       LEFT JOIN milestones m ON ri.milestone_id = m.id
       LEFT JOIN software_components sc ON ri.component_id = sc.id
       LEFT JOIN tasks t ON ri.task_id = t.id
@@ -460,7 +460,7 @@ export class RaidService {
       LEFT JOIN projects p ON ri.project_id = p.id
       LEFT JOIN products pr ON ri.product_id = pr.id
       LEFT JOIN users u ON ri.owner_user_id = u.id
-      LEFT JOIN requirements r ON ri.requirement_id = r.id
+      LEFT JOIN requirement_specifications r ON ri.requirement_id = r.id
       LEFT JOIN milestones m ON ri.milestone_id = m.id
       LEFT JOIN software_components sc ON ri.component_id = sc.id
       LEFT JOIN tasks t ON ri.task_id = t.id

@@ -1613,7 +1613,7 @@ CREATE TABLE IF NOT EXISTS raid_items (
     mitigation_plan TEXT,
     contingency_plan TEXT,
     internal_discussion TEXT,
-    requirement_id UUID REFERENCES requirements(id) ON DELETE SET NULL,
+    requirement_id UUID REFERENCES requirement_specifications(id) ON DELETE SET NULL,
     milestone_id UUID REFERENCES milestones(id) ON DELETE SET NULL,
     task_id UUID REFERENCES tasks(id) ON DELETE SET NULL,
     component_id UUID REFERENCES software_components(id) ON DELETE SET NULL,

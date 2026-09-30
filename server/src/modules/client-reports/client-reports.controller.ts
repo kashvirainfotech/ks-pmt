@@ -9,9 +9,9 @@ import {
   UseGuards,
   Request,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
-import { DynamicRbacGuard } from '../../guards/dynamic-rbac.guard';
-import { Permissions } from '../../decorators/permissions.decorator';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { DynamicRbacGuard } from '../rbac/rbac.guard';
+import { Permissions } from '../../common/decorators/permissions.decorator';
 import { ClientReportsService } from './client-reports.service';
 import { CreateClientReportDto } from './dto/create-client-report.dto';
 import { UpdateClientReportDto } from './dto/update-client-report.dto';
