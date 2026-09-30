@@ -11,6 +11,7 @@
 [![Database: PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL%2015+-336791?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![Storage: AWS S3](https://img.shields.io/badge/Storage-AWS%20S3%20Pre--Signed-FF9900?logo=amazons3&logoColor=white)](https://aws.amazon.com/s3/)
 [![Tailwind CSS: v4](https://img.shields.io/badge/Styling-Tailwind%20CSS-38B2AC?logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![Live Demo](https://img.shields.io/badge/Live_Demo-ks--pmt.onrender.com-success?logo=render&logoColor=white)](https://ks-pmt.onrender.com/)
 
 ---
 
@@ -20,8 +21,25 @@
 
 ---
 
+## 🌐 Live Demo & Preview
+
+Explore and interact with a live, hosted deployment of **KS-PMT**:
+
+- 🔗 **Live Demo URL**: [https://ks-pmt.onrender.com/](https://ks-pmt.onrender.com/)
+- 🔑 **Demo Login Credentials**:
+  - **Email**: `admin@kashvirainfotech.com`
+  - **Password**: `Admin@123456`
+  - *(Pre-seeded with multi-branch workspaces, Kanban boards, client delivery workflows, UAT packages, and release gates)*
+
+<p align="center">
+  <img src="docs/images/dashboard-demo.png" alt="KS-PMT Workspace Overview Dashboard" width="100%" style="border-radius: 8px; border: 1px solid #e2e8f0; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);" />
+</p>
+
+---
+
 ## 📑 Table of Contents
 
+- [Live Demo & Preview](#-live-demo--preview)
 - [Architectural Overview](#-architectural-overview)
 - [What KS-PMT Does](#-what-ks-pmt-does)
 - [Current Implementation Status (Completed Modules)](#-current-implementation-status-completed-modules)
