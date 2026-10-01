@@ -333,7 +333,12 @@ BEGIN
         ('KNOWLEDGE', 'READ', 'KNOWLEDGE:READ', 'Permission to view knowledge documents, ADRs, runbooks, and revisions', TRUE, v_admin_id),
         ('KNOWLEDGE', 'MANAGE', 'KNOWLEDGE:MANAGE', 'Permission to create and manage knowledge documents, revisions, and links', TRUE, v_admin_id),
         ('KNOWLEDGE', 'PUBLISH', 'KNOWLEDGE:PUBLISH', 'Permission to approve, publish, and record decision outcomes on documents', TRUE, v_admin_id),
-        ('KNOWLEDGE', 'ARCHIVE', 'KNOWLEDGE:ARCHIVE', 'Permission to deprecate and archive knowledge documents', TRUE, v_admin_id)
+        ('KNOWLEDGE', 'ARCHIVE', 'KNOWLEDGE:ARCHIVE', 'Permission to deprecate and archive knowledge documents', TRUE, v_admin_id),
+        -- Templates and Recurring Work Master Permissions (COLLAB-002)
+        ('TEMPLATES', 'READ', 'TEMPLATES:READ', 'Permission to view project and task templates', TRUE, v_admin_id),
+        ('TEMPLATES', 'MANAGE', 'TEMPLATES:MANAGE', 'Permission to create and manage project and task templates', TRUE, v_admin_id),
+        ('TEMPLATES', 'INSTANTIATE', 'TEMPLATES:INSTANTIATE', 'Permission to instantiate projects and tasks from templates', TRUE, v_admin_id),
+        ('RECURRENCE', 'MANAGE', 'RECURRENCE:MANAGE', 'Permission to manage recurring work rules and manual triggers', TRUE, v_admin_id)
     ON CONFLICT (permission_code) DO NOTHING;
 
     INSERT INTO role_permissions (role_id, permission_id, created_by)
@@ -357,7 +362,8 @@ BEGIN
         'RAID:READ', 'RAID:MANAGE', 'CLIENT_ACTIONS:MANAGE',
         'PRODUCT_IDEAS:READ', 'PRODUCT_IDEAS:MANAGE', 'PRODUCT_IDEAS:ROADMAP',
         'TESTING:READ', 'TESTING:MANAGE', 'TESTING:EXECUTE', 'TESTING:SIGNOFF',
-        'KNOWLEDGE:READ', 'KNOWLEDGE:MANAGE', 'KNOWLEDGE:PUBLISH', 'KNOWLEDGE:ARCHIVE'
+        'KNOWLEDGE:READ', 'KNOWLEDGE:MANAGE', 'KNOWLEDGE:PUBLISH', 'KNOWLEDGE:ARCHIVE',
+        'TEMPLATES:READ', 'TEMPLATES:MANAGE', 'TEMPLATES:INSTANTIATE', 'RECURRENCE:MANAGE'
     )
     ON CONFLICT (role_id, permission_id) DO NOTHING;
 
@@ -374,7 +380,8 @@ BEGIN
         'RAID:READ', 'RAID:MANAGE', 'CLIENT_ACTIONS:MANAGE',
         'PRODUCT_IDEAS:READ', 'PRODUCT_IDEAS:MANAGE', 'PRODUCT_IDEAS:ROADMAP',
         'TESTING:READ', 'TESTING:SIGNOFF',
-        'KNOWLEDGE:READ', 'KNOWLEDGE:MANAGE', 'KNOWLEDGE:PUBLISH', 'KNOWLEDGE:ARCHIVE'
+        'KNOWLEDGE:READ', 'KNOWLEDGE:MANAGE', 'KNOWLEDGE:PUBLISH', 'KNOWLEDGE:ARCHIVE',
+        'TEMPLATES:READ', 'TEMPLATES:MANAGE', 'TEMPLATES:INSTANTIATE', 'RECURRENCE:MANAGE'
     )
     ON CONFLICT (role_id, permission_id) DO NOTHING;
 
@@ -401,7 +408,8 @@ BEGIN
     WHERE p.permission_code IN (
         'BRANCHES:MANAGE', 'USERS:MANAGE', 'PROJECTS:READ', 'TASKS:READ', 'TASKS:ASSIGN',
         'TIMELOGS:APPROVE', 'TIMESHEETS:READ', 'TIMESHEETS:APPROVE', 'CALENDARS:READ',
-        'AUDIT_LOGS:VIEW', 'CLIENT_REPORTS:READ', 'RAID:READ', 'KNOWLEDGE:READ'
+        'AUDIT_LOGS:VIEW', 'CLIENT_REPORTS:READ', 'RAID:READ', 'KNOWLEDGE:READ',
+        'TEMPLATES:READ', 'TEMPLATES:INSTANTIATE'
     ) ON CONFLICT (role_id, permission_id) DO NOTHING;
 
     -- Developer Role Permissions
@@ -413,7 +421,8 @@ BEGIN
         'TIMESHEETS:READ', 'TIMESHEETS:SUBMIT', 'HANDOFFS:READ', 'HANDOFFS:CREATE',
         'HANDOFFS:ACKNOWLEDGE', 'DEPENDENCIES:READ', 'BLOCKERS:READ', 'BLOCKERS:MANAGE',
         'SAVED_VIEWS:READ', 'SAVED_VIEWS:MANAGE', 'COMPONENTS:READ', 'PROJECTS:READ',
-        'PRODUCT_IDEAS:READ', 'TESTING:READ', 'KNOWLEDGE:READ', 'KNOWLEDGE:MANAGE'
+        'PRODUCT_IDEAS:READ', 'TESTING:READ', 'KNOWLEDGE:READ', 'KNOWLEDGE:MANAGE',
+        'TEMPLATES:READ', 'TEMPLATES:INSTANTIATE'
     ) ON CONFLICT (role_id, permission_id) DO NOTHING;
 
     -- QA Tester Role Permissions

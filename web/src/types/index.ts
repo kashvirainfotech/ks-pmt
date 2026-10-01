@@ -2158,3 +2158,121 @@ export interface KnowledgeDocument {
   updated_at: string;
 }
 
+// ========================================================
+// COLLAB-002: Project/Task Templates & Recurring Work
+// ========================================================
+
+export type ProjectTemplateCategory =
+  | 'CLIENT_ONBOARDING'
+  | 'FIXED_PRICE_DELIVERY'
+  | 'MAINTENANCE_RETAINER'
+  | 'SECURITY_AUDIT'
+  | 'RELEASE_CHECKLIST'
+  | 'INTERNAL_INITIATIVE'
+  | 'CUSTOM';
+
+export interface MilestoneTemplateItem {
+  name: string;
+  description?: string;
+  target_offset_days?: number;
+  display_order?: number;
+}
+
+export interface ProjectTemplate {
+  id: string;
+  template_code: string;
+  template_name: string;
+  description?: string;
+  category: ProjectTemplateCategory;
+  target_engagement_model: string;
+  default_estimated_duration_days: number;
+  milestone_templates: MilestoneTemplateItem[];
+  task_templates_count?: number;
+  task_templates?: TaskTemplate[];
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export type TaskTemplatePriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+export type TaskTemplateHierarchyLevel = 'EPIC' | 'TASK' | 'SUBTASK';
+
+export interface ChecklistTemplateItem {
+  item: string;
+  is_required?: boolean;
+}
+
+export interface TaskTemplate {
+  id: string;
+  project_template_id?: string;
+  project_template_name?: string;
+  task_template_code: string;
+  title: string;
+  description?: string;
+  task_type_id?: string;
+  priority: TaskTemplatePriority;
+  hierarchy_level: TaskTemplateHierarchyLevel;
+  parent_task_template_id?: string;
+  start_offset_days: number;
+  duration_days: number;
+  estimated_hours: number;
+  default_role_code?: string;
+  checklists_template: ChecklistTemplateItem[];
+  display_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export type RecurrenceFrequency =
+  | 'DAILY'
+  | 'WEEKLY'
+  | 'BIWEEKLY'
+  | 'MONTHLY'
+  | 'QUARTERLY'
+  | 'ANNUALLY';
+
+export interface RecurringWorkRule {
+  id: string;
+  rule_code: string;
+  title: string;
+  description?: string;
+  product_id?: string;
+  product_name?: string;
+  project_id?: string;
+  project_name?: string;
+  task_template_id?: string;
+  task_template_title?: string;
+  frequency: RecurrenceFrequency;
+  interval_count: number;
+  day_of_month?: number;
+  day_of_week?: number;
+  month_of_year?: number;
+  next_run_date: string;
+  end_date?: string;
+  max_occurrences?: number;
+  total_occurrences_count: number;
+  executed_occurrences_count?: number;
+  default_assignee_user_id?: string;
+  default_assignee_name?: string;
+  default_priority: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RecurringTaskOccurrence {
+  id: string;
+  rule_id: string;
+  scheduled_date: string;
+  executed_at: string;
+  generated_task_id: string;
+  task_code?: string;
+  task_title?: string;
+  priority?: string;
+  status_name?: string;
+  execution_status: 'SUCCESS' | 'FAILED' | 'SKIPPED';
+  error_message?: string;
+  created_at: string;
+}
+

@@ -31,6 +31,7 @@ import {
   ShieldAlert,
   Compass,
   BookOpen,
+  Copy,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -61,6 +62,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       { label: 'Work handoffs', path: '/handoffs', icon: ArrowRightLeft, show: true },
       { label: 'Components', path: '/components', icon: Cpu, show: true },
       { label: 'Knowledge & ADRs', path: '/knowledge', icon: BookOpen, show: true },
+      { label: 'Templates & Recurrence', path: '/templates', icon: Copy, show: true },
       { label: 'Clients', path: '/clients', icon: Users2, show: true },
     ]},
     { title: 'Client Delivery', items: [

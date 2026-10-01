@@ -2013,6 +2013,113 @@ CREATE TABLE IF NOT EXISTS knowledge_document_attachments (
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+-- ========================================================
+-- Date & Time: 2026-10-01 09:35:00 IST
+-- Description: COLLAB-002 - Project & Task Templates, Relative Dates & Recurring Work with Unique Occurrences
+-- ========================================================
+
+-- 74. Project Templates Master (COLLAB-002)
+CREATE TABLE IF NOT EXISTS project_templates (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    template_code VARCHAR(50) NOT NULL UNIQUE,
+    template_name VARCHAR(150) NOT NULL,
+    description TEXT,
+    category VARCHAR(50) NOT NULL DEFAULT 'CLIENT_ONBOARDING' CHECK (
+        category IN ('CLIENT_ONBOARDING', 'FIXED_PRICE_DELIVERY', 'MAINTENANCE_RETAINER', 'SECURITY_AUDIT', 'RELEASE_CHECKLIST', 'INTERNAL_INITIATIVE')
+    ),
+    default_billing_type VARCHAR(30) NOT NULL DEFAULT 'FIXED_COST' CHECK (
+        default_billing_type IN ('FIXED_COST', 'TIME_AND_MATERIALS', 'NON_BILLABLE', 'RETAINER')
+    ),
+    estimated_duration_days INTEGER NOT NULL DEFAULT 30 CHECK (estimated_duration_days > 0),
+    default_tags TEXT[] NOT NULL DEFAULT '{}',
+    milestone_templates JSONB NOT NULL DEFAULT '[]'::jsonb,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 75. Task Templates Master (COLLAB-002)
+CREATE TABLE IF NOT EXISTS task_templates (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    template_code VARCHAR(50) NOT NULL UNIQUE,
+    project_template_id UUID REFERENCES project_templates(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    task_type_id UUID REFERENCES task_types(id) ON DELETE SET NULL,
+    priority VARCHAR(20) NOT NULL DEFAULT 'MEDIUM' CHECK (priority IN ('LOW', 'MEDIUM', 'HIGH', 'URGENT', 'CRITICAL')),
+    start_offset_days INTEGER NOT NULL DEFAULT 0 CHECK (start_offset_days >= 0),
+    duration_days INTEGER NOT NULL DEFAULT 1 CHECK (duration_days > 0),
+    estimated_hours NUMERIC(6, 2) NOT NULL DEFAULT 8.00 CHECK (estimated_hours >= 0),
+    story_points INTEGER NOT NULL DEFAULT 1 CHECK (story_points >= 0),
+    checklist_items JSONB NOT NULL DEFAULT '[]'::jsonb,
+    default_tags TEXT[] NOT NULL DEFAULT '{}',
+    order_index INTEGER NOT NULL DEFAULT 1,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 76. Recurring Work Rules Master (COLLAB-002)
+CREATE TABLE IF NOT EXISTS recurring_work_rules (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    rule_code VARCHAR(50) NOT NULL UNIQUE,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    task_template_id UUID REFERENCES task_templates(id) ON DELETE SET NULL,
+    project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+    product_id UUID REFERENCES products(id) ON DELETE CASCADE,
+    component_id UUID REFERENCES software_components(id) ON DELETE SET NULL,
+    frequency VARCHAR(30) NOT NULL DEFAULT 'WEEKLY' CHECK (
+        frequency IN ('DAILY', 'WEEKLY', 'BIWEEKLY', 'MONTHLY', 'QUARTERLY', 'ANNUALLY')
+    ),
+    interval_value INTEGER NOT NULL DEFAULT 1 CHECK (interval_value > 0),
+    day_of_week INTEGER CHECK (day_of_week BETWEEN 1 AND 7),
+    day_of_month INTEGER CHECK (day_of_month BETWEEN 1 AND 31),
+    start_date DATE NOT NULL,
+    end_date DATE,
+    max_occurrences INTEGER,
+    occurrences_count INTEGER NOT NULL DEFAULT 0 CHECK (occurrences_count >= 0),
+    last_generated_date DATE,
+    next_run_date DATE NOT NULL,
+    default_assignee_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    target_priority VARCHAR(20) NOT NULL DEFAULT 'MEDIUM' CHECK (target_priority IN ('LOW', 'MEDIUM', 'HIGH', 'URGENT', 'CRITICAL')),
+    estimated_hours NUMERIC(6, 2) NOT NULL DEFAULT 4.00 CHECK (estimated_hours >= 0),
+    checklist_items JSONB NOT NULL DEFAULT '[]'::jsonb,
+    tags TEXT[] NOT NULL DEFAULT '{}',
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_recurrence_scope CHECK (
+        (project_id IS NOT NULL AND product_id IS NULL) OR
+        (product_id IS NOT NULL AND project_id IS NULL) OR
+        (project_id IS NULL AND product_id IS NULL)
+    )
+);
+
+-- 77. Recurring Task Occurrences (Idempotent Occurrence Registry - COLLAB-002)
+CREATE TABLE IF NOT EXISTS recurring_task_occurrences (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    rule_id UUID NOT NULL REFERENCES recurring_work_rules(id) ON DELETE CASCADE,
+    task_id UUID NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+    scheduled_date DATE NOT NULL,
+    occurrence_number INTEGER NOT NULL CHECK (occurrence_number > 0),
+    generated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_recurrence_scheduled_date UNIQUE (rule_id, scheduled_date),
+    CONSTRAINT uq_recurrence_task UNIQUE (task_id)
+);
+
+
 
 
 

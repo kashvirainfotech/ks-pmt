@@ -80,6 +80,10 @@ import {
   KnowledgeDocumentRevision,
   KnowledgeDocumentLink,
   KnowledgeDocumentAttachment,
+  ProjectTemplate,
+  TaskTemplate,
+  RecurringWorkRule,
+  RecurringTaskOccurrence,
 } from '../types';
 
 // ==========================================
@@ -1268,4 +1272,69 @@ export const knowledgeApi = {
 
   deleteAttachment: (documentId: string, attachmentId: string): Promise<{ data: any }> =>
     api.delete(`/knowledge/documents/${documentId}/attachments/${attachmentId}`),
+};
+
+// ==========================================
+// Templates & Recurring Work (COLLAB-002)
+// ==========================================
+export const templatesApi = {
+  // Project Templates
+  getProjectTemplates: (params?: any): Promise<{ data: { data: ProjectTemplate[]; meta: any } }> =>
+    api.get('/templates/projects', { params }),
+
+  getProjectTemplateById: (id: string): Promise<{ data: ProjectTemplate }> =>
+    api.get(`/templates/projects/${id}`),
+
+  createProjectTemplate: (data: any): Promise<{ data: ProjectTemplate }> =>
+    api.post('/templates/projects', data),
+
+  updateProjectTemplate: (id: string, data: any): Promise<{ data: ProjectTemplate }> =>
+    api.patch(`/templates/projects/${id}`, data),
+
+  deleteProjectTemplate: (id: string): Promise<{ data: any }> =>
+    api.delete(`/templates/projects/${id}`),
+
+  instantiateProject: (id: string, data: any): Promise<{ data: { project: any; milestones_created: number; tasks_created: number } }> =>
+    api.post(`/templates/projects/${id}/instantiate`, data),
+
+  // Task Templates
+  getTaskTemplates: (params?: any): Promise<{ data: { data: TaskTemplate[]; meta: any } }> =>
+    api.get('/templates/tasks', { params }),
+
+  getTaskTemplateById: (id: string): Promise<{ data: TaskTemplate }> =>
+    api.get(`/templates/tasks/${id}`),
+
+  createTaskTemplate: (data: any): Promise<{ data: TaskTemplate }> =>
+    api.post('/templates/tasks', data),
+
+  updateTaskTemplate: (id: string, data: any): Promise<{ data: TaskTemplate }> =>
+    api.patch(`/templates/tasks/${id}`, data),
+
+  deleteTaskTemplate: (id: string): Promise<{ data: any }> =>
+    api.delete(`/templates/tasks/${id}`),
+
+  instantiateTask: (id: string, data: any): Promise<{ data: any }> =>
+    api.post(`/templates/tasks/${id}/instantiate`, data),
+
+  // Recurring Work Rules
+  getRecurrenceRules: (params?: any): Promise<{ data: { data: RecurringWorkRule[]; meta: any } }> =>
+    api.get('/templates/recurrence-rules', { params }),
+
+  getRecurrenceRuleById: (id: string): Promise<{ data: RecurringWorkRule }> =>
+    api.get(`/templates/recurrence-rules/${id}`),
+
+  createRecurrenceRule: (data: any): Promise<{ data: RecurringWorkRule }> =>
+    api.post('/templates/recurrence-rules', data),
+
+  updateRecurrenceRule: (id: string, data: any): Promise<{ data: RecurringWorkRule }> =>
+    api.patch(`/templates/recurrence-rules/${id}`, data),
+
+  deleteRecurrenceRule: (id: string): Promise<{ data: any }> =>
+    api.delete(`/templates/recurrence-rules/${id}`),
+
+  getRuleOccurrences: (id: string): Promise<{ data: RecurringTaskOccurrence[] }> =>
+    api.get(`/templates/recurrence-rules/${id}/occurrences`),
+
+  triggerRule: (id: string, data?: { targetDate?: string }): Promise<{ data: { occurrence: RecurringTaskOccurrence; generated_task: any; next_run_date: string } }> =>
+    api.post(`/templates/recurrence-rules/${id}/trigger`, data || {}),
 };

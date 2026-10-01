@@ -357,3 +357,18 @@ CREATE INDEX IF NOT EXISTS idx_knowledge_links_entity ON knowledge_document_link
 CREATE INDEX IF NOT EXISTS idx_knowledge_attachments_doc ON knowledge_document_attachments(document_id, revision_number);
 
 
+-- ========================================================
+-- Date & Time: 2026-10-01 09:35:00 IST
+-- Description: COLLAB-002 - Indexes for Project/Task Templates and Recurring Work Rules
+-- ========================================================
+CREATE INDEX IF NOT EXISTS idx_proj_templates_code ON project_templates(template_code);
+CREATE INDEX IF NOT EXISTS idx_proj_templates_cat ON project_templates(category, is_active);
+CREATE INDEX IF NOT EXISTS idx_task_templates_proj ON task_templates(project_template_id, display_order);
+CREATE INDEX IF NOT EXISTS idx_task_templates_parent ON task_templates(parent_task_template_id) WHERE parent_task_template_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_task_templates_code ON task_templates(task_template_code);
+
+CREATE INDEX IF NOT EXISTS idx_recurrence_rules_code ON recurring_work_rules(rule_code);
+CREATE INDEX IF NOT EXISTS idx_recurrence_rules_scope ON recurring_work_rules(product_id, project_id);
+CREATE INDEX IF NOT EXISTS idx_recurrence_rules_next_run ON recurring_work_rules(next_run_date, is_active);
+CREATE INDEX IF NOT EXISTS idx_recurrence_occurrences_rule ON recurring_task_occurrences(rule_id, scheduled_date);
+CREATE INDEX IF NOT EXISTS idx_recurrence_occurrences_task ON recurring_task_occurrences(generated_task_id);

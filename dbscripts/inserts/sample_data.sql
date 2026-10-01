@@ -8303,3 +8303,193 @@ BEGIN
     ON CONFLICT (checklist_id, item_code) DO NOTHING;
 
 END $$;
+
+-- ========================================================
+-- Date & Time: 2026-10-01 09:35:00 IST
+-- Description: COLLAB-002 - Enterprise Sample Templates and Recurring Work Rules
+-- ========================================================
+DO 
+DECLARE
+    v_admin_id UUID := '00000000-0000-0000-0000-000000000001';
+    v_task_type_task UUID := '55555555-5555-5555-5555-555555555551';
+    v_branch_id UUID := '11111111-1111-1111-1111-111111111111';
+    v_dev_user_id UUID := '00000000-0000-0000-0000-000000000004';
+    v_lead_user_id UUID := '00000000-0000-0000-0000-000000000003';
+BEGIN
+    -- 1. Project Templates
+    INSERT INTO project_templates (
+        id, template_code, template_name, description, category,
+        target_engagement_model, default_estimated_duration_days, milestone_templates,
+        is_active, created_by
+    ) VALUES (
+        'f1000000-0000-0000-0000-000000000001',
+        'TPL-PRJ-CLIENT-ONBOARD',
+        'Enterprise Client Onboarding & Solution Kickoff',
+        'Standard blueprint for rapid client onboarding, security review, infrastructure provisioning, and initial sprint zero execution.',
+        'CLIENT_ONBOARDING',
+        'TIME_AND_MATERIALS',
+        30,
+        '[
+            {"name": "Discovery & Architecture Alignment", "target_offset_days": 7, "display_order": 1},
+            {"name": "Infrastructure Provisioning & Sandbox Access", "target_offset_days": 15, "display_order": 2},
+            {"name": "Initial Pilot & Production Readiness Review", "target_offset_days": 30, "display_order": 3}
+        ]'::jsonb,
+        TRUE,
+        v_admin_id
+    ), (
+        'f1000000-0000-0000-0000-000000000002',
+        'TPL-PRJ-FIXED-DELIVERY',
+        'Fixed-Price Custom Software Delivery',
+        'Structured template for milestone-gated fixed price software engagements with formal sign-off gates.',
+        'FIXED_PRICE_DELIVERY',
+        'FIXED_COST',
+        60,
+        '[
+            {"name": "Sprint 0 & Scope Baseline Signoff", "target_offset_days": 10, "display_order": 1},
+            {"name": "Core MVP Functionality Delivery", "target_offset_days": 35, "display_order": 2},
+            {"name": "Client UAT & Production Cutover", "target_offset_days": 60, "display_order": 3}
+        ]'::jsonb,
+        TRUE,
+        v_admin_id
+    ) ON CONFLICT (template_code) DO NOTHING;
+
+    -- 2. Task Templates for Client Onboarding
+    INSERT INTO task_templates (
+        id, project_template_id, task_template_code, title, description,
+        task_type_id, priority, hierarchy_level, start_offset_days, duration_days,
+        estimated_hours, default_role_code, checklists_template, display_order, is_active, created_by
+    ) VALUES (
+        'f2000000-0000-0000-0000-000000000001',
+        'f1000000-0000-0000-0000-000000000001',
+        'TPL-TSK-ONB-01',
+        'Kickoff Meeting & Governance Alignment',
+        'Coordinate executive stakeholder briefing, communication matrix, and shared Slack/Teams channels.',
+        v_task_type_task,
+        'HIGH',
+        'TASK',
+        0, 2, 8.00,
+        'ROLE_PROJECT_MANAGER',
+        '[{"item": "Schedule 60m intro call", "is_required": true}, {"item": "Exchange key contact matrix", "is_required": true}, {"item": "Distribute project charter & timeline", "is_required": true}]'::jsonb,
+        1, TRUE, v_admin_id
+    ), (
+        'f2000000-0000-0000-0000-000000000002',
+        'f1000000-0000-0000-0000-000000000001',
+        'TPL-TSK-ONB-02',
+        'Cloud IAM & Sandbox Workspace Provisioning',
+        'Set up AWS/GCP development accounts, configure federated SSO, and whitelist client IP ranges.',
+        v_task_type_task,
+        'HIGH',
+        'TASK',
+        2, 5, 16.00,
+        'ROLE_DEVOPS',
+        '[{"item": "Create dedicated VPC and subnets", "is_required": true}, {"item": "Provision IAM cross-account roles", "is_required": true}, {"item": "Verify SSH & VPN connectivity", "is_required": true}]'::jsonb,
+        2, TRUE, v_admin_id
+    ), (
+        'f2000000-0000-0000-0000-000000000003',
+        'f1000000-0000-0000-0000-000000000001',
+        'TPL-TSK-ONB-03',
+        'Architecture Review & Data Flow Mapping',
+        'Review existing client API specs, third-party integrations, and compliance constraints.',
+        v_task_type_task,
+        'URGENT',
+        'TASK',
+        7, 7, 24.00,
+        'ROLE_DEVELOPER',
+        '[{"item": "Draft system context diagram", "is_required": true}, {"item": "Document integration authentication tokens", "is_required": true}, {"item": "Present architecture decision record", "is_required": true}]'::jsonb,
+        3, TRUE, v_admin_id
+    ), (
+        'f2000000-0000-0000-0000-000000000004',
+        'f1000000-0000-0000-0000-000000000001',
+        'TPL-TSK-ONB-04',
+        'Pilot Environment Smoke Testing & Handoff',
+        'Deploy baseline release build to pilot staging environment and execute initial verification suite.',
+        v_task_type_task,
+        'MEDIUM',
+        'TASK',
+        15, 10, 20.00,
+        'ROLE_QA_TESTER',
+        '[{"item": "Deploy staging artifact build", "is_required": true}, {"item": "Execute automated smoke tests", "is_required": true}, {"item": "Issue client test login credentials", "is_required": true}]'::jsonb,
+        4, TRUE, v_admin_id
+    ), (
+        -- Standalone Templates
+        'f2000000-0000-0000-0000-000000000005',
+        NULL,
+        'TPL-TSK-SEC-AUDIT',
+        'Quarterly SOC2 / ISO27001 Security Audit & Vulnerability Scan',
+        'Comprehensive security review covering dependencies, container vulnerabilities, IAM access keys, and staging backups.',
+        v_task_type_task,
+        'HIGH',
+        'TASK',
+        0, 5, 18.00,
+        'ROLE_DEVOPS',
+        '[{"item": "Run Trivy container scan", "is_required": true}, {"item": "Audit IAM inactive access keys > 90 days", "is_required": true}, {"item": "Rotate staging database credentials", "is_required": true}, {"item": "File vulnerability remediation tickets", "is_required": true}]'::jsonb,
+        1, TRUE, v_admin_id
+    ), (
+        'f2000000-0000-0000-0000-000000000006',
+        NULL,
+        'TPL-TSK-REL-CHECKLIST',
+        'Production Release Checklist & Smoke Verification',
+        'Operational checklist executed by delivery lead and DevOps specialist prior to cutover.',
+        v_task_type_task,
+        'URGENT',
+        'TASK',
+        0, 1, 6.00,
+        'ROLE_PROJECT_MANAGER',
+        '[{"item": "Verify database migration dry run on staging replica", "is_required": true}, {"item": "Check S3 bucket policy and CORS configuration", "is_required": true}, {"item": "Trigger blue-green zero-downtime deployment", "is_required": true}, {"item": "Execute automated smoke test suite on live endpoints", "is_required": true}]'::jsonb,
+        2, TRUE, v_admin_id
+    ) ON CONFLICT (task_template_code) DO NOTHING;
+
+    -- 3. Recurring Work Rules
+    INSERT INTO recurring_work_rules (
+        id, rule_code, title, description, product_id, project_id,
+        task_template_id, frequency, interval_count, day_of_month, day_of_week,
+        next_run_date, default_assignee_user_id, default_priority, is_active, created_by
+    ) VALUES (
+        'f3000000-0000-0000-0000-000000000001',
+        'REC-SEC-AUDIT-Q',
+        'Quarterly Security & Infrastructure Compliance Audit',
+        'Automated recurrence rule generating quarterly security review tasks for the flagship ERP product.',
+        'a0000000-0000-0000-0000-000000000001',
+        NULL,
+        'f2000000-0000-0000-0000-000000000005',
+        'QUARTERLY',
+        1,
+        1,
+        NULL,
+        CURRENT_DATE + INTERVAL '1 day',
+        v_lead_user_id,
+        'HIGH',
+        TRUE,
+        v_admin_id
+    ), (
+        'f3000000-0000-0000-0000-000000000002',
+        'REC-DB-MAINT-WK',
+        'Weekly Database Index Defrag & VACUUM ANALYZE Review',
+        'Automated recurrence rule for weekly PostgreSQL maintenance review and query plan sanity check.',
+        NULL,
+        'b0000000-0000-0000-0000-000000000001',
+        NULL,
+        'WEEKLY',
+        1,
+        NULL,
+        1,
+        CURRENT_DATE + INTERVAL '2 days',
+        v_dev_user_id,
+        'MEDIUM',
+        TRUE,
+        v_admin_id
+    ) ON CONFLICT (rule_code) DO NOTHING;
+
+    -- 4. Sample Occurrence History
+    INSERT INTO recurring_task_occurrences (
+        id, rule_id, scheduled_date, executed_at, generated_task_id, execution_status, created_by
+    ) VALUES (
+        'f4000000-0000-0000-0000-000000000001',
+        'f3000000-0000-0000-0000-000000000002',
+        CURRENT_DATE - INTERVAL '5 days',
+        CURRENT_TIMESTAMP - INTERVAL '5 days',
+        '20000000-0000-0000-0000-0000000003e8',
+        'SUCCESS',
+        v_admin_id
+    ) ON CONFLICT (rule_id, scheduled_date) DO NOTHING;
+END ;
