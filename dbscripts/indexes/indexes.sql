@@ -337,9 +337,23 @@ CREATE INDEX IF NOT EXISTS idx_test_run_items_defect ON test_run_items(linked_de
 CREATE INDEX IF NOT EXISTS idx_readiness_prod ON release_readiness_checklists(product_id, overall_status) WHERE product_id IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_readiness_prj ON release_readiness_checklists(project_id, overall_status) WHERE project_id IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_readiness_version ON release_readiness_checklists(version_id) WHERE version_id IS NOT NULL;
-CREATE INDEX IF NOT EXISTS idx_readiness_items_chk ON release_checklist_items(checklist_id, status);
+CREATE INDEX IF NOT EXISTS idx_readiness_items_chk ON release_checklist_items(checklist_id, status);-- ========================================================
+-- Date & Time: 2026-09-30 22:36:00 IST
+-- Description: COLLAB-001 - Indexes for Knowledge Documents, Revisions, Work Item Links & Attachments
+-- ========================================================
+CREATE INDEX IF NOT EXISTS idx_knowledge_docs_slug ON knowledge_documents(slug);
+CREATE INDEX IF NOT EXISTS idx_knowledge_docs_cat ON knowledge_documents(category, status);
+CREATE INDEX IF NOT EXISTS idx_knowledge_docs_scope ON knowledge_documents(entity_type, product_id, project_id);
+CREATE INDEX IF NOT EXISTS idx_knowledge_docs_audience ON knowledge_documents(audience, status);
+CREATE INDEX IF NOT EXISTS idx_knowledge_docs_owner ON knowledge_documents(owner_user_id) WHERE owner_user_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_knowledge_docs_superseded ON knowledge_documents(superseded_by_document_id) WHERE superseded_by_document_id IS NOT NULL;
 
+CREATE INDEX IF NOT EXISTS idx_knowledge_revisions_doc ON knowledge_document_revisions(document_id, revision_number DESC);
+CREATE INDEX IF NOT EXISTS idx_knowledge_revisions_author ON knowledge_document_revisions(author_user_id) WHERE author_user_id IS NOT NULL;
 
+CREATE INDEX IF NOT EXISTS idx_knowledge_links_doc ON knowledge_document_links(document_id);
+CREATE INDEX IF NOT EXISTS idx_knowledge_links_entity ON knowledge_document_links(linked_entity_type, linked_entity_id);
 
+CREATE INDEX IF NOT EXISTS idx_knowledge_attachments_doc ON knowledge_document_attachments(document_id, revision_number);
 
 

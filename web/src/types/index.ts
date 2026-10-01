@@ -2061,12 +2061,100 @@ export interface TraceabilitySummary {
   pendingCases: number;
   linkedDefectsCount: number;
   coveragePercentage: number;
+}// ==========================================
+// 24. Versioned Knowledge Base, Decision Docs & Specs (COLLAB-001)
+// ==========================================
+
+export type KnowledgeCategory =
+  | 'SPECIFICATION'
+  | 'ARCHITECTURE_DECISION'
+  | 'RUNBOOK'
+  | 'MEETING_NOTES'
+  | 'RELEASE_NOTES'
+  | 'USER_GUIDE'
+  | 'POLICY';
+
+export type KnowledgeEntityType = 'GLOBAL' | 'PRODUCT' | 'PROJECT';
+export type KnowledgeAudience = 'INTERNAL_ONLY' | 'CLIENT_VISIBLE' | 'PRODUCT_COMMUNITY';
+export type KnowledgeDocStatus = 'DRAFT' | 'IN_REVIEW' | 'APPROVED' | 'SUPERSEDED' | 'ARCHIVED';
+export type DecisionOutcome = 'PROPOSED' | 'ACCEPTED' | 'REJECTED' | 'DEPRECATED' | 'SUPERSEDED';
+
+export type KnowledgeLinkedEntityType =
+  | 'TASK'
+  | 'VERSION'
+  | 'MILESTONE'
+  | 'REQUIREMENT_CRITERION'
+  | 'CHANGE_REQUEST';
+
+export interface KnowledgeDocumentRevision {
+  id: string;
+  document_id: string;
+  revision_number: number;
+  title: string;
+  content_markdown: string;
+  change_summary?: string;
+  author_user_id?: string;
+  author_name?: string;
+  author_email?: string;
+  created_at: string;
+  updated_at?: string;
 }
 
+export interface KnowledgeDocumentLink {
+  id: string;
+  document_id: string;
+  linked_entity_type: KnowledgeLinkedEntityType;
+  linked_entity_id: string;
+  linked_entity_label?: string;
+  link_notes?: string;
+  created_at: string;
+}
 
+export interface KnowledgeDocumentAttachment {
+  id: string;
+  document_id: string;
+  revision_number: number;
+  file_name: string;
+  s3_key: string;
+  s3_bucket: string;
+  mime_type: string;
+  file_size_bytes: number;
+  created_at: string;
+}
 
-
-
-
-
+export interface KnowledgeDocument {
+  id: string;
+  document_code: string;
+  title: string;
+  slug: string;
+  category: KnowledgeCategory;
+  entity_type: KnowledgeEntityType;
+  product_id?: string;
+  project_id?: string;
+  component_id?: string;
+  audience: KnowledgeAudience;
+  current_version: number;
+  status: KnowledgeDocStatus;
+  decision_outcome?: DecisionOutcome;
+  superseded_by_document_id?: string;
+  superseded_by_title?: string;
+  superseded_by_code?: string;
+  owner_user_id?: string;
+  owner_name?: string;
+  owner_email?: string;
+  tags: string[];
+  product_name?: string;
+  project_name?: string;
+  component_name?: string;
+  revision_count?: number;
+  links_count?: number;
+  attachments_count?: number;
+  latest_revision?: KnowledgeDocumentRevision;
+  revisions?: KnowledgeDocumentRevision[];
+  links?: KnowledgeDocumentLink[];
+  attachments?: KnowledgeDocumentAttachment[];
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
 

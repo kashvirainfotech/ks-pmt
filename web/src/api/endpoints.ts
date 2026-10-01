@@ -76,6 +76,10 @@ import {
   ReleaseChecklistItem,
   TraceabilityItem,
   TraceabilitySummary,
+  KnowledgeDocument,
+  KnowledgeDocumentRevision,
+  KnowledgeDocumentLink,
+  KnowledgeDocumentAttachment,
 } from '../types';
 
 // ==========================================
@@ -1225,14 +1229,43 @@ export const qaApi = {
   getTraceabilityMatrix: (params?: { productId?: string; projectId?: string }): Promise<{ data: { summary: TraceabilitySummary; items: TraceabilityItem[] } }> =>
     api.get('/qa/traceability', { params }),
 };
+// ==========================================
+// Knowledge Base, ADRs & Specs (COLLAB-001)
+// ==========================================
+export const knowledgeApi = {
+  getDocuments: (params?: any): Promise<{ data: { data: KnowledgeDocument[]; total: number; page: number; limit: number; totalPages: number } }> =>
+    api.get('/knowledge/documents', { params }),
 
+  getDocumentById: (id: string): Promise<{ data: KnowledgeDocument }> =>
+    api.get(`/knowledge/documents/${id}`),
 
+  createDocument: (data: any): Promise<{ data: KnowledgeDocument }> =>
+    api.post('/knowledge/documents', data),
 
+  updateDocument: (id: string, data: any): Promise<{ data: KnowledgeDocument }> =>
+    api.patch(`/knowledge/documents/${id}`, data),
 
+  deleteDocument: (id: string): Promise<{ data: any }> =>
+    api.delete(`/knowledge/documents/${id}`),
 
+  addRevision: (documentId: string, data: any): Promise<{ data: KnowledgeDocumentRevision }> =>
+    api.post(`/knowledge/documents/${documentId}/revisions`, data),
 
+  getRevision: (documentId: string, rev: number): Promise<{ data: KnowledgeDocumentRevision }> =>
+    api.get(`/knowledge/documents/${documentId}/revisions/${rev}`),
 
+  getRevisionDiff: (documentId: string, base: number, target: number): Promise<{ data: { baseRevision: KnowledgeDocumentRevision; targetRevision: KnowledgeDocumentRevision } }> =>
+    api.get(`/knowledge/documents/${documentId}/diff`, { params: { base, target } }),
 
+  addLink: (documentId: string, data: any): Promise<{ data: KnowledgeDocumentLink }> =>
+    api.post(`/knowledge/documents/${documentId}/links`, data),
 
+  removeLink: (documentId: string, linkId: string): Promise<{ data: any }> =>
+    api.delete(`/knowledge/documents/${documentId}/links/${linkId}`),
 
+  addAttachment: (documentId: string, data: any): Promise<{ data: KnowledgeDocumentAttachment }> =>
+    api.post(`/knowledge/documents/${documentId}/attachments`, data),
 
+  deleteAttachment: (documentId: string, attachmentId: string): Promise<{ data: any }> =>
+    api.delete(`/knowledge/documents/${documentId}/attachments/${attachmentId}`),
+};

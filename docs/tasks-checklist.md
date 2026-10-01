@@ -378,7 +378,7 @@ All boxes in this section remain unchecked. Feature IDs reference [requirements]
 - [x] **PROD-001 — roadmap**: Authenticated Now/Next/Later views, indicative versus committed dates, deferred/merged outcomes, delivery/release links and approved changelogs.
 - [ ] **PROD-002**: Product goals, baselines/targets, owners and dated outcome reviews linked to released features.
 - [x] **QA-001**: Reusable manual test cases/runs, evidence, affected/fix versions, known issues and reviewed release readiness; no CI/CD or automated test execution integration.
-- [ ] **COLLAB-001**: Versioned knowledge/decision documents with explicit audiences and permission-preserving task links; rich comments and comment-specific S3 composition.
+- [x] **COLLAB-001**: Versioned knowledge/decision documents with explicit audiences and permission-preserving task links; rich comments and comment-specific S3 composition.
 - [ ] **COLLAB-002**: Project/task templates, relative dates and recurring work with unique occurrences; never copy approvals, client permissions or confidential artifacts implicitly.
 - [ ] **COLLAB-003**: Watchers, independent follows, channel/digest/quiet-hour settings and urgent exceptions; retries deduplicate and queued delivery rechecks authorization.
 - [ ] **COMM-001**: Retainer/AMC periods, included/approved/remaining hours, historical terms, rollover and overage approval using CLIENT-004.

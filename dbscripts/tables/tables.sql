@@ -1929,6 +1929,91 @@ CREATE TABLE IF NOT EXISTS release_checklist_items (
     CONSTRAINT uq_release_checklist_item UNIQUE (checklist_id, item_code)
 );
 
+-- ========================================================
+-- Date & Time: 2026-09-30 22:35:00 IST
+-- Description: COLLAB-001 - Versioned Knowledge Base, Decision Docs (ADRs) & Specs Library
+-- ========================================================
+
+-- 70. Knowledge Documents Master (COLLAB-001)
+CREATE TABLE IF NOT EXISTS knowledge_documents (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    document_code VARCHAR(50) NOT NULL UNIQUE,
+    title VARCHAR(255) NOT NULL,
+    slug VARCHAR(255) NOT NULL,
+    category VARCHAR(50) NOT NULL CHECK (category IN ('SPECIFICATION', 'ARCHITECTURE_DECISION', 'RUNBOOK', 'MEETING_NOTES', 'RELEASE_NOTES', 'USER_GUIDE', 'POLICY')),
+    entity_type VARCHAR(20) NOT NULL DEFAULT 'GLOBAL' CHECK (entity_type IN ('PRODUCT', 'PROJECT', 'GLOBAL')),
+    product_id UUID REFERENCES products(id) ON DELETE CASCADE,
+    project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+    component_id UUID REFERENCES software_components(id) ON DELETE SET NULL,
+    audience VARCHAR(30) NOT NULL DEFAULT 'INTERNAL_ONLY' CHECK (audience IN ('INTERNAL_ONLY', 'CLIENT_VISIBLE', 'PRODUCT_COMMUNITY')),
+    current_version INTEGER NOT NULL DEFAULT 1 CHECK (current_version > 0),
+    status VARCHAR(30) NOT NULL DEFAULT 'DRAFT' CHECK (status IN ('DRAFT', 'IN_REVIEW', 'APPROVED', 'SUPERSEDED', 'ARCHIVED')),
+    decision_outcome VARCHAR(30) CHECK (decision_outcome IN ('PROPOSED', 'ACCEPTED', 'REJECTED', 'DEPRECATED', 'SUPERSEDED')),
+    superseded_by_document_id UUID REFERENCES knowledge_documents(id) ON DELETE SET NULL,
+    owner_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    tags TEXT[] NOT NULL DEFAULT '{}',
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_knowledge_doc_scope CHECK (
+        (entity_type = 'GLOBAL' AND product_id IS NULL AND project_id IS NULL) OR
+        (entity_type = 'PRODUCT' AND product_id IS NOT NULL AND project_id IS NULL) OR
+        (entity_type = 'PROJECT' AND project_id IS NOT NULL AND product_id IS NULL)
+    )
+);
+
+-- 71. Knowledge Document Revisions (Version History & Diffs - COLLAB-001)
+CREATE TABLE IF NOT EXISTS knowledge_document_revisions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    document_id UUID NOT NULL REFERENCES knowledge_documents(id) ON DELETE CASCADE,
+    revision_number INTEGER NOT NULL CHECK (revision_number > 0),
+    title VARCHAR(255) NOT NULL,
+    content_markdown TEXT NOT NULL,
+    change_summary VARCHAR(500),
+    author_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_knowledge_doc_revision UNIQUE (document_id, revision_number)
+);
+
+-- 72. Knowledge Document Work Item Links (COLLAB-001)
+CREATE TABLE IF NOT EXISTS knowledge_document_links (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    document_id UUID NOT NULL REFERENCES knowledge_documents(id) ON DELETE CASCADE,
+    linked_entity_type VARCHAR(30) NOT NULL CHECK (linked_entity_type IN ('TASK', 'VERSION', 'MILESTONE', 'REQUIREMENT_CRITERION', 'CHANGE_REQUEST')),
+    linked_entity_id UUID NOT NULL,
+    link_notes TEXT,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_knowledge_doc_entity_link UNIQUE (document_id, linked_entity_type, linked_entity_id)
+);
+
+-- 73. Knowledge Document Attachments (Immutable S3 Asset Revisions - COLLAB-001)
+CREATE TABLE IF NOT EXISTS knowledge_document_attachments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    document_id UUID NOT NULL REFERENCES knowledge_documents(id) ON DELETE CASCADE,
+    revision_number INTEGER NOT NULL DEFAULT 1 CHECK (revision_number > 0),
+    file_name VARCHAR(255) NOT NULL,
+    s3_key VARCHAR(500) NOT NULL,
+    s3_bucket VARCHAR(255) NOT NULL DEFAULT 'ks-pmt-documents',
+    mime_type VARCHAR(150) NOT NULL,
+    file_size_bytes BIGINT NOT NULL CHECK (file_size_bytes >= 0),
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+
 
 
 

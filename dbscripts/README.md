@@ -1,4 +1,4 @@
-﻿# Database Scripts
+# Database Scripts
 
 KS-PMT is **under development**. After major changes, the developer / DBA installs and tests against a **blank PostgreSQL database**. Edit canonical `CREATE` definitions directly. Do not accumulate schema migrations or standalone `ALTER`, `DROP`, `UPDATE`, or `DELETE` statements. Required seed inserts, `ON DELETE` foreign-key actions, trigger events, and function bodies remain part of the application.
 
@@ -10,8 +10,13 @@ KS-PMT is **under development**. After major changes, the developer / DBA instal
 | --- | --- |
 | Tables and inline constraints | `tables/tables.sql` |
 | Indexes | `indexes/indexes.sql` |
-| Seed data | `inserts/inserts.sql` |
+| Required foundation setup data | `inserts/inserts.sql` |
+| Demo & sample showcase data | `inserts/sample_data.sql` |
 | Functions, procedures, views, triggers, sequences | Individual files in their corresponding folders |
+
+The seed data is cleanly split into two distinct tiers:
+- **`inserts/inserts.sql` (Required Foundation Data)**: Minimal master setup data required for the software to run. Contains System Roles, System-wide Permissions across all modules, Role-Permission Mappings, Head Office Branch, Base Departments & Designations, Task Types, Task Statuses, Default Workflow Scheme & Transitions, Corporate Working Calendar, and the Super Admin account (`admin@kashvirainfotech.com`).
+- **`inserts/sample_data.sql` (Demo & Showcase Data)**: Comprehensive demonstration dataset including additional branches (Pune, Bangalore), 12 demo employee users, 4 demo clients & contacts, 3 demo software products & component DAGs, 5 demo projects, delivery teams, sprints, milestones, 210+ tasks, time logs, comments, handoffs, blocker episodes, client intake requests, requirements & criteria, change requests, UAT packages, client progress reports, RAID items, product ideas, QA test runs, and knowledge base documents (ADRs).
 
 The former `tables/alter_tables.sql` has been removed; its changes are included in the current table definitions. `department_heads` stores one optional head assignment per department, breaking the users/departments foreign-key cycle. The API still exposes `hod_user_id`. Both relationships are enforced with inline foreign keys, and deleting a user removes the assignment without deleting the department.
 

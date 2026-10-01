@@ -18,5 +18,6 @@ SET LOCAL search_path TO public;
 \ir views/vw_task_hierarchy.sql
 \ir indexes/indexes.sql
 \ir inserts/inserts.sql
+\ir inserts/sample_data.sql
 
 COMMIT;

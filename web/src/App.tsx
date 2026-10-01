@@ -32,6 +32,7 @@ import { ClientReportsView } from './components/client-reports/ClientReportsView
 import { RaidWorkspaceView } from './components/raid/RaidWorkspaceView';
 import { ProductRoadmapView } from './components/product-roadmap/ProductRoadmapView';
 import { QualityAssuranceWorkspace } from './components/qa/QualityAssuranceWorkspace';
+import { KnowledgeBaseWorkspace } from './components/knowledge/KnowledgeBaseWorkspace';
 
 // Protected Route Wrapper
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
@@ -91,6 +92,7 @@ export const App: React.FC = () => {
         <Route path="change-requests" element={<ChangeRequestsView />} />
         <Route path="uat-packages" element={<UatPackagesView />} />
         <Route path="qa" element={<QualityAssuranceWorkspace />} />
+        <Route path="knowledge" element={<KnowledgeBaseWorkspace />} />
         <Route path="client-reports" element={<ClientReportsView />} />
         <Route path="raid" element={<RaidWorkspaceView />} />
         <Route path="product-roadmap" element={<ProductRoadmapView />} />
