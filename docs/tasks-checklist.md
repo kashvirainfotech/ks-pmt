@@ -380,7 +380,7 @@ All boxes in this section remain unchecked. Feature IDs reference [requirements]
 - [x] **QA-001**: Reusable manual test cases/runs, evidence, affected/fix versions, known issues and reviewed release readiness; no CI/CD or automated test execution integration.
 - [x] **COLLAB-001**: Versioned knowledge/decision documents with explicit audiences and permission-preserving task links; rich comments and comment-specific S3 composition.
 - [x] **COLLAB-002**: Project/task templates, relative dates and recurring work with unique occurrences; never copy approvals, client permissions or confidential artifacts implicitly.
-- [ ] **COLLAB-003**: Watchers, independent follows, channel/digest/quiet-hour settings and urgent exceptions; retries deduplicate and queued delivery rechecks authorization.
+- [x] **COLLAB-003**: Watchers, independent follows, channel/digest/quiet-hour settings and urgent exceptions; retries deduplicate and queued delivery rechecks authorization.
 - [ ] **COMM-001**: Retainer/AMC periods, included/approved/remaining hours, historical terms, rollover and overage approval using CLIENT-004.
 - [ ] **Product acceptance**: Merge duplicate ideas without privacy leaks or duplicate votes, link idea to outcome review, and reconcile approved allowance usage without double consumption.
 

@@ -2125,3 +2125,99 @@ CREATE TABLE IF NOT EXISTS recurring_task_occurrences (
 
 
 
+
+-- ========================================================
+-- Date & Time: 2026-10-01 10:00:00 IST
+-- Description: COLLAB-003 - Work Item Watchers, Notification Settings, and Reliable Delivery Queue
+-- ========================================================
+
+-- 78. Work Item Watchers & Followers (COLLAB-003)
+CREATE TABLE IF NOT EXISTS work_item_watchers (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    entity_type VARCHAR(50) NOT NULL, -- 'TASK', 'KNOWLEDGE_DOC', 'PRODUCT_IDEA', 'CHANGE_REQUEST', 'UAT_PACKAGE'
+    entity_id UUID NOT NULL,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    client_contact_id UUID REFERENCES client_contacts(id) ON DELETE CASCADE,
+    watch_reason VARCHAR(50) NOT NULL DEFAULT 'MANUAL', -- 'MANUAL', 'CREATOR', 'ASSIGNEE', 'COMMENTER', 'AUTO_RULE'
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_watcher_actor CHECK (
+        (user_id IS NOT NULL AND client_contact_id IS NULL) OR
+        (user_id IS NULL AND client_contact_id IS NOT NULL)
+    ),
+    CONSTRAINT uq_entity_user_watcher UNIQUE (entity_type, entity_id, user_id),
+    CONSTRAINT uq_entity_contact_watcher UNIQUE (entity_type, entity_id, client_contact_id)
+);
+
+-- 79. User & Contact Notification Settings (COLLAB-003)
+CREATE TABLE IF NOT EXISTS user_notification_settings (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    client_contact_id UUID REFERENCES client_contacts(id) ON DELETE CASCADE,
+    in_app_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    email_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    push_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    event_preferences JSONB NOT NULL DEFAULT '{
+        "TASK_ASSIGNMENT": {"inApp": true, "email": true, "push": true},
+        "STATUS_CHANGE": {"inApp": true, "email": false, "push": false},
+        "COMMENT_AND_MENTION": {"inApp": true, "email": true, "push": true},
+        "BLOCKER_AND_DEPENDENCY": {"inApp": true, "email": true, "push": true},
+        "DOCUMENT_REVISION": {"inApp": true, "email": false, "push": false},
+        "APPROVAL_AND_SIGNOFF": {"inApp": true, "email": true, "push": true},
+        "DEADLINE_AND_SLA": {"inApp": true, "email": true, "push": true},
+        "RECURRING_WORK_RUN": {"inApp": true, "email": false, "push": false}
+    }'::jsonb,
+    digest_mode VARCHAR(20) NOT NULL DEFAULT 'INSTANT' CHECK (digest_mode IN ('INSTANT', 'DAILY', 'WEEKLY')),
+    digest_time TIME NOT NULL DEFAULT '09:00:00',
+    quiet_hours_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+    quiet_hours_start TIME NOT NULL DEFAULT '22:00:00',
+    quiet_hours_end TIME NOT NULL DEFAULT '08:00:00',
+    allow_urgent_during_quiet_hours BOOLEAN NOT NULL DEFAULT TRUE,
+    timezone VARCHAR(50) NOT NULL DEFAULT 'Asia/Kolkata',
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_notif_settings_actor CHECK (
+        (user_id IS NOT NULL AND client_contact_id IS NULL) OR
+        (user_id IS NULL AND client_contact_id IS NOT NULL)
+    ),
+    CONSTRAINT uq_user_notif_settings UNIQUE (user_id),
+    CONSTRAINT uq_contact_notif_settings UNIQUE (client_contact_id)
+);
+
+-- 80. Notification Delivery Queue (Deduplicated, Authorization-Rechecked - COLLAB-003)
+CREATE TABLE IF NOT EXISTS notification_delivery_queue (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    recipient_user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    recipient_contact_id UUID REFERENCES client_contacts(id) ON DELETE CASCADE,
+    channel VARCHAR(20) NOT NULL CHECK (channel IN ('IN_APP', 'EMAIL', 'PUSH')),
+    event_type VARCHAR(50) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    body TEXT NOT NULL,
+    entity_type VARCHAR(50),
+    entity_id UUID,
+    payload JSONB NOT NULL DEFAULT '{}'::jsonb,
+    is_urgent BOOLEAN NOT NULL DEFAULT FALSE,
+    scheduled_for TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    delivery_status VARCHAR(30) NOT NULL DEFAULT 'QUEUED' CHECK (
+        delivery_status IN ('QUEUED', 'DIGEST_PENDING', 'SENT', 'FAILED', 'CANCELLED_UNAUTHORIZED', 'SUPPRESSED_QUIET_HOURS')
+    ),
+    deduplication_key VARCHAR(150) NOT NULL UNIQUE,
+    attempts_count INTEGER NOT NULL DEFAULT 0,
+    last_error TEXT,
+    sent_at TIMESTAMP WITH TIME ZONE,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_queue_recipient CHECK (
+        (recipient_user_id IS NOT NULL AND recipient_contact_id IS NULL) OR
+        (recipient_user_id IS NULL AND recipient_contact_id IS NOT NULL)
+    )
+);

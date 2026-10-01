@@ -1,8 +1,8 @@
 import React, { lazy, Suspense } from 'react';
 import {
   ProfilePage,
-  NotificationsPage,
 } from './components/management/ProfilePage';
+import { NotificationsWorkspaceView } from './components/notifications/NotificationsWorkspaceView';
 import { TimesheetsPage } from './components/management/TimesheetsPage';
 import {
   AdminPage,
@@ -104,7 +104,7 @@ export const App: React.FC = () => {
           <Route key={screen.path} path={screen.path} element={<AdminPage key={screen.path} screen={screen} />} />
         ))}
         <Route path="profile" element={<ProfilePage />} />
-        <Route path="notifications" element={<NotificationsPage />} />
+        <Route path="notifications" element={<NotificationsWorkspaceView />} />
         <Route path="releases" element={<ReleaseCalendar />} />
         <Route path="audit" element={<AuditLogsView />} />
       </Route>

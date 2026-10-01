@@ -372,3 +372,21 @@ CREATE INDEX IF NOT EXISTS idx_recurrence_rules_scope ON recurring_work_rules(pr
 CREATE INDEX IF NOT EXISTS idx_recurrence_rules_next_run ON recurring_work_rules(next_run_date, is_active);
 CREATE INDEX IF NOT EXISTS idx_recurrence_occurrences_rule ON recurring_task_occurrences(rule_id, scheduled_date);
 CREATE INDEX IF NOT EXISTS idx_recurrence_occurrences_task ON recurring_task_occurrences(generated_task_id);
+
+-- ========================================================
+-- Date & Time: 2026-10-01 10:00:00 IST
+-- Description: COLLAB-003 - Indexes for Work Item Watchers, Notification Preferences & Delivery Queue
+-- ========================================================
+CREATE INDEX IF NOT EXISTS idx_watchers_entity ON work_item_watchers(entity_type, entity_id);
+CREATE INDEX IF NOT EXISTS idx_watchers_user ON work_item_watchers(user_id) WHERE user_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_watchers_contact ON work_item_watchers(client_contact_id) WHERE client_contact_id IS NOT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_notif_settings_user ON user_notification_settings(user_id) WHERE user_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_notif_settings_contact ON user_notification_settings(client_contact_id) WHERE client_contact_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_notif_settings_digest ON user_notification_settings(digest_mode);
+
+CREATE INDEX IF NOT EXISTS idx_notif_queue_status ON notification_delivery_queue(delivery_status, scheduled_for);
+CREATE INDEX IF NOT EXISTS idx_notif_queue_user ON notification_delivery_queue(recipient_user_id) WHERE recipient_user_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_notif_queue_contact ON notification_delivery_queue(recipient_contact_id) WHERE recipient_contact_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_notif_queue_entity ON notification_delivery_queue(entity_type, entity_id);
+

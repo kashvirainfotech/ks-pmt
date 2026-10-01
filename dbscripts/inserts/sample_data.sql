@@ -8492,4 +8492,155 @@ BEGIN
         'SUCCESS',
         v_admin_id
     ) ON CONFLICT (rule_id, scheduled_date) DO NOTHING;
+
+    -- ========================================================
+    -- Date & Time: 2026-10-01 10:10:00 IST
+    -- Description: COLLAB-003 - Sample Notification Settings, Watchers & Queue Records
+    -- ========================================================
+
+    -- 5. User Notification Settings
+    INSERT INTO user_notification_settings (
+        id, user_id, client_contact_id, email_notifications_enabled, in_app_notifications_enabled,
+        push_notifications_enabled, digest_mode, quiet_hours_enabled, quiet_hours_start,
+        quiet_hours_end, timezone, allow_urgent_during_quiet_hours, event_preferences, created_by
+    ) VALUES (
+        'f5000000-0000-0000-0000-000000000001',
+        v_admin_id,
+        NULL,
+        TRUE,
+        TRUE,
+        TRUE,
+        'INSTANT',
+        FALSE,
+        NULL,
+        NULL,
+        'Asia/Kolkata',
+        TRUE,
+        '{"TASK_ASSIGNMENT": true, "STATUS_CHANGE": true, "COMMENT_AND_MENTION": true, "BLOCKER_AND_DEPENDENCY": true, "DOCUMENT_REVISION": true, "APPROVAL_AND_SIGNOFF": true, "DEADLINE_AND_SLA": true, "RECURRING_WORK_RUN": true}'::jsonb,
+        v_admin_id
+    ), (
+        'f5000000-0000-0000-0000-000000000002',
+        '00000000-0000-0000-0000-000000000003', -- PM Priya Desai
+        NULL,
+        TRUE,
+        TRUE,
+        FALSE,
+        'DAILY',
+        TRUE,
+        '22:00:00',
+        '07:00:00',
+        'Asia/Kolkata',
+        TRUE,
+        '{"TASK_ASSIGNMENT": true, "STATUS_CHANGE": true, "COMMENT_AND_MENTION": true, "BLOCKER_AND_DEPENDENCY": true, "DOCUMENT_REVISION": true, "APPROVAL_AND_SIGNOFF": true, "DEADLINE_AND_SLA": true, "RECURRING_WORK_RUN": false}'::jsonb,
+        v_admin_id
+    ), (
+        'f5000000-0000-0000-0000-000000000003',
+        '00000000-0000-0000-0000-000000000006', -- Dev Rohan
+        NULL,
+        FALSE,
+        TRUE,
+        FALSE,
+        'INSTANT',
+        TRUE,
+        '23:00:00',
+        '08:00:00',
+        'Asia/Kolkata',
+        FALSE,
+        '{"TASK_ASSIGNMENT": true, "STATUS_CHANGE": true, "COMMENT_AND_MENTION": true, "BLOCKER_AND_DEPENDENCY": true, "DOCUMENT_REVISION": false, "APPROVAL_AND_SIGNOFF": false, "DEADLINE_AND_SLA": true, "RECURRING_WORK_RUN": false}'::jsonb,
+        v_admin_id
+    ) ON CONFLICT (user_id) DO NOTHING;
+
+    -- 6. Work Item Watchers (Independent Followers)
+    INSERT INTO work_item_watchers (
+        id, entity_type, entity_id, user_id, client_contact_id,
+        notify_on_status_change, notify_on_comments, notify_on_attachments, notify_on_approvals,
+        created_by
+    ) VALUES (
+        'f6000000-0000-0000-0000-000000000001',
+        'TASK',
+        '20000000-0000-0000-0000-0000000003e9',
+        v_admin_id,
+        NULL,
+        TRUE, TRUE, TRUE, TRUE,
+        v_admin_id
+    ), (
+        'f6000000-0000-0000-0000-000000000002',
+        'TASK',
+        '20000000-0000-0000-0000-0000000003e9',
+        '00000000-0000-0000-0000-000000000003',
+        NULL,
+        TRUE, TRUE, FALSE, TRUE,
+        v_admin_id
+    ), (
+        'f6000000-0000-0000-0000-000000000003',
+        'KNOWLEDGE_DOC',
+        'e0000000-0000-0000-0000-000000000001',
+        '00000000-0000-0000-0000-000000000006',
+        NULL,
+        TRUE, TRUE, TRUE, TRUE,
+        v_admin_id
+    ), (
+        'f6000000-0000-0000-0000-000000000004',
+        'PRODUCT_IDEA',
+        'd0000000-0000-0000-0000-000000000001',
+        '00000000-0000-0000-0000-000000000003',
+        NULL,
+        TRUE, TRUE, TRUE, TRUE,
+        v_admin_id
+    ) ON CONFLICT DO NOTHING;
+
+    -- 7. Deduplicated Notification Delivery Queue Entries
+    INSERT INTO notification_delivery_queue (
+        id, deduplication_key, recipient_user_id, recipient_contact_id, delivery_channel,
+        event_category, event_title, event_summary, entity_type, entity_id,
+        entity_code, is_urgent, delivery_status, scheduled_for, created_by
+    ) VALUES (
+        'f7000000-0000-0000-0000-000000000001',
+        'dedup_task_assign_3e9_admin',
+        v_admin_id,
+        NULL,
+        'IN_APP',
+        'TASK_ASSIGNMENT',
+        'Assigned to GST E-Invoicing Engine',
+        'You have been added to TSK-ERP-001 by System Administrator.',
+        'TASK',
+        '20000000-0000-0000-0000-0000000003e9',
+        'TSK-ERP-001',
+        FALSE,
+        'SENT',
+        CURRENT_TIMESTAMP - INTERVAL '1 hour',
+        v_admin_id
+    ), (
+        'f7000000-0000-0000-0000-000000000002',
+        'dedup_status_change_3e9_pm',
+        '00000000-0000-0000-0000-000000000003',
+        NULL,
+        'EMAIL',
+        'STATUS_CHANGE',
+        'Task TSK-ERP-001 transitioned to IN_PROGRESS',
+        'Developer Suresh Nair updated the status of TSK-ERP-001 to In Progress.',
+        'TASK',
+        '20000000-0000-0000-0000-0000000003e9',
+        'TSK-ERP-001',
+        FALSE,
+        'QUEUED',
+        CURRENT_TIMESTAMP,
+        v_admin_id
+    ), (
+        'f7000000-0000-0000-0000-000000000003',
+        'dedup_doc_rev_arch_pm',
+        '00000000-0000-0000-0000-000000000003',
+        NULL,
+        'EMAIL',
+        'DOCUMENT_REVISION',
+        'New Revision 2 published for Architecture RFC',
+        'Architect System Administrator published revision 2 for KS-ADR-001.',
+        'KNOWLEDGE_DOC',
+        'e0000000-0000-0000-0000-000000000001',
+        'DOC-ADR-001',
+        FALSE,
+        'DIGEST_PENDING',
+        CURRENT_TIMESTAMP,
+        v_admin_id
+    ) ON CONFLICT (deduplication_key) DO NOTHING;
 END ;

@@ -16,6 +16,10 @@ import {
   Project,
   Version,
   NotificationItem,
+  UserNotificationSettings,
+  WorkItemWatcher,
+  NotificationQueueItem,
+  DigestPreviewResponse,
   AuditLogItem,
   PaginatedResponse,
   WorkingCalendar,
@@ -339,6 +343,51 @@ export const notificationsApi = {
     deviceType: 'WEB' | 'ANDROID' | 'IOS';
     fcmToken: string;
   }) => api.post('/notifications/push-token', data),
+
+  // COLLAB-003: Preferences & Quiet Hours
+  getSettings: (): Promise<{ data: UserNotificationSettings }> =>
+    api.get('/notifications/settings'),
+
+  updateSettings: (data: Partial<UserNotificationSettings>): Promise<{ data: UserNotificationSettings }> =>
+    api.put('/notifications/settings', data),
+
+  // COLLAB-003: Work Item Watchers
+  watch: (data: {
+    entityType: string;
+    entityId: string;
+    clientContactId?: string;
+    notifyOnStatusChange?: boolean;
+    notifyOnComments?: boolean;
+    notifyOnAttachments?: boolean;
+    notifyOnApprovals?: boolean;
+  }): Promise<{ data: WorkItemWatcher }> =>
+    api.post('/notifications/watchers/watch', data),
+
+  unwatch: (data: {
+    entityType: string;
+    entityId: string;
+    clientContactId?: string;
+  }): Promise<{ data: { success: boolean; removed: boolean } }> =>
+    api.post('/notifications/watchers/unwatch', data),
+
+  getEntityWatchers: (entityType: string, entityId: string): Promise<{ data: WorkItemWatcher[] }> =>
+    api.get(`/notifications/watchers/entity/${entityType}/${entityId}`),
+
+  getMyWatchedItems: (): Promise<{ data: WorkItemWatcher[] }> =>
+    api.get('/notifications/watchers/my'),
+
+  // COLLAB-003: Delivery Queue & Digest Dispatch
+  enqueue: (data: Partial<NotificationQueueItem>): Promise<{ data: { item: NotificationQueueItem; isDuplicate: boolean } }> =>
+    api.post('/notifications/queue/enqueue', data),
+
+  dispatchQueue: (): Promise<{ data: { totalProcessed: number; delivered: number; suppressed: number; cancelledUnauthorized: number } }> =>
+    api.post('/notifications/queue/dispatch'),
+
+  getQueue: (params?: any): Promise<{ data: { items: NotificationQueueItem[]; totalCount: number; page: number; totalPages: number } }> =>
+    api.get('/notifications/queue', { params }),
+
+  previewDigest: (): Promise<{ data: DigestPreviewResponse }> =>
+    api.get('/notifications/digest/preview'),
 };
 
 export const auditLogsApi = {

@@ -338,7 +338,11 @@ BEGIN
         ('TEMPLATES', 'READ', 'TEMPLATES:READ', 'Permission to view project and task templates', TRUE, v_admin_id),
         ('TEMPLATES', 'MANAGE', 'TEMPLATES:MANAGE', 'Permission to create and manage project and task templates', TRUE, v_admin_id),
         ('TEMPLATES', 'INSTANTIATE', 'TEMPLATES:INSTANTIATE', 'Permission to instantiate projects and tasks from templates', TRUE, v_admin_id),
-        ('RECURRENCE', 'MANAGE', 'RECURRENCE:MANAGE', 'Permission to manage recurring work rules and manual triggers', TRUE, v_admin_id)
+        ('RECURRENCE', 'MANAGE', 'RECURRENCE:MANAGE', 'Permission to manage recurring work rules and manual triggers', TRUE, v_admin_id),
+        -- Notification Preferences, Watchers & Delivery Queue (COLLAB-003)
+        ('NOTIFICATIONS', 'PREFERENCES', 'NOTIFICATIONS:PREFERENCES', 'Permission to manage notification preferences, quiet hours, and digest subscriptions', TRUE, v_admin_id),
+        ('NOTIFICATIONS', 'WATCH', 'NOTIFICATIONS:WATCH', 'Permission to watch or unwatch work items and manage watchers', TRUE, v_admin_id),
+        ('NOTIFICATIONS', 'DISPATCH_QUEUE', 'NOTIFICATIONS:DISPATCH_QUEUE', 'Permission to inspect, trigger, and manage the notification delivery queue', TRUE, v_admin_id)
     ON CONFLICT (permission_code) DO NOTHING;
 
     INSERT INTO role_permissions (role_id, permission_id, created_by)
@@ -363,7 +367,8 @@ BEGIN
         'PRODUCT_IDEAS:READ', 'PRODUCT_IDEAS:MANAGE', 'PRODUCT_IDEAS:ROADMAP',
         'TESTING:READ', 'TESTING:MANAGE', 'TESTING:EXECUTE', 'TESTING:SIGNOFF',
         'KNOWLEDGE:READ', 'KNOWLEDGE:MANAGE', 'KNOWLEDGE:PUBLISH', 'KNOWLEDGE:ARCHIVE',
-        'TEMPLATES:READ', 'TEMPLATES:MANAGE', 'TEMPLATES:INSTANTIATE', 'RECURRENCE:MANAGE'
+        'TEMPLATES:READ', 'TEMPLATES:MANAGE', 'TEMPLATES:INSTANTIATE', 'RECURRENCE:MANAGE',
+        'NOTIFICATIONS:PREFERENCES', 'NOTIFICATIONS:WATCH', 'NOTIFICATIONS:DISPATCH_QUEUE'
     )
     ON CONFLICT (role_id, permission_id) DO NOTHING;
 
@@ -381,7 +386,8 @@ BEGIN
         'PRODUCT_IDEAS:READ', 'PRODUCT_IDEAS:MANAGE', 'PRODUCT_IDEAS:ROADMAP',
         'TESTING:READ', 'TESTING:SIGNOFF',
         'KNOWLEDGE:READ', 'KNOWLEDGE:MANAGE', 'KNOWLEDGE:PUBLISH', 'KNOWLEDGE:ARCHIVE',
-        'TEMPLATES:READ', 'TEMPLATES:MANAGE', 'TEMPLATES:INSTANTIATE', 'RECURRENCE:MANAGE'
+        'TEMPLATES:READ', 'TEMPLATES:MANAGE', 'TEMPLATES:INSTANTIATE', 'RECURRENCE:MANAGE',
+        'NOTIFICATIONS:PREFERENCES', 'NOTIFICATIONS:WATCH', 'NOTIFICATIONS:DISPATCH_QUEUE'
     )
     ON CONFLICT (role_id, permission_id) DO NOTHING;
 
@@ -395,7 +401,8 @@ BEGIN
         'CLIENT_REPORTS:READ',
         'RAID:READ',
         'PRODUCT_IDEAS:READ',
-        'KNOWLEDGE:READ'
+        'KNOWLEDGE:READ',
+        'NOTIFICATIONS:PREFERENCES', 'NOTIFICATIONS:WATCH'
     )
     ON CONFLICT (role_id, permission_id) DO NOTHING;
 
@@ -409,7 +416,8 @@ BEGIN
         'BRANCHES:MANAGE', 'USERS:MANAGE', 'PROJECTS:READ', 'TASKS:READ', 'TASKS:ASSIGN',
         'TIMELOGS:APPROVE', 'TIMESHEETS:READ', 'TIMESHEETS:APPROVE', 'CALENDARS:READ',
         'AUDIT_LOGS:VIEW', 'CLIENT_REPORTS:READ', 'RAID:READ', 'KNOWLEDGE:READ',
-        'TEMPLATES:READ', 'TEMPLATES:INSTANTIATE'
+        'TEMPLATES:READ', 'TEMPLATES:INSTANTIATE',
+        'NOTIFICATIONS:PREFERENCES', 'NOTIFICATIONS:WATCH'
     ) ON CONFLICT (role_id, permission_id) DO NOTHING;
 
     -- Developer Role Permissions
@@ -422,7 +430,8 @@ BEGIN
         'HANDOFFS:ACKNOWLEDGE', 'DEPENDENCIES:READ', 'BLOCKERS:READ', 'BLOCKERS:MANAGE',
         'SAVED_VIEWS:READ', 'SAVED_VIEWS:MANAGE', 'COMPONENTS:READ', 'PROJECTS:READ',
         'PRODUCT_IDEAS:READ', 'TESTING:READ', 'KNOWLEDGE:READ', 'KNOWLEDGE:MANAGE',
-        'TEMPLATES:READ', 'TEMPLATES:INSTANTIATE'
+        'TEMPLATES:READ', 'TEMPLATES:INSTANTIATE',
+        'NOTIFICATIONS:PREFERENCES', 'NOTIFICATIONS:WATCH'
     ) ON CONFLICT (role_id, permission_id) DO NOTHING;
 
     -- QA Tester Role Permissions
@@ -436,7 +445,8 @@ BEGIN
         'HANDOFFS:ACKNOWLEDGE', 'HANDOFFS:MANAGE', 'SAVED_VIEWS:READ', 'SAVED_VIEWS:MANAGE',
         'PROJECTS:READ', 'PRODUCT_IDEAS:READ',
         'TESTING:READ', 'TESTING:MANAGE', 'TESTING:EXECUTE', 'TESTING:SIGNOFF',
-        'KNOWLEDGE:READ', 'KNOWLEDGE:MANAGE'
+        'KNOWLEDGE:READ', 'KNOWLEDGE:MANAGE',
+        'NOTIFICATIONS:PREFERENCES', 'NOTIFICATIONS:WATCH'
     ) ON CONFLICT (role_id, permission_id) DO NOTHING;
 
     -- Standard Operational Designations

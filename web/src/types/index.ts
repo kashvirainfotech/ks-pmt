@@ -269,6 +269,81 @@ export interface NotificationItem {
   sender_name?: string;
 }
 
+export interface UserNotificationSettings {
+  id?: string;
+  user_id?: string;
+  client_contact_id?: string;
+  email_notifications_enabled?: boolean;
+  in_app_notifications_enabled?: boolean;
+  push_notifications_enabled?: boolean;
+  emailNotificationsEnabled?: boolean;
+  inAppNotificationsEnabled?: boolean;
+  pushNotificationsEnabled?: boolean;
+  digest_mode?: 'INSTANT' | 'DAILY' | 'WEEKLY';
+  digestMode?: 'INSTANT' | 'DAILY' | 'WEEKLY';
+  quiet_hours_enabled?: boolean;
+  quietHoursEnabled?: boolean;
+  quiet_hours_start?: string | null;
+  quietHoursStart?: string | null;
+  quiet_hours_end?: string | null;
+  quietHoursEnd?: string | null;
+  timezone?: string;
+  allow_urgent_during_quiet_hours?: boolean;
+  allowUrgentDuringQuietHours?: boolean;
+  event_preferences?: Record<string, boolean>;
+  eventPreferences?: Record<string, boolean>;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface WorkItemWatcher {
+  id: string;
+  entity_type: string;
+  entity_id: string;
+  user_id?: string;
+  client_contact_id?: string;
+  user_name?: string;
+  user_email?: string;
+  user_role?: string;
+  client_contact_name?: string;
+  client_contact_email?: string;
+  notify_on_status_change: boolean;
+  notify_on_comments: boolean;
+  notify_on_attachments: boolean;
+  notify_on_approvals: boolean;
+  created_at: string;
+  item_title?: string;
+  item_code?: string;
+}
+
+export interface NotificationQueueItem {
+  id: string;
+  deduplication_key: string;
+  recipient_user_id?: string;
+  recipient_contact_id?: string;
+  recipient_name?: string;
+  recipient_email?: string;
+  delivery_channel: 'IN_APP' | 'EMAIL' | 'PUSH';
+  event_category: string;
+  event_title: string;
+  event_summary?: string;
+  entity_type?: string;
+  entity_id?: string;
+  entity_code?: string;
+  is_urgent: boolean;
+  delivery_status: 'QUEUED' | 'DIGEST_PENDING' | 'SENT' | 'FAILED' | 'CANCELLED_UNAUTHORIZED' | 'SUPPRESSED_QUIET_HOURS';
+  delivery_error?: string;
+  scheduled_for: string;
+  delivered_at?: string;
+  created_at: string;
+}
+
+export interface DigestPreviewResponse {
+  totalPendingItems: number;
+  categories: Record<string, NotificationQueueItem[]>;
+  generatedAt: string;
+}
+
 export interface AuditLogItem {
   id: string;
   user_id?: string;
