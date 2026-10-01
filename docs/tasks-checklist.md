@@ -385,7 +385,7 @@ All boxes in this section remain unchecked. Feature IDs reference [requirements]
 - [ ] **Product acceptance**: Merge duplicate ideas without privacy leaks or duplicate votes, link idea to outcome review, and reconcile approved allowance usage without double consumption.
 
 - [ ] **QA-002**: Scoped environment labels and version-specific observations/retests; internal QA pass leaves failing client UAT and older client versions unresolved.
-- [ ] **COLLAB-004**: What changed filters by recorded baseline/login/time window; source-linked event versus distinct-item counts, missing-history disclosure and client-safe summaries without AI.
+- [x] **COLLAB-004**: What changed filters by recorded baseline/login/time window; source-linked event versus distinct-item counts, missing-history disclosure and client-safe summaries without AI.
 - [ ] **DATA-001**: CSV templates/mapping, dry-run, validated references, create/update conflicts, batch/row results and retry identities; formula-safe exports and no approval bypass or arbitrary attachment fetching.
 - [ ] **COLLAB-001 / QA-001 — detail acceptance**: Permission-aware knowledge search, S3 attachment revisions and manual readiness evidence with partial-release context.
 

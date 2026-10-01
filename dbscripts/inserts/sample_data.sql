@@ -8643,4 +8643,81 @@ BEGIN
         CURRENT_TIMESTAMP,
         v_admin_id
     ) ON CONFLICT (deduplication_key) DO NOTHING;
+
+    -- ========================================================
+    -- Date & Time: 2026-10-01 10:25:00 IST
+    -- Description: COLLAB-004 - Sample Activity Baselines & Saved Queries
+    -- ========================================================
+
+    -- 8. Change Activity Baselines
+    INSERT INTO change_activity_baselines (
+        id, baseline_code, title, description, scope_type, scope_id,
+        baseline_timestamp, snapshot_data, is_frozen, is_active, created_by
+    ) VALUES (
+        'f8000000-0000-0000-0000-000000000001',
+        'BASE-ERP-S1-COMMIT',
+        'ERP Sprint 1 Commitment Baseline',
+        'Official commitment snapshot of committed user stories and bugs prior to sprint start.',
+        'SPRINT',
+        '12000000-0000-0000-0000-000000000001',
+        CURRENT_TIMESTAMP - INTERVAL '7 days',
+        '{"taskCount": 4, "totalPoints": 34, "committedTaskIds": ["20000000-0000-0000-0000-0000000003e8", "20000000-0000-0000-0000-0000000003e9"]}'::jsonb,
+        TRUE,
+        TRUE,
+        v_admin_id
+    ), (
+        'f8000000-0000-0000-0000-000000000002',
+        'BASE-PRJ-KASH-SCOPE',
+        'Kashvira Cloud Launch Scope Freeze',
+        'Approved client contract scope baseline for Project ERP implementation.',
+        'PROJECT',
+        'b0000000-0000-0000-0000-000000000001',
+        CURRENT_TIMESTAMP - INTERVAL '14 days',
+        '{"totalTasks": 28, "totalEstimatedHours": 320, "approvedRequirementCount": 6}'::jsonb,
+        TRUE,
+        TRUE,
+        v_admin_id
+    ) ON CONFLICT (baseline_code) DO NOTHING;
+
+    -- 9. User Saved Activity Queries
+    INSERT INTO user_activity_saved_queries (
+        id, user_id, query_name, time_filter_type, baseline_id, scope_type,
+        scope_id, is_client_safe, category_filters, is_active, created_by
+    ) VALUES (
+        'f9000000-0000-0000-0000-000000000001',
+        v_admin_id,
+        'Changes Since My Last Login',
+        'LAST_LOGIN',
+        NULL,
+        NULL,
+        NULL,
+        FALSE,
+        '["SCOPE_ADDITION", "SCOPE_REMOVAL", "STATUS_TRANSITION", "BLOCKER_EVENT", "REQUIREMENT_CHANGE", "DOCUMENT_REVISION"]'::jsonb,
+        TRUE,
+        v_admin_id
+    ), (
+        'f9000000-0000-0000-0000-000000000002',
+        '00000000-0000-0000-0000-000000000003', -- PM Priya Desai
+        'Sprint 1 Scope Diff vs Baseline',
+        'SINCE_BASELINE',
+        'f8000000-0000-0000-0000-000000000001',
+        'SPRINT',
+        '12000000-0000-0000-0000-000000000001',
+        FALSE,
+        '["SCOPE_ADDITION", "SCOPE_REMOVAL", "STATUS_TRANSITION", "BLOCKER_EVENT"]'::jsonb,
+        TRUE,
+        v_admin_id
+    ), (
+        'f9000000-0000-0000-0000-000000000003',
+        '00000000-0000-0000-0000-000000000003',
+        'Client-Safe Weekly Changes',
+        'DAYS_7',
+        NULL,
+        'PROJECT',
+        'b0000000-0000-0000-0000-000000000001',
+        TRUE,
+        '["STATUS_TRANSITION", "DOCUMENT_REVISION", "REQUIREMENT_CHANGE"]'::jsonb,
+        TRUE,
+        v_admin_id
+    ) ON CONFLICT DO NOTHING;
 END ;

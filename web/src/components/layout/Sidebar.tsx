@@ -32,6 +32,7 @@ import {
   Compass,
   BookOpen,
   Copy,
+  History,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -63,6 +64,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       { label: 'Components', path: '/components', icon: Cpu, show: true },
       { label: 'Knowledge & ADRs', path: '/knowledge', icon: BookOpen, show: true },
       { label: 'Templates & Recurrence', path: '/templates', icon: Copy, show: true },
+      { label: 'What Changed?', path: '/what-changed', icon: History, show: true },
       { label: 'Clients', path: '/clients', icon: Users2, show: true },
     ]},
     { title: 'Client Delivery', items: [

@@ -20,6 +20,9 @@ import {
   WorkItemWatcher,
   NotificationQueueItem,
   DigestPreviewResponse,
+  ChangeActivityBaseline,
+  UserActivitySavedQuery,
+  WhatChangedSummaryResponse,
   AuditLogItem,
   PaginatedResponse,
   WorkingCalendar,
@@ -395,6 +398,35 @@ export const auditLogsApi = {
     params?: any,
   ): Promise<{ data: { auditLogs: AuditLogItem[]; totalCount: number } }> =>
     api.get('/audit-logs', { params }),
+};
+
+// ==========================================
+// COLLAB-004: "What Changed?" Activity & Baselines APIs
+// ==========================================
+export const activityApi = {
+  getWhatChanged: (params?: any): Promise<{ data: WhatChangedSummaryResponse }> =>
+    api.get('/activity/what-changed', { params }),
+
+  getBaselines: (params?: { scopeType?: string; scopeId?: string }): Promise<{ data: ChangeActivityBaseline[] }> =>
+    api.get('/activity/baselines', { params }),
+
+  createBaseline: (data: {
+    baselineCode: string;
+    title: string;
+    description?: string;
+    scopeType: 'PROJECT' | 'PRODUCT' | 'SPRINT' | 'RELEASE';
+    scopeId: string;
+  }): Promise<{ data: ChangeActivityBaseline }> =>
+    api.post('/activity/baselines', data),
+
+  getSavedQueries: (): Promise<{ data: UserActivitySavedQuery[] }> =>
+    api.get('/activity/saved-queries'),
+
+  saveQuery: (data: Partial<UserActivitySavedQuery>): Promise<{ data: UserActivitySavedQuery }> =>
+    api.post('/activity/saved-queries', data),
+
+  deleteSavedQuery: (id: string): Promise<{ data: { success: boolean; deleted: boolean } }> =>
+    api.delete(`/activity/saved-queries/${id}`),
 };
 
 // ==========================================

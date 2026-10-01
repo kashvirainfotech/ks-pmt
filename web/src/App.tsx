@@ -34,6 +34,7 @@ import { ProductRoadmapView } from './components/product-roadmap/ProductRoadmapV
 import { QualityAssuranceWorkspace } from './components/qa/QualityAssuranceWorkspace';
 import { KnowledgeBaseWorkspace } from './components/knowledge/KnowledgeBaseWorkspace';
 import { TemplatesWorkspaceView } from './components/templates/TemplatesWorkspaceView';
+import { WhatChangedWorkspaceView } from './components/activity/WhatChangedWorkspaceView';
 
 // Protected Route Wrapper
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
@@ -95,6 +96,7 @@ export const App: React.FC = () => {
         <Route path="qa" element={<QualityAssuranceWorkspace />} />
         <Route path="knowledge" element={<KnowledgeBaseWorkspace />} />
         <Route path="templates" element={<TemplatesWorkspaceView />} />
+        <Route path="what-changed" element={<WhatChangedWorkspaceView />} />
         <Route path="client-reports" element={<ClientReportsView />} />
         <Route path="raid" element={<RaidWorkspaceView />} />
         <Route path="product-roadmap" element={<ProductRoadmapView />} />

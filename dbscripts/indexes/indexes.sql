@@ -390,3 +390,13 @@ CREATE INDEX IF NOT EXISTS idx_notif_queue_user ON notification_delivery_queue(r
 CREATE INDEX IF NOT EXISTS idx_notif_queue_contact ON notification_delivery_queue(recipient_contact_id) WHERE recipient_contact_id IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_notif_queue_entity ON notification_delivery_queue(entity_type, entity_id);
 
+
+-- ========================================================
+-- Date & Time: 2026-10-01 10:22:00 IST
+-- Description: COLLAB-004 - Indexes for Change Activity Baselines & Saved Queries
+-- ========================================================
+CREATE INDEX IF NOT EXISTS idx_activity_baselines_code ON change_activity_baselines(baseline_code);
+CREATE INDEX IF NOT EXISTS idx_activity_baselines_scope ON change_activity_baselines(scope_type, scope_id);
+CREATE INDEX IF NOT EXISTS idx_activity_saved_queries_user ON user_activity_saved_queries(user_id);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_created_entity ON audit_logs(created_at DESC, entity_name);
+

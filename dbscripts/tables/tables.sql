@@ -2221,3 +2221,47 @@ CREATE TABLE IF NOT EXISTS notification_delivery_queue (
         (recipient_user_id IS NULL AND recipient_contact_id IS NOT NULL)
     )
 );
+
+-- ========================================================
+-- Date & Time: 2026-10-01 10:20:00 IST
+-- Description: COLLAB-004 - Change Activity Baselines & Saved Activity Queries
+-- ========================================================
+
+-- 81. Change Activity Baselines (COLLAB-004)
+CREATE TABLE IF NOT EXISTS change_activity_baselines (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    baseline_code VARCHAR(100) UNIQUE NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    scope_type VARCHAR(50) NOT NULL CHECK (scope_type IN ('PROJECT', 'PRODUCT', 'SPRINT', 'RELEASE')),
+    scope_id UUID NOT NULL,
+    baseline_timestamp TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    snapshot_data JSONB NOT NULL DEFAULT '{}'::jsonb,
+    is_frozen BOOLEAN NOT NULL DEFAULT TRUE,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 82. User Saved Activity Queries (COLLAB-004)
+CREATE TABLE IF NOT EXISTS user_activity_saved_queries (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    query_name VARCHAR(150) NOT NULL,
+    time_filter_type VARCHAR(50) NOT NULL CHECK (
+        time_filter_type IN ('LAST_LOGIN', 'HOURS_24', 'DAYS_7', 'DAYS_14', 'DAYS_30', 'SINCE_BASELINE', 'CUSTOM_RANGE')
+    ),
+    baseline_id UUID REFERENCES change_activity_baselines(id) ON DELETE SET NULL,
+    scope_type VARCHAR(50),
+    scope_id UUID,
+    is_client_safe BOOLEAN NOT NULL DEFAULT FALSE,
+    category_filters JSONB NOT NULL DEFAULT '[]'::jsonb,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+

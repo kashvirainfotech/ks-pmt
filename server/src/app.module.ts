@@ -40,6 +40,7 @@ import { ProductIdeasModule } from './modules/product-ideas/product-ideas.module
 import { QaModule } from './modules/qa/qa.module';
 import { KnowledgeModule } from './modules/knowledge/knowledge.module';
 import { TemplatesModule } from './modules/templates/templates.module';
+import { ActivityModule } from './modules/activity/activity.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { DynamicRbacGuard } from './modules/rbac/rbac.guard';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
@@ -91,6 +92,7 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
     QaModule,
     KnowledgeModule,
     TemplatesModule,
+    ActivityModule,
   ],
   providers: [
     {

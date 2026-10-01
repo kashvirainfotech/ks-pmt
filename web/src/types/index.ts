@@ -344,6 +344,80 @@ export interface DigestPreviewResponse {
   generatedAt: string;
 }
 
+export interface ChangeActivityBaseline {
+  id: string;
+  baseline_code: string;
+  title: string;
+  description?: string;
+  scope_type: 'PROJECT' | 'PRODUCT' | 'SPRINT' | 'RELEASE';
+  scope_id: string;
+  baseline_timestamp: string;
+  snapshot_data: any;
+  is_frozen: boolean;
+  is_active: boolean;
+  creator_name?: string;
+  created_at: string;
+}
+
+export interface UserActivitySavedQuery {
+  id?: string;
+  user_id?: string;
+  userId?: string;
+  query_name?: string;
+  queryName?: string;
+  time_filter_type?: string;
+  timeFilterType?: string;
+  baseline_id?: string;
+  baselineId?: string;
+  baseline_title?: string;
+  scope_type?: string;
+  scopeType?: string;
+  scope_id?: string;
+  scopeId?: string;
+  is_client_safe?: boolean;
+  isClientSafe?: boolean;
+  category_filters?: string[];
+  categoryFilters?: string[];
+  created_at?: string;
+}
+
+export interface WhatChangedMetrics {
+  sourceLinkedEventCount: number;
+  distinctItemCount: number;
+  scopeAdditionsCount: number;
+  scopeRemovalsCount: number;
+  statusTransitionsCount: number;
+  blockerEventsCount: number;
+  requirementChangesCount: number;
+  documentRevisionsCount: number;
+}
+
+export interface WhatChangedSummaryResponse {
+  timeWindow: {
+    filterType: string;
+    windowStart: string;
+    windowEnd: string;
+    baseline?: ChangeActivityBaseline;
+    fallbackUsed?: boolean;
+  };
+  metrics: WhatChangedMetrics;
+  missingHistory: {
+    detected: boolean;
+    earliestTrackedAt?: string;
+    note?: string;
+  };
+  summaryNarrative: string;
+  categories: {
+    scopeAdditions: any[];
+    scopeRemovals: any[];
+    statusTransitions: any[];
+    blockerEvents: any[];
+    requirementChanges: any[];
+    documentRevisions: any[];
+  };
+  isClientSafe: boolean;
+}
+
 export interface AuditLogItem {
   id: string;
   user_id?: string;
