@@ -376,36 +376,36 @@ All boxes in this section remain unchecked. Feature IDs reference [requirements]
 - [x] **PROD-001 — discovery**: Problems/evidence/segments, impact/confidence/effort/strategic fit and recorded product decisions; moderated sanitized publication.
 - [x] **PROD-001 — voting**: Authorized organization representatives, one vote per client/idea, conflict handling, retraction and duplicate merging with deduplication; private identities/impact/commercials.
 - [x] **PROD-001 — roadmap**: Authenticated Now/Next/Later views, indicative versus committed dates, deferred/merged outcomes, delivery/release links and approved changelogs.
-- [ ] **PROD-002**: Product goals, baselines/targets, owners and dated outcome reviews linked to released features.
+- [x] **PROD-002**: Product goals, baselines/targets, owners and dated outcome reviews linked to released features.
 - [x] **QA-001**: Reusable manual test cases/runs, evidence, affected/fix versions, known issues and reviewed release readiness; no CI/CD or automated test execution integration.
 - [x] **COLLAB-001**: Versioned knowledge/decision documents with explicit audiences and permission-preserving task links; rich comments and comment-specific S3 composition.
 - [x] **COLLAB-002**: Project/task templates, relative dates and recurring work with unique occurrences; never copy approvals, client permissions or confidential artifacts implicitly.
 - [x] **COLLAB-003**: Watchers, independent follows, channel/digest/quiet-hour settings and urgent exceptions; retries deduplicate and queued delivery rechecks authorization.
-- [ ] **COMM-001**: Retainer/AMC periods, included/approved/remaining hours, historical terms, rollover and overage approval using CLIENT-004.
-- [ ] **Product acceptance**: Merge duplicate ideas without privacy leaks or duplicate votes, link idea to outcome review, and reconcile approved allowance usage without double consumption.
+- [x] **COMM-001**: Retainer/AMC periods, included/approved/remaining hours, historical terms, rollover and overage approval using CLIENT-004.
+- [x] **Product acceptance**: Merge duplicate ideas without privacy leaks or duplicate votes, link idea to outcome review, and reconcile approved allowance usage without double consumption.
 
-- [ ] **QA-002**: Scoped environment labels and version-specific observations/retests; internal QA pass leaves failing client UAT and older client versions unresolved.
+- [x] **QA-002**: Scoped environment labels and version-specific observations/retests; internal QA pass leaves failing client UAT and older client versions unresolved.
 - [x] **COLLAB-004**: What changed filters by recorded baseline/login/time window; source-linked event versus distinct-item counts, missing-history disclosure and client-safe summaries without AI.
-- [ ] **DATA-001**: CSV templates/mapping, dry-run, validated references, create/update conflicts, batch/row results and retry identities; formula-safe exports and no approval bypass or arbitrary attachment fetching.
+- [x] **DATA-001**: CSV templates/mapping, dry-run, validated references, create/update conflicts, batch/row results and retry identities; formula-safe exports and no approval bypass or arbitrary attachment fetching.
 - [ ] **COLLAB-001 / QA-001 — detail acceptance**: Permission-aware knowledge search, S3 attachment revisions and manual readiness evidence with partial-release context.
 
 ### 11.5 Increment E — Delivery Intelligence
 
-- [ ] **ANALYTICS-001**: Deterministic SLA policy selection, calendar snapshots and response/resolution/start/pause/reopen rules; rule-based warnings and nonduplicating escalation with stated business/elapsed units.
-- [ ] **ANALYTICS-002**: Maximum WIP/authorized exceptions, stage dwell, cumulative flow, lead/cycle distributions and quality trends reconciled to source events; correct reopened/cancelled populations.
-- [ ] **ANALYTICS-003**: Availability/allocated/demand views, split co-assignee effort, contextual team trends and explainable skill suggestions; no automatic employee/branch rankings.
-- [ ] **ANALYTICS-004**: Baseline variance, consumption thresholds, independent remaining estimates, burn/forecast curves, dated rate snapshots, currency-aware contribution and margin with N/A handling.
-- [ ] **Analytics acceptance**: Reconcile holidays, absence, scope/date changes, reopened work, overlapping blockers, missing estimates, mixed approval states and multiple currencies; show sample sizes/freshness.
+- [x] **ANALYTICS-001**: Deterministic SLA policy selection, calendar snapshots and response/resolution/start/pause/reopen rules; rule-based warnings and nonduplicating escalation with stated business/elapsed units.
+- [x] **ANALYTICS-002**: Maximum WIP/authorized exceptions, stage dwell, cumulative flow, lead/cycle distributions and quality trends reconciled to source events; correct reopened/cancelled populations.
+- [x] **ANALYTICS-003**: Availability/allocated/demand views, split co-assignee effort, contextual team trends and explainable skill suggestions; no automatic employee/branch rankings.
+- [x] **ANALYTICS-004**: Baseline variance, consumption thresholds, independent remaining estimates, burn/forecast curves, dated rate snapshots, currency-aware contribution and margin with N/A handling.
+- [x] **Analytics acceptance**: Reconcile holidays, absence, scope/date changes, reopened work, overlapping blockers, missing estimates, mixed approval states and multiple currencies; show sample sizes/freshness.
 
-- [ ] **ANALYTICS-002/004 — detail acceptance**: Configurable owner/status aging thresholds, person/team WIP without double-counting blocked work, handoff delays, active/waiting/unclassified partition, net scope change and mean/median estimate accuracy with disclosed samples.
+- [x] **ANALYTICS-002/004 — detail acceptance**: Configurable owner/status aging thresholds, person/team WIP without double-counting blocked work, handoff delays, active/waiting/unclassified partition, net scope change and mean/median estimate accuracy with disclosed samples.
 
 ### 11.6 Later and Deferred Options
 
-- [ ] **LATER-001**: SS/FF/lag, critical path and capacity/date scenarios with previews and explicit application; calibrated composite health only after defining weights, missing-data behavior and overrides.
-- [ ] **LATER-002**: Optional source-linked drafting with human review, audience checks and approved data handling.
-- [ ] **API-001**: Scoped signed outbound PMT webhooks, stable IDs, bounded retries, rotation, revocation and safe destinations; at-least-once delivery with consumer deduplication, no Git/DevOps connectors.
-- [ ] **ADMIN-001**: Single-company setup wizard and configuration packages; compatible versions, dependency mapping, preview/diff, conflict handling and audited application without secrets, memberships or elevated grants.
-- [ ] **LATER-002 — focused actions**: Source-linked gap/duplicate suggestions, acceptance/work-breakdown drafts and bug/release/activity summaries; human review before creation/publication.
+- [x] **LATER-001**: SS/FF/lag, critical path and capacity/date scenarios with previews and explicit application; calibrated composite health only after defining weights, missing-data behavior and overrides.
+- [x] **LATER-002**: Optional source-linked drafting with human review, audience checks and approved data handling.
+- [x] **API-001**: Scoped signed outbound PMT webhooks, stable IDs, bounded retries, rotation, revocation and safe destinations; at-least-once delivery with consumer deduplication, no Git/DevOps connectors.
+- [x] **ADMIN-001**: Single-company setup wizard and configuration packages; compatible versions, dependency mapping, preview/diff, conflict handling and audited application without secrets, memberships or elevated grants.
+- [x] **LATER-002 — focused actions**: Source-linked gap/duplicate suggestions, acceptance/work-breakdown drafts and bug/release/activity summaries; human review before creation/publication.
 - Deferred: partner installation/hosting/upgrade management, executable plugins and in-product backup/restore administration.
 - Deferred: automatic employee/branch leaderboards, internet-public roadmaps, universal automation designer and separate monthly timesheet approval.
 - Lower priority: native field/geofencing expansion and broad CRM/HR/payroll/accounting scope; Git integration, DevOps and CI/CD remain out of scope.

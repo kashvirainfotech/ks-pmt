@@ -8720,4 +8720,1313 @@ BEGIN
         TRUE,
         v_admin_id
     ) ON CONFLICT DO NOTHING;
+
+    -- ========================================================
+    -- Date & Time: 2026-10-01 10:40:00 IST
+    -- Description: PROD-002 - Sample Product Goals & Outcome Reviews
+    -- ========================================================
+
+    -- 10. Sample Product Goals
+    INSERT INTO product_goals (
+        id, goal_code, product_id, title, description, category,
+        metric_name, metric_unit, baseline_value, target_value,
+        current_value, target_date, owner_user_id, status, is_active, created_by
+    ) VALUES (
+        'fa000000-0000-0000-0000-000000000001',
+        'GOAL-ERP-ADOPT-01',
+        'a0000000-0000-0000-0000-000000000001',
+        'Enterprise Multi-GST Onboarding Adoption',
+        'Scale automated e-invoice filings to over 85% of active enterprise customers within 90 days of v3.2.0 release.',
+        'ADOPTION',
+        'Active Customer E-Invoice Adoption Rate',
+        'PERCENT',
+        42.50,
+        85.00,
+        78.20,
+        '2026-11-30',
+        '00000000-0000-0000-0000-000000000013',
+        'IN_PROGRESS',
+        TRUE,
+        v_admin_id
+    ), (
+        'fa000000-0000-0000-0000-000000000002',
+        'GOAL-PAY-CONV-01',
+        'a0000000-0000-0000-0000-000000000003',
+        'Conversational WhatsApp Checkout Conversion',
+        'Boost social commerce checkout completion rate using native WhatsApp conversational prompts linked to IDEA-PAY-001.',
+        'REVENUE_GROWTH',
+        'Mobile Checkout Conversion Rate',
+        'PERCENT',
+        58.00,
+        80.00,
+        83.50,
+        '2026-10-31',
+        '00000000-0000-0000-0000-000000000003',
+        'ACHIEVED',
+        TRUE,
+        v_admin_id
+    ), (
+        'fa000000-0000-0000-0000-000000000003',
+        'GOAL-PAY-LATENCY-01',
+        'a0000000-0000-0000-0000-000000000003',
+        'Sub-Second UPI Dynamic Routing Response Time',
+        'Reduce 99th percentile payment routing latency across partner banking switches under 600ms.',
+        'PERFORMANCE',
+        'P99 Dynamic Routing Latency',
+        'MILLISECONDS',
+        1250.00,
+        600.00,
+        540.00,
+        '2026-10-15',
+        '00000000-0000-0000-0000-000000000003',
+        'ACHIEVED',
+        TRUE,
+        v_admin_id
+    ) ON CONFLICT (goal_code) DO NOTHING;
+
+    -- 11. Sample Product Outcome Reviews
+    INSERT INTO product_outcome_reviews (
+        id, review_code, product_id, goal_id, version_id, idea_id,
+        review_title, review_date, reviewer_user_id, actual_metric_value,
+        outcome_verdict, adoption_observations, customer_evidence,
+        feedback_summary, learnings_and_next_steps, reconciled_allowance_used,
+        is_active, created_by
+    ) VALUES (
+        'fb000000-0000-0000-0000-000000000001',
+        'REV-PAY-2026-001',
+        'a0000000-0000-0000-0000-000000000003',
+        'fa000000-0000-0000-0000-000000000002',
+        '10000000-0000-0000-0000-000000000003',
+        'a2000000-0000-0000-0000-000000000001',
+        'WhatsApp Conversational Flow 30-Day Post-Release Outcome Review',
+        '2026-09-28',
+        '00000000-0000-0000-0000-000000000003',
+        83.50,
+        'EXCEEDED_EXPECTATIONS',
+        '94 top tier merchants activated conversational checkout within 21 days; total transactions processed reached 45,000+.',
+        'Merchants reported an average drop of 65% in cart abandonment tickets; NPS from retail users increased from +34 to +62.',
+        'Customers love the instantaneous OTP-less UPI auto-intent callback inside WhatsApp. Several merchants requested multi-lingual prompts.',
+        'Extend conversational intent to Hindi and regional languages in v1.5.0; integrate recurring mandate support.',
+        150.00,
+        TRUE,
+        v_admin_id
+    ), (
+        'fb000000-0000-0000-0000-000000000002',
+        'REV-ERP-2026-001',
+        'a0000000-0000-0000-0000-000000000001',
+        'fa000000-0000-0000-0000-000000000001',
+        '10000000-0000-0000-0000-000000000001',
+        NULL,
+        'Mid-Quarter GST Reconciliation Performance & Onboarding Review',
+        '2026-09-30',
+        '00000000-0000-0000-0000-000000000013',
+        78.20,
+        'MET_EXPECTATIONS',
+        'Adoption rose steadily from 42.5% to 78.2% after rolling out the bulk-import wizard for legacy ERP ledgers.',
+        'Audit firms confirmed time saved during monthly GSTR-2B reconciliations dropped from 4 hours to 15 minutes.',
+        'Accountants praised the auto-reconciliation engine; requested custom Excel export formats for regional tax offices.',
+        'Target 90% by end of Q4; ship regional export templates in upcoming maintenance patch.',
+        0.00,
+        TRUE,
+        v_admin_id
+    ) ON CONFLICT (review_code) DO NOTHING;
+
+    -- ========================================================
+    -- Date & Time: 2026-10-01 10:48:00 IST
+    -- Description: QA-002 - Sample QA Environments & Issue Environment Observations
+    -- ========================================================
+
+    -- 12. Sample QA Environments
+    INSERT INTO qa_environments (
+        id, env_code, env_name, env_type, scope_type,
+        product_id, project_id, client_id, region, description,
+        context_metadata, is_active, created_by
+    ) VALUES (
+        'e0000000-0000-0000-0000-000000000001',
+        'ENV-INTERNAL-QA',
+        'Primary Internal QA Verification Cluster',
+        'INTERNAL_QA',
+        'GLOBAL',
+        NULL,
+        NULL,
+        NULL,
+        'ap-south-1 (Mumbai)',
+        'Dedicated internal verification cluster for sprint testing and release readiness sign-offs.',
+        '{"url": "https://qa-internal.kashvira.cloud", "db_version": "PostgreSQL 16", "node_version": "v20.12.0"}'::jsonb,
+        TRUE,
+        v_admin_id
+    ), (
+        'e0000000-0000-0000-0000-000000000002',
+        'ENV-APEX-UAT',
+        'Apex Global Retail - Client UAT Sandbox',
+        'CLIENT_UAT',
+        'CLIENT',
+        'a0000000-0000-0000-0000-000000000001',
+        'b0000000-0000-0000-0000-000000000001',
+        '77777777-7777-7777-7777-777777777771',
+        'ap-south-1 (Customer VPC)',
+        'Client staging sandbox for Apex retail operations managers to execute user acceptance tests.',
+        '{"tenant_id": "APEX-UAT-99", "sso_enabled": true}'::jsonb,
+        TRUE,
+        v_admin_id
+    ), (
+        'e0000000-0000-0000-0000-000000000003',
+        'ENV-ZENITH-ONPREM',
+        'Zenith Financial - On-Premise Air-Gapped Installation',
+        'ON_PREMISE_CLIENT',
+        'CLIENT',
+        'a0000000-0000-0000-0000-000000000003',
+        NULL,
+        '77777777-7777-7777-7777-777777777772',
+        'Customer Datacenter (BKC Mumbai)',
+        'Air-gapped on-premise installation running PayPulse gateway for core banking transactions.',
+        '{"installation_mode": "AIR_GAPPED_K8S", "current_installed_version": "v2.1.0"}'::jsonb,
+        TRUE,
+        v_admin_id
+    ) ON CONFLICT (env_code) DO NOTHING;
+
+    -- 13. Sample Issue Environment Observations & Retests
+    -- Demonstrates QA-002: Bug passes internal QA on v3.2.0, fails client UAT on v3.2.0, remains open on client on-prem v2.1.0
+    INSERT INTO issue_environment_observations (
+        id, observation_code, task_id, environment_id, version_id,
+        observation_type, observed_at, tester_user_id, client_contact_id,
+        browser_info, os_info, device_info, build_label,
+        evidence_notes, attachment_url, is_client_visible, is_active, created_by
+    ) VALUES (
+        'ea000000-0000-0000-0000-000000000001',
+        'OBS-2026-0001',
+        '20000000-0000-0000-0000-0000000003e8',
+        'e0000000-0000-0000-0000-000000000001', -- Primary Internal QA
+        '10000000-0000-0000-0000-000000000001', -- v3.2.0
+        'PASSED',
+        CURRENT_TIMESTAMP - INTERVAL '3 days',
+        '00000000-0000-0000-0000-000000000013',
+        NULL,
+        'Chrome 128.0',
+        'macOS Sonoma 14.6',
+        'Desktop 4K Display',
+        'build-2026.09.28-rc1',
+        'Verified fix in build-2026.09.28-rc1. Automated regression suite and manual tax calculation checks passed cleanly without regressions.',
+        's3://ks-pmt-attachments/evidence/obs-2026-0001-pass.png',
+        FALSE,
+        TRUE,
+        v_admin_id
+    ), (
+        'ea000000-0000-0000-0000-000000000002',
+        'OBS-2026-0002',
+        '20000000-0000-0000-0000-000000000002', -- Apex Client UAT
+        '10000000-0000-0000-0000-000000000001', -- v3.2.0
+        'FAILED',
+        CURRENT_TIMESTAMP - INTERVAL '2 days',
+        NULL,
+        '88888888-8888-8888-8888-888888888881', -- Client Contact
+        'Edge 128.0',
+        'Windows 11 Enterprise',
+        'ThinkPad P16 Workstation',
+        'build-2026.09.28-rc1-client-uat',
+        'Client UAT retest failed: Custom invoice header format for Apex GSTIN throws parsing error during multi-branch CSV export.',
+        's3://ks-pmt-attachments/evidence/apex-uat-gst-fail.png',
+        TRUE,
+        TRUE,
+        v_admin_id
+    ), (
+        'ea000000-0000-0000-0000-000000000003',
+        'OBS-2026-0003',
+        '20000000-0000-0000-0000-000000000003', -- Zenith On-Prem Air-Gapped
+        '10000000-0000-0000-0000-000000000002', -- Older v2.1.0 release
+        'FOUND_REPRODUCED',
+        CURRENT_TIMESTAMP - INTERVAL '1 day',
+        '00000000-0000-0000-0000-000000000013',
+        NULL,
+        'Firefox ESR 115',
+        'RHEL 9.2 Enterprise',
+        'On-Prem Console Terminal',
+        'zenith-prod-2.1.0-release',
+        'Issue remains open on older client production installation v2.1.0 awaiting client maintenance window approval for upgrade.',
+        NULL,
+        TRUE,
+        TRUE,
+        v_admin_id
+    ) ON CONFLICT (observation_code) DO NOTHING;
+
+    -- ========================================================
+    -- 32. Commercial Contracts, Periods, Consumptions & Overage Requests (COMM-001)
+    -- ========================================================
+    -- Retainer Contract for Acme FinTech & AMC for Zenith Retail
+    INSERT INTO commercial_contracts (
+        id, contract_number, client_id, project_id, product_id, title,
+        contract_type, periodicity, included_hours_per_period, hourly_rate, overage_hourly_rate,
+        currency, rollover_rule, max_rollover_hours, rollover_expiry_periods,
+        start_date, end_date, status, accountable_pm_user_id, terms_and_conditions, notes, is_active, created_by
+    ) VALUES (
+        'c1000000-0000-0000-0000-000000000001',
+        'RET-2026-ACME',
+        '77777777-7777-7777-7777-777777777772', -- Acme FinTech
+        'b0000000-0000-0000-0000-000000000001', -- Acme Mobile Bridge SDK Project
+        NULL,
+        'Acme Mobile Banking SDK Maintenance & Support Retainer',
+        'RETAINER',
+        'MONTHLY',
+        40.00,
+        2500.00,
+        3200.00,
+        'INR',
+        'CAPPED_ROLLOVER',
+        10.00,
+        1,
+        '2026-09-01',
+        '2027-08-31',
+        'ACTIVE',
+        '00000000-0000-0000-0000-000000000003', -- Accountable PM
+        'Monthly retainer of 40 billable development and QA hours. Up to 10 unused hours roll over to the immediately subsequent month only. Overages require CLIENT-004 change approval.',
+        'Core monthly SLA retainer contract with client-approved rollover provisions.',
+        TRUE,
+        v_admin_id
+    ), (
+        'c1000000-0000-0000-0000-000000000002',
+        'AMC-2026-ZENITH',
+        '77777777-7777-7777-7777-777777777774', -- Zenith Retail
+        NULL,
+        'a0000000-0000-0000-0000-000000000001', -- KashFlow ERP Product
+        'Zenith Retail Enterprise ERP Annual Maintenance Contract',
+        'AMC',
+        'QUARTERLY',
+        60.00,
+        2800.00,
+        3500.00,
+        'INR',
+        'NO_ROLLOVER',
+        0.00,
+        0,
+        '2026-07-01',
+        '2027-06-30',
+        'ACTIVE',
+        '00000000-0000-0000-0000-000000000003',
+        'Quarterly AMC of 60 hours for priority incident management and GST patch updates. Unused hours do not roll over.',
+        'Standard annual maintenance contract with quarterly reconciliation.',
+        TRUE,
+        v_admin_id
+    ) ON CONFLICT (contract_number) DO NOTHING;
+
+    -- Contract Entitlement Periods (September Closed with Rollover, October Open)
+    INSERT INTO contract_periods (
+        id, contract_id, period_code, period_sequence, start_date, end_date,
+        included_hours, rolled_over_hours_in, total_allowance_hours,
+        approved_consumed_hours, remaining_allowance_hours, overage_hours, rolled_over_hours_out,
+        hourly_rate, overage_hourly_rate, currency, status, closed_at, closed_by, reconciled_notes, is_active, created_by
+    ) VALUES (
+        'c2000000-0000-0000-0000-000000000001',
+        'c1000000-0000-0000-0000-000000000001',
+        'PER-RET-2026-09',
+        1,
+        '2026-09-01',
+        '2026-09-30',
+        40.00,
+        0.00,
+        40.00,
+        32.00,
+        8.00,
+        0.00,
+        8.00,
+        2500.00,
+        3200.00,
+        'INR',
+        'CLOSED',
+        '2026-09-30 23:59:59+05:30',
+        v_admin_id,
+        'Reconciled and closed. 32.00 hours consumed from 40.00 hours allowance. 8.00 unused hours rolled over to October 2026 as per capped rollover policy.',
+        TRUE,
+        v_admin_id
+    ), (
+        'c2000000-0000-0000-0000-000000000002',
+        'c1000000-0000-0000-0000-000000000001',
+        'PER-RET-2026-10',
+        2,
+        '2026-10-01',
+        '2026-10-31',
+        40.00,
+        8.00, -- Rolled over from Sept 2026
+        48.00, -- 40 + 8
+        18.00,
+        30.00,
+        0.00,
+        0.00,
+        2500.00,
+        3200.00,
+        'INR',
+        'OPEN',
+        NULL,
+        NULL,
+        'Current active billing period with 8.00 hours rolled in from September.',
+        TRUE,
+        v_admin_id
+    ) ON CONFLICT (period_code) DO NOTHING;
+
+    -- Seed Task Time Logs for Retainer Consumption Testing
+    INSERT INTO task_time_logs (
+        id, task_id, user_id, log_date, hours_spent, is_billable, description, approval_status, created_by
+    ) VALUES (
+        '31000000-0000-0000-0000-000000000001',
+        '20000000-0000-0000-0000-00000000046a',
+        '00000000-0000-0000-0000-000000000006', -- Developer
+        '2026-09-15',
+        16.00,
+        TRUE,
+        'Acme SDK Biometric Auth integration and bridge listener debugging',
+        'APPROVED',
+        v_admin_id
+    ), (
+        '31000000-0000-0000-0000-000000000002',
+        '20000000-0000-0000-0000-00000000046a',
+        '00000000-0000-0000-0000-000000000006',
+        '2026-09-22',
+        16.00,
+        TRUE,
+        'Acme SDK token storage security patch and keychain attestation',
+        'APPROVED',
+        v_admin_id
+    ), (
+        '31000000-0000-0000-0000-000000000003',
+        '20000000-0000-0000-0000-00000000046a',
+        '00000000-0000-0000-0000-000000000006',
+        '2026-10-02',
+        10.00,
+        TRUE,
+        'Acme SDK October hotfix: Handle Samsung Knox hardware biometric callbacks',
+        'APPROVED',
+        v_admin_id
+    ), (
+        '31000000-0000-0000-0000-000000000004',
+        '20000000-0000-0000-0000-00000000046a',
+        '00000000-0000-0000-0000-000000000006',
+        '2026-10-05',
+        8.00,
+        TRUE,
+        'Acme SDK Performance optimization for background payload sync',
+        'APPROVED',
+        v_admin_id
+    ), (
+        '31000000-0000-0000-0000-000000000005',
+        '20000000-0000-0000-0000-00000000046a',
+        '00000000-0000-0000-0000-000000000006',
+        '2026-10-07',
+        6.00,
+        TRUE,
+        'Unapproved prototype work: Non-scoped biometric animation test',
+        'REJECTED',
+        v_admin_id
+    ) ON CONFLICT (id) DO NOTHING;
+
+    -- Contract Worklog Consumptions (Guarantees single consumption, rejected worklog omitted)
+    INSERT INTO contract_worklog_consumptions (
+        id, contract_period_id, time_log_id, hours_consumed, is_overage, consumed_at, is_active, created_by
+    ) VALUES (
+        'c3000000-0000-0000-0000-000000000001',
+        'c2000000-0000-0000-0000-000000000001', -- Sept period
+        '31000000-0000-0000-0000-000000000001',
+        16.00,
+        FALSE,
+        '2026-09-16 10:00:00+05:30',
+        TRUE,
+        v_admin_id
+    ), (
+        'c3000000-0000-0000-0000-000000000002',
+        'c2000000-0000-0000-0000-000000000001', -- Sept period
+        '31000000-0000-0000-0000-000000000002',
+        16.00,
+        FALSE,
+        '2026-09-23 10:00:00+05:30',
+        TRUE,
+        v_admin_id
+    ), (
+        'c3000000-0000-0000-0000-000000000003',
+        'c2000000-0000-0000-0000-000000000002', -- Oct period
+        '31000000-0000-0000-0000-000000000003',
+        10.00,
+        FALSE,
+        '2026-10-03 10:00:00+05:30',
+        TRUE,
+        v_admin_id
+    ), (
+        'c3000000-0000-0000-0000-000000000004',
+        'c2000000-0000-0000-0000-000000000002', -- Oct period
+        '31000000-0000-0000-0000-000000000004',
+        8.00,
+        FALSE,
+        '2026-10-06 10:00:00+05:30',
+        TRUE,
+        v_admin_id
+    ) ON CONFLICT (time_log_id) DO NOTHING;
+
+    -- Contract Overage Authorization Request (Linked to CLIENT-004 CR-ACME-001)
+    INSERT INTO contract_overage_requests (
+        id, request_code, contract_period_id, change_request_id, requested_overage_hours,
+        estimated_amount, currency, justification, status, approved_hours,
+        approved_by_contact_id, approved_at, client_remarks, is_active, created_by
+    ) VALUES (
+        'c4000000-0000-0000-0000-000000000001',
+        'OVR-2026-0001',
+        'c2000000-0000-0000-0000-000000000002', -- Oct period
+        '80000000-0000-0000-0000-000000000001', -- Linked to CR-ACME-001
+        15.00,
+        48000.00, -- 15h * 3200 INR
+        'INR',
+        'Anticipated 15 hours overage required for expedited compliance biometric encryption testing on high-value transfer flows.',
+        'APPROVED',
+        15.00,
+        'd0000000-0000-0000-0000-000000000001', -- Robert Miller (CTO)
+        CURRENT_TIMESTAMP - INTERVAL '1 day',
+        'Approved by Acme CTO under change request CR-ACME-001 scope extension. Overtime billable at ?3,200/hr.',
+        TRUE,
+        v_admin_id
+    ) ON CONFLICT (request_code) DO NOTHING;
+
+    -- ========================================================
+    -- 33. Data Import Batches & Row Outcomes Demonstration (DATA-001)
+    -- ========================================================
+    -- Sample Mixed-Validity Batch for Task Onboarding
+    INSERT INTO data_import_batches (
+        id, batch_number, entity_type, import_mode, original_filename,
+        total_rows, valid_rows, invalid_rows, imported_rows, failed_rows, skipped_rows,
+        status, column_mapping, validation_summary, completed_at, is_active, created_by
+    ) VALUES (
+        'd1000000-0000-0000-0000-000000000001',
+        'IMP-2026-0001',
+        'TASKS',
+        'UPSERT',
+        'client_legacy_tasks_migration.csv',
+        4,
+        3,
+        1,
+        3,
+        1,
+        0,
+        'PARTIALLY_COMPLETED',
+        '{"task_code": "external_id", "summary": "title", "project": "project_code", "owner": "assignee_email", "severity": "priority"}'::jsonb,
+        '{"total": 4, "valid": 3, "invalid": 1, "errors": [{"row": 3, "field": "project_code", "issue": "Referenced project code ''PRJ-NONEXISTENT'' does not exist"}]}'::jsonb,
+        CURRENT_TIMESTAMP - INTERVAL '6 hours',
+        TRUE,
+        v_admin_id
+    ) ON CONFLICT (batch_number) DO NOTHING;
+
+    -- Row Outcomes Demonstrating Reference Rejection and Idempotent Retry Without Duplicates
+    INSERT INTO data_import_row_outcomes (
+        id, batch_id, row_index, external_id, record_id, status,
+        raw_data, error_message, error_details, retry_count, imported_at, is_active, created_by
+    ) VALUES (
+        'd2000000-0000-0000-0000-000000000001',
+        'd1000000-0000-0000-0000-000000000001',
+        1,
+        'LEGACY-TSK-101',
+        '20000000-0000-0000-0000-0000000003e9',
+        'SUCCESS',
+        '{"task_code": "LEGACY-TSK-101", "summary": "GST E-Invoice Reconciliation Engine", "project": "PRJ-INTERNAL", "owner": "operations@kashvirainfotech.com", "severity": "HIGH"}'::jsonb,
+        NULL,
+        '{}'::jsonb,
+        0,
+        CURRENT_TIMESTAMP - INTERVAL '6 hours',
+        TRUE,
+        v_admin_id
+    ), (
+        'd2000000-0000-0000-0000-000000000002',
+        'd1000000-0000-0000-0000-000000000001',
+        2,
+        'LEGACY-TSK-102',
+        '20000000-0000-0000-0000-00000000046a',
+        'SUCCESS',
+        '{"task_code": "LEGACY-TSK-102", "summary": "Acme SDK Biometric Handshake Verification", "project": "PRJ-ACME-MOB", "owner": "alex.dev@kashvirainfotech.com", "severity": "CRITICAL"}'::jsonb,
+        NULL,
+        '{}'::jsonb,
+        0,
+        CURRENT_TIMESTAMP - INTERVAL '6 hours',
+        TRUE,
+        v_admin_id
+    ), (
+        'd2000000-0000-0000-0000-000000000003',
+        'd1000000-0000-0000-0000-000000000001',
+        3,
+        'LEGACY-TSK-103',
+        NULL,
+        'FAILED',
+        '{"task_code": "LEGACY-TSK-103", "summary": "Ghost Ledger Integration", "project": "PRJ-NONEXISTENT", "owner": "dev@unknown.com", "severity": "MEDIUM"}'::jsonb,
+        'Foreign key reference error: Referenced project code ''PRJ-NONEXISTENT'' does not exist. Approval/audit fields cannot be bypassed.',
+        '{"field": "project_code", "value": "PRJ-NONEXISTENT", "code": "REFERENCE_NOT_FOUND"}'::jsonb,
+        0,
+        NULL,
+        TRUE,
+        v_admin_id
+    ), (
+        'd2000000-0000-0000-0000-000000000004',
+        'd1000000-0000-0000-0000-000000000001',
+        4,
+        'LEGACY-TSK-104',
+        '20000000-0000-0000-0000-00000000046f',
+        'SUCCESS',
+        '{"task_code": "LEGACY-TSK-104", "summary": "Acme Card Tokenization Handler", "project": "PRJ-ACME-MOB", "owner": "alex.dev@kashvirainfotech.com", "severity": "HIGH"}'::jsonb,
+        NULL,
+        '{}'::jsonb,
+        1,
+        CURRENT_TIMESTAMP - INTERVAL '5 hours',
+        TRUE,
+        v_admin_id
+    ) ON CONFLICT (batch_id, row_index) DO NOTHING;
+
+    -- ========================================================
+    -- 29. Contractual SLA Policies, Tracking Cycles & Risk Alerts (ANALYTICS-001)
+    -- ========================================================
+
+    -- Default Working Calendar ID
+    SELECT id INTO v_default_cal_id FROM working_calendars WHERE calendar_code = 'CAL-CORP-STD' LIMIT 1;
+
+    INSERT INTO sla_policies (
+        id, policy_code, policy_name, description, client_id, project_id, task_type_id,
+        priority, severity, tier, calendar_id, response_time_minutes, response_time_basis,
+        resolution_time_minutes, resolution_time_basis, response_warning_threshold_pct,
+        resolution_warning_threshold_pct, escalation_rules, precedence_rank, is_default,
+        is_active, created_by
+    ) VALUES (
+        'e1000000-0000-0000-0000-000000000001',
+        'SLA-POL-CRIT-01',
+        'Critical Customer Incidents SLA (Tier 1)',
+        '1-hour response and 4-hour resolution for critical production outages and P1 security defects',
+        NULL, NULL, NULL,
+        'CRITICAL', 'CRITICAL', 'TIER_1_CRITICAL', v_default_cal_id,
+        60, 'ELAPSED_HOURS', 240, 'ELAPSED_HOURS',
+        75, 75,
+        '[{"tier": 1, "notify_roles": ["ROLE_TECH_LEAD"], "trigger_minutes_before_breach": 30}, {"tier": 2, "notify_roles": ["ROLE_PROJECT_MANAGER"], "trigger_minutes_before_breach": 15}, {"tier": 3, "notify_roles": ["ROLE_BRANCH_MANAGER"], "trigger_minutes_after_breach": 0}]'::jsonb,
+        10, FALSE, TRUE, v_admin_id
+    ), (
+        'e1000000-0000-0000-0000-000000000002',
+        'SLA-POL-HIGH-02',
+        'High Priority Enterprise SLA (Tier 2)',
+        '2-hour business response and 8-hour business resolution for high priority bugs and blockers',
+        NULL, NULL, NULL,
+        'HIGH', 'MAJOR', 'TIER_2_HIGH', v_default_cal_id,
+        120, 'BUSINESS_HOURS', 480, 'BUSINESS_HOURS',
+        75, 80,
+        '[{"tier": 1, "notify_roles": ["ROLE_TECH_LEAD"], "trigger_minutes_before_breach": 60}, {"tier": 2, "notify_roles": ["ROLE_PROJECT_MANAGER"], "trigger_minutes_before_breach": 30}]'::jsonb,
+        20, FALSE, TRUE, v_admin_id
+    ), (
+        'e1000000-0000-0000-0000-000000000003',
+        'SLA-POL-DEFAULT',
+        'Standard Project Delivery Default SLA (Tier 3)',
+        'Global fallback SLA: 4 business hours first response and 24 business hours resolution',
+        NULL, NULL, NULL,
+        NULL, NULL, 'TIER_3_STANDARD', v_default_cal_id,
+        240, 'BUSINESS_HOURS', 1440, 'BUSINESS_HOURS',
+        75, 85,
+        '[{"tier": 1, "notify_roles": ["ROLE_PROJECT_MANAGER"], "trigger_minutes_before_breach": 120}]'::jsonb,
+        100, TRUE, TRUE, v_admin_id
+    ) ON CONFLICT (policy_code) DO NOTHING;
+
+    -- Sample SLA Tracking Cycles
+    INSERT INTO sla_tracking_cycles (
+        id, cycle_number, task_id, client_request_id, sla_policy_id, cycle_iteration,
+        policy_snapshot, calendar_snapshot, status,
+        response_deadline, responded_at, responded_by_user_id, response_status,
+        elapsed_response_minutes, business_response_minutes,
+        resolution_deadline, resolved_at, resolved_by_user_id, resolution_status,
+        elapsed_resolution_minutes, business_resolution_minutes,
+        is_paused, current_pause_started_at, current_pause_reason, total_paused_minutes,
+        pause_episodes, original_resolution_deadline, extension_count, extension_history,
+        is_active, created_by
+    ) VALUES (
+        'e2000000-0000-0000-0000-000000000001',
+        'SLA-CYC-2026-0001',
+        '20000000-0000-0000-0000-00000000046a',
+        NULL,
+        'e1000000-0000-0000-0000-000000000001',
+        1,
+        '{"policy_name": "Critical Customer Incidents SLA (Tier 1)", "response_time_minutes": 60, "resolution_time_minutes": 240}'::jsonb,
+        '{"calendar_code": "CAL-CORP-STD", "timezone": "Asia/Kolkata"}'::jsonb,
+        'RESPONSE_MET',
+        CURRENT_TIMESTAMP - INTERVAL '3 hours',
+        CURRENT_TIMESTAMP - INTERVAL '3 hours 25 minutes',
+        '00000000-0000-0000-0000-000000000004',
+        'MET',
+        35, 35,
+        CURRENT_TIMESTAMP + INTERVAL '1 hour',
+        NULL, NULL, 'PENDING',
+        180, 180,
+        FALSE, NULL, NULL, 0,
+        '[]'::jsonb,
+        CURRENT_TIMESTAMP + INTERVAL '1 hour',
+        0, '[]'::jsonb,
+        TRUE, v_admin_id
+    ), (
+        'e2000000-0000-0000-0000-000000000002',
+        'SLA-CYC-2026-0002',
+        '20000000-0000-0000-0000-00000000046f',
+        NULL,
+        'e1000000-0000-0000-0000-000000000002',
+        1,
+        '{"policy_name": "High Priority Enterprise SLA (Tier 2)", "response_time_minutes": 120, "resolution_time_minutes": 480}'::jsonb,
+        '{"calendar_code": "CAL-CORP-STD", "timezone": "Asia/Kolkata"}'::jsonb,
+        'PAUSED',
+        CURRENT_TIMESTAMP - INTERVAL '1 day',
+        CURRENT_TIMESTAMP - INTERVAL '1 day 1 hour',
+        '00000000-0000-0000-0000-000000000004',
+        'MET',
+        60, 60,
+        CURRENT_TIMESTAMP + INTERVAL '18 hours',
+        NULL, NULL, 'PENDING',
+        240, 240,
+        TRUE, CURRENT_TIMESTAMP - INTERVAL '2 hours', 'AWAITING_CLIENT_RESPONSE', 120,
+        '[{"paused_at": "2026-10-01T13:30:00Z", "reason": "AWAITING_CLIENT_RESPONSE", "notes": "Waiting for client sample payload"}]'::jsonb,
+        CURRENT_TIMESTAMP + INTERVAL '16 hours',
+        1, '[{"extended_at": "2026-10-01T10:00:00Z", "added_minutes": 120, "reason": "Client requested change of environment"}]'::jsonb,
+        TRUE, v_admin_id
+    ), (
+        'e2000000-0000-0000-0000-000000000003',
+        'SLA-CYC-2026-0003',
+        '20000000-0000-0000-0000-0000000003e9',
+        NULL,
+        'e1000000-0000-0000-0000-000000000002',
+        1,
+        '{"policy_name": "High Priority Enterprise SLA (Tier 2)", "response_time_minutes": 120, "resolution_time_minutes": 480}'::jsonb,
+        '{"calendar_code": "CAL-CORP-STD", "timezone": "Asia/Kolkata"}'::jsonb,
+        'RESOLVED_BREACHED',
+        CURRENT_TIMESTAMP - INTERVAL '2 days',
+        CURRENT_TIMESTAMP - INTERVAL '2 days',
+        '00000000-0000-0000-0000-000000000004',
+        'MET',
+        75, 75,
+        CURRENT_TIMESTAMP - INTERVAL '4 hours',
+        NULL, NULL, 'BREACHED',
+        720, 600,
+        FALSE, NULL, NULL, 0,
+        '[]'::jsonb,
+        CURRENT_TIMESTAMP - INTERVAL '4 hours',
+        0, '[]'::jsonb,
+        TRUE, v_admin_id
+    ) ON CONFLICT (cycle_number) DO NOTHING;
+
+    -- Sample Rule-Based Risk Alerts
+    INSERT INTO risk_alerts (
+        id, alert_code, alert_type, severity, sla_cycle_id, task_id, project_id, client_id,
+        title, description, trigger_reason, recommended_action, status, escalation_tier,
+        assigned_owner_id, freshness_updated_at, is_active, created_by
+    ) VALUES (
+        'e3000000-0000-0000-0000-000000000001',
+        'ALT-2026-0001',
+        'SLA_RESOLUTION_AT_RISK',
+        'HIGH',
+        'e2000000-0000-0000-0000-000000000001',
+        '20000000-0000-0000-0000-00000000046a',
+        '00000000-0000-0000-0000-000000000002',
+        'b0000000-0000-0000-0000-000000000001',
+        'SLA Resolution Target Reaching 75% Threshold',
+        'Task TSK-ERP-001 has consumed 180 of 240 permitted resolution minutes with 60 minutes remaining.',
+        'Elapsed resolution time reached 75.0% of target limit without a terminal status transition.',
+        'Conduct immediate emergency peer-review and verify fix in staging environment before SLA breach.',
+        'ACTIVE', 1,
+        '00000000-0000-0000-0000-000000000004',
+        CURRENT_TIMESTAMP, TRUE, v_admin_id
+    ), (
+        'e3000000-0000-0000-0000-000000000002',
+        'ALT-2026-0002',
+        'STALE_ACTIVE_WORK',
+        'MEDIUM',
+        NULL,
+        '20000000-0000-0000-0000-0000000003ea',
+        '00000000-0000-0000-0000-000000000001',
+        NULL,
+        'Stale In-Progress Task Detected (>3 Working Days Without Progress)',
+        'Task TSK-ERP-002 has been in IN_PROGRESS state for 4 business days without any time log or status update.',
+        'Active status duration exceeded stale threshold (72 business hours) without recorded forward movement.',
+        'Follow up with primary assignee regarding hidden blockers or reprioritize work item.',
+        'ACTIVE', 1,
+        '00000000-0000-0000-0000-000000000012',
+        CURRENT_TIMESTAMP, TRUE, v_admin_id
+    ), (
+        'e3000000-0000-0000-0000-000000000003',
+        'ALT-2026-0003',
+        'EFFORT_EXCEEDS_CAPACITY',
+        'CRITICAL',
+        NULL,
+        '20000000-0000-0000-0000-0000000003e9',
+        '00000000-0000-0000-0000-000000000001',
+        NULL,
+        'Remaining Estimated Hours Exceed Available Assignee Sprint Capacity',
+        'Assignee has 40 hours of committed backlog work remaining against 16 hours of net available working schedule.',
+        'Net available capacity (16h) is below scheduled estimated effort (40h) before sprint closure on 2026-10-03.',
+        'Rebalance tasks across delivery team members or initiate scope adjustment review.',
+        'ACTIVE', 2,
+        '00000000-0000-0000-0000-000000000004',
+        CURRENT_TIMESTAMP, TRUE, v_admin_id
+    ) ON CONFLICT (alert_code) DO NOTHING;
+
+    -- ========================================================
+    -- ANALYTICS-002: Flow Analytics, WIP Limits, Aging & CFD Snapshots Sample Data
+    -- ========================================================
+
+    -- Sample WIP Limits
+    INSERT INTO wip_limits (
+        id, limit_code, name, description, limit_type, project_id, team_id, user_id, status_id,
+        max_wip_count, enforcement_mode, is_active, created_by
+    ) VALUES (
+        'f1000000-0000-0000-0000-000000000001',
+        'WIP-STAGE-WIP',
+        'In Progress Stage Limit - Phoenix',
+        'Maximum concurrent tasks in WIP state for Project Phoenix',
+        'STAGE', '00000000-0000-0000-0000-000000000001', NULL, NULL,
+        '66666666-6666-6666-6666-666666666662',
+        4, 'SOFT_WARNING', TRUE, v_admin_id
+    ), (
+        'f1000000-0000-0000-0000-000000000002',
+        'WIP-STAGE-TEST',
+        'Testing Stage Guard - Phoenix',
+        'Strict hard guard on testing capacity to prevent QA queue saturation',
+        'STAGE', '00000000-0000-0000-0000-000000000001', NULL, NULL,
+        '66666666-6666-6666-6666-666666666665',
+        3, 'HARD_GUARD', TRUE, v_admin_id
+    ), (
+        'f1000000-0000-0000-0000-000000000003',
+        'WIP-USER-VIKRAM',
+        'Developer WIP Limit - Vikram',
+        'Focus limit of 2 concurrent in-progress work items per engineer',
+        'USER', NULL, NULL, '00000000-0000-0000-0000-000000000004', NULL,
+        2, 'SOFT_WARNING', TRUE, v_admin_id
+    ), (
+        'f1000000-0000-0000-0000-000000000004',
+        'WIP-TEAM-CORE',
+        'Core Team WIP Ceiling',
+        'Delivery team concurrent active execution threshold',
+        'TEAM', NULL, 'c0000000-0000-0000-0000-000000000001', NULL, NULL,
+        8, 'SOFT_WARNING', TRUE, v_admin_id
+    ) ON CONFLICT (limit_code) DO NOTHING;
+
+    -- Sample WIP Override Exception
+    INSERT INTO wip_override_exceptions (
+        id, exception_code, wip_limit_id, task_id, user_id, team_id, status_id, project_id,
+        current_wip_count, limit_value, reason, is_expedited, authorized_by, authorized_at,
+        expires_at, created_by
+    ) VALUES (
+        'f2000000-0000-0000-0000-000000000001',
+        'EXC-2026-0001',
+        'f1000000-0000-0000-0000-000000000003',
+        '20000000-0000-0000-0000-00000000046a',
+        '00000000-0000-0000-0000-000000000004',
+        'c0000000-0000-0000-0000-000000000001',
+        '66666666-6666-6666-6666-666666666662',
+        '00000000-0000-0000-0000-000000000001',
+        3, 2,
+        'Authorized expedited bypass: Critical client payment regression requiring same-day hotfix patch by senior engineer',
+        TRUE, '00000000-0000-0000-0000-000000000002',
+        CURRENT_TIMESTAMP - INTERVAL '1 day',
+        CURRENT_TIMESTAMP + INTERVAL '2 days',
+        v_admin_id
+    ) ON CONFLICT (exception_code) DO NOTHING;
+
+    -- Sample Flow Aging Configurations
+    INSERT INTO flow_aging_configurations (
+        id, config_code, name, description, project_id, team_id, task_type_id, priority, status_id,
+        warning_threshold_hours, critical_threshold_hours, time_basis, calendar_id, precedence_rank,
+        is_active, created_by
+    ) VALUES (
+        'f3000000-0000-0000-0000-000000000001',
+        'AGING-PHX-DEFAULT',
+        'Phoenix Standard Workflow Aging Thresholds',
+        'Baseline 48h warning and 96h critical aging for all Phoenix tasks',
+        '00000000-0000-0000-0000-000000000001', NULL, NULL, NULL, NULL,
+        48.00, 96.00, 'BUSINESS_HOURS', v_default_cal_id, 100,
+        TRUE, v_admin_id
+    ), (
+        'f3000000-0000-0000-0000-000000000002',
+        'AGING-PHX-CRITICAL',
+        'Phoenix Critical Priority Accelerated Thresholds',
+        'Tighter 16h warning and 32h critical threshold for critical priority items',
+        '00000000-0000-0000-0000-000000000001', NULL, NULL, 'CRITICAL', NULL,
+        16.00, 32.00, 'BUSINESS_HOURS', v_default_cal_id, 20,
+        TRUE, v_admin_id
+    ) ON CONFLICT (config_code) DO NOTHING;
+
+    -- Sample Task Status Durations & Flow Intervals
+    INSERT INTO task_status_durations (
+        id, task_id, status_id, previous_status_id, assigned_user_id, responsible_team_id,
+        flow_interval_type, waiting_reason, started_at, ended_at, elapsed_duration_minutes,
+        business_duration_minutes, is_current, is_rework, rework_type, notes, created_by
+    ) VALUES (
+        'f4000000-0000-0000-0000-000000000001',
+        '20000000-0000-0000-0000-0000000003e9',
+        '66666666-6666-6666-6666-666666666661', NULL,
+        NULL, 'c0000000-0000-0000-0000-000000000001',
+        'WAITING', 'REVIEW_QA_QUEUE',
+        CURRENT_TIMESTAMP - INTERVAL '14 days', CURRENT_TIMESTAMP - INTERVAL '12 days',
+        2880, 960, FALSE, FALSE, NULL, 'Backlog triage and wait time', v_admin_id
+    ), (
+        'f4000000-0000-0000-0000-000000000002',
+        '20000000-0000-0000-0000-0000000003e9',
+        '66666666-6666-6666-6666-666666666662', '66666666-6666-6666-6666-666666666661',
+        '00000000-0000-0000-0000-000000000004', 'c0000000-0000-0000-0000-000000000001',
+        'ACTIVE', NULL,
+        CURRENT_TIMESTAMP - INTERVAL '12 days', CURRENT_TIMESTAMP - INTERVAL '8 days',
+        5760, 1920, FALSE, FALSE, NULL, 'Feature implementation', v_admin_id
+    ), (
+        'f4000000-0000-0000-0000-000000000003',
+        '20000000-0000-0000-0000-0000000003e9',
+        '66666666-6666-6666-6666-666666666663', '66666666-6666-6666-6666-666666666662',
+        '00000000-0000-0000-0000-000000000004', 'c0000000-0000-0000-0000-000000000001',
+        'WAITING', 'APPROVAL',
+        CURRENT_TIMESTAMP - INTERVAL '8 days', CURRENT_TIMESTAMP - INTERVAL '7 days',
+        1440, 480, FALSE, FALSE, NULL, 'Peer pull request review', v_admin_id
+    ), (
+        'f4000000-0000-0000-0000-000000000004',
+        '20000000-0000-0000-0000-0000000003e9',
+        '66666666-6666-6666-6666-666666666665', '66666666-6666-6666-6666-666666666663',
+        '00000000-0000-0000-0000-000000000004', 'c0000000-0000-0000-0000-000000000001',
+        'ACTIVE', NULL,
+        CURRENT_TIMESTAMP - INTERVAL '7 days', CURRENT_TIMESTAMP - INTERVAL '5 days',
+        2880, 960, FALSE, FALSE, NULL, 'Initial QA test execution', v_admin_id
+    ), (
+        'f4000000-0000-0000-0000-000000000005',
+        '20000000-0000-0000-0000-0000000003e9',
+        '66666666-6666-6666-6666-666666666662', '66666666-6666-6666-6666-666666666665',
+        '00000000-0000-0000-0000-000000000004', 'c0000000-0000-0000-0000-000000000001',
+        'ACTIVE', NULL,
+        CURRENT_TIMESTAMP - INTERVAL '5 days', CURRENT_TIMESTAMP - INTERVAL '3 days',
+        2880, 960, FALSE, TRUE, 'QA_REJECT', 'Bug rework: Edge case input validation failed during QA pass', v_admin_id
+    ), (
+        'f4000000-0000-0000-0000-000000000006',
+        '20000000-0000-0000-0000-0000000003e9',
+        '66666666-6666-6666-6666-666666666665', '66666666-6666-6666-6666-666666666662',
+        '00000000-0000-0000-0000-000000000004', 'c0000000-0000-0000-0000-000000000001',
+        'ACTIVE', NULL,
+        CURRENT_TIMESTAMP - INTERVAL '3 days', CURRENT_TIMESTAMP - INTERVAL '1 day',
+        2880, 960, FALSE, FALSE, NULL, 'Retest and regression verification', v_admin_id
+    ), (
+        'f4000000-0000-0000-0000-000000000007',
+        '20000000-0000-0000-0000-0000000003e9',
+        '66666666-6666-6666-6666-666666666667', '66666666-6666-6666-6666-666666666665',
+        '00000000-0000-0000-0000-000000000004', 'c0000000-0000-0000-0000-000000000001',
+        'ACTIVE', NULL,
+        CURRENT_TIMESTAMP - INTERVAL '1 day', NULL,
+        1440, 480, TRUE, FALSE, NULL, 'Verified and closed', v_admin_id
+    ), (
+        'f4000000-0000-0000-0000-000000000008',
+        '20000000-0000-0000-0000-0000000003ea',
+        '66666666-6666-6666-6666-666666666662', '66666666-6666-6666-6666-666666666661',
+        '00000000-0000-0000-0000-000000000004', 'c0000000-0000-0000-0000-000000000001',
+        'ACTIVE', NULL,
+        CURRENT_TIMESTAMP - INTERVAL '6 days', NULL,
+        8640, 2880, TRUE, FALSE, NULL, 'In progress development and parser implementation', v_admin_id
+    ), (
+        'f4000000-0000-0000-0000-000000000009',
+        '20000000-0000-0000-0000-00000000046a',
+        '66666666-6666-6666-6666-666666666664', '66666666-6666-6666-6666-666666666662',
+        '00000000-0000-0000-0000-000000000004', 'c0000000-0000-0000-0000-000000000001',
+        'WAITING', 'REVIEW_QA_QUEUE',
+        CURRENT_TIMESTAMP - INTERVAL '2 days', NULL,
+        2880, 960, TRUE, FALSE, NULL, 'Awaiting QA testing slot', v_admin_id
+    ) ON CONFLICT DO NOTHING;
+
+    -- Sample Daily Cumulative Flow Snapshots (CFD) for Project Phoenix / Sprint 1
+    INSERT INTO daily_cumulative_flow_snapshots (
+        project_id, sprint_id, snapshot_date, status_category, task_count, story_points, is_rebuilt, created_by
+    ) VALUES
+        -- Day -10
+        ('00000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 10, 'DONE', 0, 0, FALSE, v_admin_id),
+        ('00000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 10, 'REVIEW_TEST', 1, 3, FALSE, v_admin_id),
+        ('00000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 10, 'IN_PROGRESS', 3, 11, FALSE, v_admin_id),
+        ('00000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 10, 'TODO', 10, 34, FALSE, v_admin_id),
+        -- Day -8
+        ('00000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 8, 'DONE', 1, 3, FALSE, v_admin_id),
+        ('00000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 8, 'REVIEW_TEST', 2, 8, FALSE, v_admin_id),
+        ('00000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 8, 'IN_PROGRESS', 4, 14, FALSE, v_admin_id),
+        ('00000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 8, 'TODO', 7, 23, FALSE, v_admin_id),
+        -- Day -6
+        ('00000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 6, 'DONE', 2, 8, FALSE, v_admin_id),
+        ('00000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 6, 'REVIEW_TEST', 3, 10, FALSE, v_admin_id),
+        ('00000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 6, 'IN_PROGRESS', 4, 13, FALSE, v_admin_id),
+        ('00000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 6, 'TODO', 5, 17, FALSE, v_admin_id),
+        -- Day -4
+        ('00000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 4, 'DONE', 4, 14, FALSE, v_admin_id),
+        ('00000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 4, 'REVIEW_TEST', 2, 7, FALSE, v_admin_id),
+        ('00000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 4, 'IN_PROGRESS', 4, 14, FALSE, v_admin_id),
+        ('00000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 4, 'TODO', 4, 13, FALSE, v_admin_id),
+        -- Day -2
+        ('00000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 2, 'DONE', 6, 21, FALSE, v_admin_id),
+        ('00000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 2, 'REVIEW_TEST', 2, 6, FALSE, v_admin_id),
+        ('00000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 2, 'IN_PROGRESS', 3, 10, FALSE, v_admin_id),
+        ('00000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 2, 'TODO', 3, 11, FALSE, v_admin_id),
+        -- Day 0 (Today)
+        ('00000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE, 'DONE', 7, 24, FALSE, v_admin_id),
+        ('00000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE, 'REVIEW_TEST', 2, 7, FALSE, v_admin_id),
+        ('00000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE, 'IN_PROGRESS', 3, 10, FALSE, v_admin_id),
+        ('00000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE, 'TODO', 2, 7, FALSE, v_admin_id)
+    ON CONFLICT DO NOTHING;
+
+    -- ========================================================
+    -- ANALYTICS-003: Skills, Capacity Reservations & Team Metrics Sample Data
+    -- ========================================================
+
+    -- Sample Skills
+    INSERT INTO skills (id, skill_code, skill_name, category, description, is_active, created_by)
+    VALUES
+        ('d1000000-0000-0000-0000-000000000001', 'SKILL-TS', 'TypeScript / JavaScript', 'FRONTEND', 'Advanced type system, async programming, and modern ECMAScript standards', TRUE, v_admin_id),
+        ('d1000000-0000-0000-0000-000000000002', 'SKILL-REACT', 'React & Next.js', 'FRONTEND', 'Component lifecycle, hooks, state management, and virtual DOM optimization', TRUE, v_admin_id),
+        ('d1000000-0000-0000-0000-000000000003', 'SKILL-NEST', 'NestJS Backend', 'BACKEND', 'Enterprise modular architecture, dependency injection, microservices, and guards', TRUE, v_admin_id),
+        ('d1000000-0000-0000-0000-000000000004', 'SKILL-PGSQL', 'PostgreSQL & Database Optimization', 'DATABASE', 'Relational modeling, indexing strategies, complex analytical queries, and PL/pgSQL', TRUE, v_admin_id),
+        ('d1000000-0000-0000-0000-000000000005', 'SKILL-FLUTTER', 'Flutter & Dart Mobile', 'MOBILE', 'Cross-platform mobile applications, state management, and native bridge APIs', TRUE, v_admin_id),
+        ('d1000000-0000-0000-0000-000000000006', 'SKILL-DOCKER', 'Docker & Kubernetes DevOps', 'DEVOPS', 'Containerization, orchestration, CI/CD pipelines, and cloud deployment', TRUE, v_admin_id),
+        ('d1000000-0000-0000-0000-000000000007', 'SKILL-QA-AUTO', 'Cypress & Automated QA', 'QA_TESTING', 'End-to-end test automation, regression suites, and API testing', TRUE, v_admin_id)
+    ON CONFLICT (skill_code) DO NOTHING;
+
+    -- User Skills
+    INSERT INTO user_skills (user_id, skill_id, proficiency_level, years_experience, is_verified, verified_by, is_active, created_by)
+    VALUES
+        ('00000000-0000-0000-0000-000000000004', 'd1000000-0000-0000-0000-000000000001', 'EXPERT', 5.0, TRUE, v_admin_id, TRUE, v_admin_id),
+        ('00000000-0000-0000-0000-000000000004', 'd1000000-0000-0000-0000-000000000002', 'ADVANCED', 4.0, TRUE, v_admin_id, TRUE, v_admin_id),
+        ('00000000-0000-0000-0000-000000000004', 'd1000000-0000-0000-0000-000000000003', 'EXPERT', 4.5, TRUE, v_admin_id, TRUE, v_admin_id),
+        ('00000000-0000-0000-0000-000000000004', 'd1000000-0000-0000-0000-000000000004', 'ADVANCED', 3.5, TRUE, v_admin_id, TRUE, v_admin_id),
+        ('00000000-0000-0000-0000-000000000012', 'd1000000-0000-0000-0000-000000000003', 'INTERMEDIATE', 2.0, TRUE, v_admin_id, TRUE, v_admin_id),
+        ('00000000-0000-0000-0000-000000000012', 'd1000000-0000-0000-0000-000000000001', 'ADVANCED', 3.0, TRUE, v_admin_id, TRUE, v_admin_id),
+        ('00000000-0000-0000-0000-000000000013', 'd1000000-0000-0000-0000-000000000007', 'EXPERT', 4.0, TRUE, v_admin_id, TRUE, v_admin_id)
+    ON CONFLICT (user_id, skill_id) DO NOTHING;
+
+    -- Task Required Skills
+    INSERT INTO task_required_skills (task_id, skill_id, min_proficiency_level, importance, created_by)
+    VALUES
+        ('20000000-0000-0000-0000-0000000003e9', 'd1000000-0000-0000-0000-000000000003', 'ADVANCED', 'REQUIRED', v_admin_id),
+        ('20000000-0000-0000-0000-0000000003e9', 'd1000000-0000-0000-0000-000000000004', 'INTERMEDIATE', 'REQUIRED', v_admin_id),
+        ('20000000-0000-0000-0000-0000000003ea', 'd1000000-0000-0000-0000-000000000001', 'ADVANCED', 'REQUIRED', v_admin_id),
+        ('20000000-0000-0000-0000-00000000046a', 'd1000000-0000-0000-0000-000000000003', 'EXPERT', 'REQUIRED', v_admin_id)
+    ON CONFLICT (task_id, skill_id) DO NOTHING;
+
+    -- Capacity Reservations
+    INSERT INTO capacity_reservations (
+        reservation_code, user_id, project_id, reservation_type, title, description,
+        start_date, end_date, reserved_hours_per_week, is_active, created_by
+    ) VALUES
+        ('RES-2026-001', '00000000-0000-0000-0000-000000000004', '00000000-0000-0000-0000-000000000001',
+         'SUPPORT_ROTATION', 'L2/L3 Production Support Rotation', 'On-call production support coverage and incident resolution',
+         CURRENT_DATE - 30, CURRENT_DATE + 30, 8.00, TRUE, v_admin_id),
+        ('RES-2026-002', '00000000-0000-0000-0000-000000000004', NULL,
+         'MENTORING', 'Junior Developer Architecture Mentorship', 'Code reviews, architectural pair-programming, and onboarding sessions',
+         CURRENT_DATE - 30, CURRENT_DATE + 60, 4.00, TRUE, v_admin_id)
+    ON CONFLICT (reservation_code) DO NOTHING;
+
+    -- Team Capacity & Estimation Metrics
+    INSERT INTO team_capacity_metrics (
+        team_id, project_id, sprint_id, metric_period_start, metric_period_end,
+        available_hours, allocated_demand_hours, logged_actual_hours, completed_tasks_count,
+        estimation_accuracy_index, on_time_delivery_rate, first_time_right_rate,
+        rework_count, sample_size, is_active, created_by
+    ) VALUES
+        ('c0000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001',
+         CURRENT_DATE - 14, CURRENT_DATE,
+         160.00, 140.00, 136.00, 12,
+         0.9412, 91.67, 83.33,
+    -- ========================================================
+    -- ANALYTICS-004: Project Financials, Variance, Rate Cards & Currencies Sample Data
+    -- ========================================================
+
+    -- Currency Exchange Rates
+    INSERT INTO currency_exchange_rates (from_currency, to_currency, exchange_rate, effective_date, source, is_active, created_by)
+    VALUES
+        ('USD', 'INR', 84.250000, CURRENT_DATE, 'RBI_OFFICIAL_REFERENCE', TRUE, v_admin_id),
+        ('EUR', 'INR', 91.500000, CURRENT_DATE, 'RBI_OFFICIAL_REFERENCE', TRUE, v_admin_id),
+        ('GBP', 'INR', 109.800000, CURRENT_DATE, 'RBI_OFFICIAL_REFERENCE', TRUE, v_admin_id)
+    ON CONFLICT (from_currency, to_currency, effective_date) DO NOTHING;
+
+    -- Project Financial Rate Cards (Effective-Dated Billing & Cost Rates)
+    INSERT INTO project_financial_rates (
+        rate_code, project_id, role_id, user_id, currency,
+        hourly_billing_rate, hourly_cost_rate, effective_start_date, effective_end_date, description, is_active, created_by
+    ) VALUES
+        ('RATE-CORP-ARCH', NULL, '33333333-3333-3333-3333-333333333337', NULL, 'INR',
+         1500.00, 650.00, '2026-01-01', NULL, 'Standard Senior Architect billing & labor cost rate', TRUE, v_admin_id),
+        ('RATE-CORP-LEAD', NULL, '33333333-3333-3333-3333-333333333338', NULL, 'INR',
+         1200.00, 500.00, '2026-01-01', NULL, 'Standard Tech Lead billing & labor cost rate', TRUE, v_admin_id),
+        ('RATE-CORP-QA', NULL, '33333333-3333-3333-3333-333333333339', NULL, 'INR',
+         750.00, 300.00, '2026-01-01', NULL, 'QA Specialist billing & labor cost rate', TRUE, v_admin_id),
+        ('RATE-PRJ-SPECIFIC', '00000000-0000-0000-0000-000000000001', NULL, '00000000-0000-0000-0000-000000000004', 'INR',
+         1100.00, 450.00, '2026-01-01', NULL, 'Project-negotiated developer rate for Logistics ERP', TRUE, v_admin_id)
+    ON CONFLICT (rate_code) DO NOTHING;
+
+    -- Project Financial Baseline
+    INSERT INTO project_financial_baselines (
+        id, baseline_code, project_id, name, description, baseline_date,
+        budgeted_hours, budgeted_cost, budgeted_revenue, currency,
+        scope_tasks_count, scope_story_points, warning_threshold_pct, critical_threshold_pct,
+        is_frozen, is_active, created_by
+    ) VALUES
+        ('b1000000-0000-0000-0000-000000000001', 'BASE-LOG-2026-Q3', '00000000-0000-0000-0000-000000000001',
+         'Logistics ERP Q3 Delivery Baseline', 'Contractual scope and budget baseline approved by steering committee',
+         CURRENT_DATE - 45, 400.00, 160000.00, 380000.00, 'INR',
+         25, 85.0, 75.00, 90.00, TRUE, TRUE, v_admin_id)
+    ON CONFLICT (baseline_code) DO NOTHING;
+
+    -- Project Financial Periodic Metrics
+    INSERT INTO project_financial_metrics (
+        project_id, baseline_id, period_label, period_start, period_end,
+        budgeted_hours, actual_logged_hours, approved_billable_hours, unapproved_draft_hours,
+        remaining_hours, eac_hours, effort_variance_hours, budget_consumption_pct,
+        total_recognized_revenue, total_direct_cost, direct_contribution, contribution_margin_pct,
+        burn_rate_hours_per_week, projected_completion_date, currency, notes, is_active, created_by
+    ) VALUES
+        ('00000000-0000-0000-0000-000000000001', 'b1000000-0000-0000-0000-000000000001',
+         'Sprint 1 (Sep 2026)', CURRENT_DATE - 28, CURRENT_DATE - 14,
+         200.00, 184.00, 176.00, 8.00,
+         40.00, 224.00, -16.00, 92.00,
+         193600.00, 82800.00, 110800.00, 57.23,
+         46.00, CURRENT_DATE + 30, 'INR', 'Closed sprint financials reconciled with approved timesheets', TRUE, v_admin_id),
+        ('00000000-0000-0000-0000-000000000001', 'b1000000-0000-0000-0000-000000000001',
+         'Sprint 2 (Current)', CURRENT_DATE - 13, CURRENT_DATE,
+         200.00, 142.50, 130.00, 12.50,
+         65.00, 207.50, 7.50, 71.25,
+         143000.00, 64125.00, 78875.00, 55.16,
+         47.50, CURRENT_DATE + 25, 'INR', 'Active sprint progress within warning threshold (<75%)', TRUE, v_admin_id)
+    ON CONFLICT DO NOTHING;
+
+    -- LATER-001: Project Health Score Configurations
+    INSERT INTO project_health_score_configs (
+        id, project_id, weight_schedule, weight_scope, weight_quality, weight_blockers, weight_budget_flow,
+        schedule_slip_warning_days, schedule_slip_critical_days, defect_density_critical_ratio,
+        blocker_age_critical_hours, missing_data_strategy, is_active, created_by
+    ) VALUES (
+        'h1000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001',
+        30.00, 20.00, 20.00, 15.00, 15.00,
+        3, 7, 0.25, 48.00, 'NEUTRAL_SCORE', TRUE, v_admin_id
+    ) ON CONFLICT (project_id) DO NOTHING;
+
+    -- LATER-001: Project Health Evaluations
+    INSERT INTO project_health_evaluations (
+        id, project_id, evaluation_date, composite_score, health_state,
+        schedule_score, scope_score, quality_score, blockers_score, budget_flow_score,
+        dimension_details, manual_override_state, override_reason, notes, is_active, created_by
+    ) VALUES (
+        'h2000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001',
+        CURRENT_DATE, 88.50, 'GREEN',
+        85.00, 95.00, 90.00, 80.00, 92.50,
+        '{"schedule": {"slip_days": 1, "critical_path_slack": 16.0}, "quality": {"defect_ratio": 0.08}, "blockers": {"active_count": 1, "max_age_hours": 18.5}}'::jsonb,
+        NULL, NULL, 'Calibrated evaluation: All core dimensions within green operational margins', TRUE, v_admin_id
+    ) ON CONFLICT DO NOTHING;
+
+    -- LATER-001: Schedule Scenarios
+    INSERT INTO schedule_scenarios (
+        id, project_id, scenario_code, name, description, scenario_type, status,
+        baseline_end_date, simulated_end_date, critical_path_length_hours, schedule_variance_days,
+        impacted_tasks_count, simulation_summary, is_active, created_by
+    ) VALUES (
+        's1000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001',
+        'SCEN-LOG-OPT-01', 'Q3 Delivery Critical Path Optimization',
+        'What-if scenario simulating fast-tracking backend dispatch service with 16h acceleration',
+        'CRITICAL_PATH_OPTIMIZATION', 'SIMULATED',
+        CURRENT_DATE + 30, CURRENT_DATE + 26, 128.00, -4, 3,
+        '{"critical_path_tasks": ["TSK-ERP-001", "TSK-ERP-002", "TSK-ERP-004"], "total_float_gain_hours": 32.0}'::jsonb,
+        TRUE, v_admin_id
+    ) ON CONFLICT (project_id, scenario_code) DO NOTHING;
+
+    -- LATER-001: Schedule Scenario Task Overrides
+    INSERT INTO schedule_scenario_task_overrides (
+        scenario_id, task_id, simulated_start_date, simulated_due_date, simulated_estimated_hours,
+        earliest_start_date, earliest_finish_date, latest_start_date, latest_finish_date,
+        total_slack_hours, free_slack_hours, is_critical_path, notes, is_active, created_by
+    ) VALUES
+        ('s1000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-0000000003e9',
+         CURRENT_DATE - 5, CURRENT_DATE + 5, 24.00,
+         CURRENT_DATE - 5, CURRENT_DATE + 5, CURRENT_DATE - 5, CURRENT_DATE + 5,
+         0.00, 0.00, TRUE, 'Critical path task driving baseline release completion', TRUE, v_admin_id),
+        ('s1000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-0000000003ea',
+         CURRENT_DATE + 6, CURRENT_DATE + 18, 40.00,
+         CURRENT_DATE + 6, CURRENT_DATE + 18, CURRENT_DATE + 8, CURRENT_DATE + 20,
+         16.00, 16.00, FALSE, 'Non-critical path task with 16h available float', TRUE, v_admin_id)
+    ON CONFLICT (scenario_id, task_id) DO NOTHING;
+
+    -- API-001: Webhook Subscriptions
+    INSERT INTO webhook_subscriptions (
+        id, subscription_code, name, target_url, secret_key, event_types,
+        is_enabled, max_retries, timeout_seconds, description, is_active, created_by
+    ) VALUES
+        ('w1000000-0000-0000-0000-000000000001', 'WH-SLACK-DELIVERY', 'Slack Delivery Bot Alerts',
+         'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX',
+         'whsec_984537281904a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b9c8d7e6f5a4b3',
+         ARRAY['task.created', 'blocker.opened', 'sla.breached', 'release.published'],
+         TRUE, 3, 10, 'Outbound webhook notification stream to corporate Slack channel #delivery-radar', TRUE, v_admin_id),
+        ('w1000000-0000-0000-0000-000000000002', 'WH-ERP-ACCOUNTING', 'Enterprise ERP Milestone Sync',
+         'https://erp.kashvirainfotech.com/api/v1/integrations/pmt-events',
+         'whsec_a1b2c3d4e5f67890123456789abcdef0123456789abcdef0123456789abcdef0',
+         ARRAY['task.transitioned', 'cr.approved'],
+         TRUE, 3, 15, 'Outbound billing event stream syncing approved change requests and completed milestones', TRUE, v_admin_id)
+    ON CONFLICT (subscription_code) DO NOTHING;
+
+    -- API-001: Webhook Deliveries
+    INSERT INTO webhook_deliveries (
+        id, subscription_id, event_id, event_type, payload, destination_url,
+        attempt_number, max_attempts, status, response_status_code, response_body,
+        execution_duration_ms, delivered_at, created_at
+    ) VALUES
+        ('w2000000-0000-0000-0000-000000000001', 'w1000000-0000-0000-0000-000000000001',
+         'evt_1000000000000001', 'task.created',
+         '{"event_id": "evt_1000000000000001", "event_type": "task.created", "timestamp": "2026-10-01T10:00:00Z", "data": {"task_code": "TSK-ERP-001", "title": "Implement multi-currency conversion", "priority": "HIGH"}}'::jsonb,
+         'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX',
+         1, 3, 'SUCCESS', 200, '{"ok": true}', 142, CURRENT_TIMESTAMP - INTERVAL '2 hours', CURRENT_TIMESTAMP - INTERVAL '2 hours'),
+        ('w2000000-0000-0000-0000-000000000002', 'w1000000-0000-0000-0000-000000000001',
+         'evt_1000000000000002', 'sla.breached',
+         '{"event_id": "evt_1000000000000002", "event_type": "sla.breached", "timestamp": "2026-10-01T11:30:00Z", "data": {"task_code": "TSK-ERP-005", "policy_name": "P1 Critical Response", "breach_type": "RESPONSE_SLA"}}'::jsonb,
+         'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX',
+         1, 3, 'RETRYING', 503, '{"error": "service_unavailable"}', 1010, NULL, CURRENT_TIMESTAMP - INTERVAL '15 minutes')
+    ON CONFLICT DO NOTHING;
+
+    -- ADMIN-001: Company Settings Profile & Setup Wizard
+    INSERT INTO company_settings (
+        id, company_name, legal_name, registration_number, tax_id, company_domain,
+        primary_email, support_email, headquarters_branch_id, default_currency,
+        timezone, date_format, branding_primary_color, branding_accent_color,
+        setup_wizard_completed, setup_wizard_step, setup_completed_at, enabled_modules,
+        is_active, created_by
+    ) VALUES (
+        'c1000000-0000-0000-0000-000000000001',
+        'Kashvira Infotech Private Limited',
+        'Kashvira Infotech Solutions Pvt. Ltd.',
+        'U72200MH2020PTC123456',
+        '27AAAAA0000A1Z5',
+        'kashvirainfotech.com',
+        'admin@kashvirainfotech.com',
+        'support@kashvirainfotech.com',
+        '11111111-1111-1111-1111-111111111111',
+        'INR',
+        'Asia/Kolkata',
+        'YYYY-MM-DD',
+        '#2563eb',
+        '#4f46e5',
+        TRUE,
+        6,
+        CURRENT_TIMESTAMP - INTERVAL '30 days',
+        '{"tasks": true, "sprints": true, "timesheets": true, "crm_clients": true, "qa_testing": true, "customer_portal": true, "commercial": true, "sla_alerts": true, "analytics": true, "webhooks": true, "config_packages": true}'::jsonb,
+        TRUE,
+        v_admin_id
+    ) ON CONFLICT DO NOTHING;
+
+    -- ADMIN-001: Versioned Configuration Packages
+    INSERT INTO configuration_packages (
+        id, package_code, package_name, version, pmt_version_compatibility,
+        package_type, description, manifest, package_data, is_builtin_template,
+        applied_at, applied_by, is_active, created_by
+    ) VALUES (
+        'pkg00000-0000-0000-0000-000000000001',
+        'PKG-AGILE-CORE-v1',
+        'Agile Scrum & Kanban Core Delivery Package',
+        '1.0.0',
+        '1.0.0',
+        'FULL',
+        'Standard Agile workflow schemes, 4-stage task lifecycles, defect reporting templates, priority matrix, and default SLA policies for rapid team bootstrapping.',
+        '{"task_types": 4, "workflows": 2, "sla_policies": 2, "defect_templates": 1}'::jsonb,
+        '{
+            "version": "1.0.0",
+            "metadata": {"name": "Agile Scrum & Kanban Core", "author": "Kashvira Infotech Architecture Team"},
+            "task_types": [
+                {"code": "STORY", "name": "User Story", "color": "#10b981", "is_chargeable": true},
+                {"code": "TASK", "name": "Technical Task", "color": "#3b82f6", "is_chargeable": true},
+                {"code": "BUG", "name": "Defect / Bug", "color": "#ef4444", "is_chargeable": false},
+                {"code": "EPIC", "name": "Initiative Epic", "color": "#8b5cf6", "is_chargeable": true}
+            ],
+            "workflow_stages": ["BACKLOG", "READY_FOR_DEV", "IN_PROGRESS", "IN_REVIEW", "IN_QA", "DONE"],
+            "sla_policies": [
+                {"name": "P1 Blocker SLA", "response_hours": 1, "resolution_hours": 8},
+                {"name": "Standard Story SLA", "response_hours": 8, "resolution_hours": 40}
+            ]
+        }'::jsonb,
+        TRUE,
+        CURRENT_TIMESTAMP - INTERVAL '20 days',
+        v_admin_id,
+        TRUE,
+        v_admin_id
+    ), (
+        'pkg00000-0000-0000-0000-000000000002',
+        'PKG-CLIENT-SERVICES-v1',
+        'Client Delivery & Retainer Governance Package',
+        '1.0.0',
+        '1.0.0',
+        'FULL',
+        'Client intake triage workflows, formal scope change approval rules, UAT package milestones, and retainer periodic allowance schemas.',
+        '{"workflows": 1, "intake_categories": 3, "uat_checklists": 1, "retainer_rules": 1}'::jsonb,
+        '{
+            "version": "1.0.0",
+            "metadata": {"name": "Client Delivery & Retainers", "author": "Kashvira Infotech Solutions"},
+            "intake_categories": ["BUG_REPORT", "SUPPORT_INQUIRY", "CHANGE_REQUEST"],
+            "uat_gates": ["DEVELOPER_DONE", "QA_VERIFIED", "CLIENT_ACCEPTED"],
+            "retainer_rollover_modes": ["NO_ROLLOVER", "FULL_ROLLOVER", "CAPPED_ROLLOVER"]
+        }'::jsonb,
+        TRUE,
+        NULL,
+        NULL,
+        TRUE,
+        v_admin_id
+    ) ON CONFLICT (package_code) DO NOTHING;
+
+    -- LATER-002: Drafting & Analysis Rule Configurations
+    INSERT INTO draft_rule_configs (
+        id, rule_code, rule_name, rule_type, is_enabled, similarity_threshold,
+        rule_parameters, description, is_active, created_by
+    ) VALUES
+        ('d1000000-0000-0000-0000-000000000001', 'RULE-GAP-TESTING', 'QA Test Case Coverage Gap Detector',
+         'GAP_DETECTION', TRUE, 0.70,
+         '{"min_test_cases_per_req": 1, "flag_unverified_criteria": true}'::jsonb,
+         'Scans approved requirement specifications and highlights those missing linked manual test cases.', TRUE, v_admin_id),
+        ('d1000000-0000-0000-0000-000000000002', 'RULE-GAP-ACCEPTANCE', 'Task Acceptance Criteria Gap Detector',
+         'GAP_DETECTION', TRUE, 0.70,
+         '{"require_criteria_for_stories": true, "require_criteria_for_epics": false}'::jsonb,
+         'Identifies ready-for-development user stories lacking defined acceptance criteria.', TRUE, v_admin_id),
+        ('d1000000-0000-0000-0000-000000000003', 'RULE-DUP-TASKS', 'Cross-Project Task & Defect Duplicate Detector',
+         'DUPLICATE_DETECTION', TRUE, 0.75,
+         '{"min_title_similarity": 0.75, "match_keywords": ["fail", "error", "null", "timeout"]}'::jsonb,
+         'Computes deterministic token overlap to detect duplicate bug submissions and tasks.', TRUE, v_admin_id),
+        ('d1000000-0000-0000-0000-000000000004', 'RULE-WBS-AUTO', 'Standard Work Breakdown Structure Generator',
+         'WBS_GENERATION', TRUE, 0.70,
+         '{"default_subtasks": ["Technical Architecture & Schema Design", "Backend Core API Implementation", "Frontend UI Integration", "QA Verification & Regression Test"]}'::jsonb,
+         'Generates standard 4-phase WBS breakdown for newly created Epics and major technical tasks.', TRUE, v_admin_id),
+        ('d1000000-0000-0000-0000-000000000005', 'RULE-SUMM-RELEASE', 'Deterministic Release Notes & Changelog Compiler',
+         'SUMMARY_GENERATION', TRUE, 0.70,
+         '{"include_bug_fixes": true, "include_features": true, "omit_internal_refactors": true}'::jsonb,
+         'Aggregates completed sprint worklogs and tasks into clean, categorized draft release notes.', TRUE, v_admin_id)
+    ON CONFLICT (rule_code) DO NOTHING;
+
+    -- LATER-002: Seed Source-Linked Draft Suggestions
+    INSERT INTO draft_suggestions (
+        id, draft_code, draft_type, title, source_entity_type, source_entity_id,
+        source_entity_code, audience_scope, status, suggested_content, is_active, created_by
+    ) VALUES
+        ('d2000000-0000-0000-0000-000000000001', 'DFT-WBS-ERP-001', 'DRAFT_SUBTASKS',
+         'Work Breakdown for GST E-Invoicing Engine', 'TASK', '20000000-0000-0000-0000-0000000003e9',
+         'TSK-ERP-001', 'INTERNAL_ONLY', 'PENDING_REVIEW',
+         '{
+             "subtasks": [
+                 {"title": "Implement IRP authentication token exchange", "estimated_hours": 6},
+                 {"title": "Construct e-way bill and e-invoice JSON serializer", "estimated_hours": 8},
+                 {"title": "Integrate NIC digital signature & QR code generation", "estimated_hours": 10},
+                 {"title": "Execute end-to-end sandbox tax invoice validation", "estimated_hours": 8}
+             ]
+         }'::jsonb, TRUE, v_admin_id),
+        ('d2000000-0000-0000-0000-000000000002', 'DFT-REL-v1.0.0', 'DRAFT_RELEASE_NOTES',
+         'Release Notes Draft: Version 1.0.0 Core Launch', 'VERSION', '10000000-0000-0000-0000-000000000001',
+         'v1.0.0', 'CLIENT_SAFE', 'PENDING_REVIEW',
+         '{
+             "version": "1.0.0",
+             "highlights": "Initial general availability launch of KS-PMT core platform.",
+             "new_features": [
+                 "Interactive Jira-style task planning and TanStack grid experience",
+                 "Multi-branch hierarchical RBAC with granular user and location overrides",
+                 "Automated working calendars and dynamic capacity calculations"
+             ],
+             "bug_fixes": [
+                 "Resolved scheduled sprint task date boundary validation on month ends",
+                 "Fixed decimal calculation in multi-currency rate card conversions"
+             ],
+             "client_safe": true
+         }'::jsonb, TRUE, v_admin_id),
+        ('d2000000-0000-0000-0000-000000000003', 'DFT-GAP-001', 'GAP_SUGGESTION',
+         'Coverage Gap: Requirement Missing Verification Tests', 'TASK', '20000000-0000-0000-0000-0000000003e9',
+         'TSK-ERP-001', 'INTERNAL_ONLY', 'PENDING_REVIEW',
+         '{
+             "gap_type": "MISSING_TEST_CASES",
+             "severity": "HIGH",
+             "message": "Epic TSK-ERP-001 is ready for development but has 0 linked QA test suites or verification checklists.",
+             "recommended_action": "Link at least one manual test case before transition to IN_REVIEW."
+         }'::jsonb, TRUE, v_admin_id)
+    ON CONFLICT (draft_code) DO NOTHING;
 END ;
+
+
+

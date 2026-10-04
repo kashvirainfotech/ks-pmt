@@ -33,6 +33,15 @@ import {
   QueryTestRunsDto,
   QueryTestSuitesDto,
 } from './dto/query-qa.dto';
+import {
+  CreateQaEnvironmentDto,
+  UpdateQaEnvironmentDto,
+} from './dto/create-qa-environment.dto';
+import { CreateIssueObservationDto } from './dto/create-issue-observation.dto';
+import {
+  QueryQaEnvironmentsDto,
+  QueryIssueObservationsDto,
+} from './dto/query-qa-environments.dto';
 
 @Injectable()
 export class QaService {
@@ -1322,4 +1331,483 @@ export class QaService {
       items: res.rows,
     };
   }
+
+  // ========================================================
+  // 6. QA Scoped Environments Management (QA-002)
+  // ========================================================
+
+  private async generateEnvironmentCode(): Promise<string> {
+    const year = new Date().getFullYear();
+    const pattern = `ENV-${year}-%`;
+
+    const res = await this.db.query(
+      `SELECT env_code FROM qa_environments WHERE env_code LIKE $1 ORDER BY env_code DESC LIMIT 1`,
+      [pattern],
+    );
+
+    let nextNum = 1;
+    if (res.rowCount && res.rowCount > 0) {
+      const match = res.rows[0].env_code.match(new RegExp(`ENV-${year}-(\\d+)`));
+      if (match) {
+        nextNum = parseInt(match[1], 10) + 1;
+      }
+    }
+    return `ENV-${year}-${String(nextNum).padStart(4, '0')}`;
+  }
+
+  private async generateObservationCode(): Promise<string> {
+    const year = new Date().getFullYear();
+    const pattern = `OBS-${year}-%`;
+
+    const res = await this.db.query(
+      `SELECT observation_code FROM issue_environment_observations WHERE observation_code LIKE $1 ORDER BY observation_code DESC LIMIT 1`,
+      [pattern],
+    );
+
+    let nextNum = 1;
+    if (res.rowCount && res.rowCount > 0) {
+      const match = res.rows[0].observation_code.match(new RegExp(`OBS-${year}-(\\d+)`));
+      if (match) {
+        nextNum = parseInt(match[1], 10) + 1;
+      }
+    }
+    return `OBS-${year}-${String(nextNum).padStart(4, '0')}`;
+  }
+
+  async createEnvironment(dto: CreateQaEnvironmentDto, userId: string) {
+    const code = await this.generateEnvironmentCode();
+
+    const res = await this.db.query(
+      `INSERT INTO qa_environments (
+        env_code, env_name, env_type, scope_type,
+        product_id, project_id, client_id, region, description,
+        context_metadata, is_active, created_by, updated_by
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, TRUE, $11, $11)
+      RETURNING *`,
+      [
+        code,
+        dto.env_name,
+        dto.env_type,
+        dto.scope_type,
+        dto.product_id || null,
+        dto.project_id || null,
+        dto.client_id || null,
+        dto.region || null,
+        dto.description || null,
+        JSON.stringify(dto.context_metadata || {}),
+        userId,
+      ],
+    );
+    return res.rows[0];
+  }
+
+  async getEnvironments(query: QueryQaEnvironmentsDto) {
+    const conditions: string[] = ['qe.is_active = TRUE'];
+    const params: any[] = [];
+    let pIdx = 1;
+
+    if (query.env_type) {
+      conditions.push(`qe.env_type = $${pIdx++}`);
+      params.push(query.env_type);
+    }
+    if (query.scope_type) {
+      conditions.push(`qe.scope_type = $${pIdx++}`);
+      params.push(query.scope_type);
+    }
+    if (query.product_id) {
+      conditions.push(`qe.product_id = $${pIdx++}`);
+      params.push(query.product_id);
+    }
+    if (query.project_id) {
+      conditions.push(`qe.project_id = $${pIdx++}`);
+      params.push(query.project_id);
+    }
+    if (query.client_id) {
+      conditions.push(`qe.client_id = $${pIdx++}`);
+      params.push(query.client_id);
+    }
+    if (query.search) {
+      conditions.push(
+        `(qe.env_name ILIKE $${pIdx} OR qe.env_code ILIKE $${pIdx} OR qe.region ILIKE $${pIdx})`,
+      );
+      params.push(`%${query.search}%`);
+      pIdx++;
+    }
+
+    const sql = `
+      SELECT
+        qe.*,
+        p.product_name,
+        prj.project_name,
+        c.client_name,
+        (
+          SELECT COUNT(*)::int
+          FROM issue_environment_observations ieo
+          WHERE ieo.environment_id = qe.id AND ieo.is_active = TRUE
+        ) AS observations_count
+      FROM qa_environments qe
+      LEFT JOIN products p ON qe.product_id = p.id
+      LEFT JOIN projects prj ON qe.project_id = prj.id
+      LEFT JOIN clients c ON qe.client_id = c.id
+      WHERE ${conditions.join(' AND ')}
+      ORDER BY qe.env_type ASC, qe.env_name ASC
+    `;
+
+    const res = await this.db.query(sql, params);
+    return res.rows;
+  }
+
+  async getEnvironmentById(id: string) {
+    const res = await this.db.query(
+      `SELECT
+        qe.*,
+        p.product_name,
+        prj.project_name,
+        c.client_name
+      FROM qa_environments qe
+      LEFT JOIN products p ON qe.product_id = p.id
+      LEFT JOIN projects prj ON qe.project_id = prj.id
+      LEFT JOIN clients c ON qe.client_id = c.id
+      WHERE qe.id = $1 AND qe.is_active = TRUE`,
+      [id],
+    );
+
+    if (!res.rowCount || res.rowCount === 0) {
+      throw new NotFoundException(`QA environment with ID ${id} not found`);
+    }
+    return res.rows[0];
+  }
+
+  async updateEnvironment(id: string, dto: UpdateQaEnvironmentDto, userId: string) {
+    await this.getEnvironmentById(id);
+
+    const updates: string[] = ['updated_by = $1', 'updated_at = CURRENT_TIMESTAMP'];
+    const params: any[] = [userId];
+    let pIdx = 2;
+
+    if (dto.env_name !== undefined) {
+      updates.push(`env_name = $${pIdx++}`);
+      params.push(dto.env_name);
+    }
+    if (dto.env_type !== undefined) {
+      updates.push(`env_type = $${pIdx++}`);
+      params.push(dto.env_type);
+    }
+    if (dto.scope_type !== undefined) {
+      updates.push(`scope_type = $${pIdx++}`);
+      params.push(dto.scope_type);
+    }
+    if (dto.product_id !== undefined) {
+      updates.push(`product_id = $${pIdx++}`);
+      params.push(dto.product_id || null);
+    }
+    if (dto.project_id !== undefined) {
+      updates.push(`project_id = $${pIdx++}`);
+      params.push(dto.project_id || null);
+    }
+    if (dto.client_id !== undefined) {
+      updates.push(`client_id = $${pIdx++}`);
+      params.push(dto.client_id || null);
+    }
+    if (dto.region !== undefined) {
+      updates.push(`region = $${pIdx++}`);
+      params.push(dto.region);
+    }
+    if (dto.description !== undefined) {
+      updates.push(`description = $${pIdx++}`);
+      params.push(dto.description);
+    }
+    if (dto.context_metadata !== undefined) {
+      updates.push(`context_metadata = $${pIdx++}`);
+      params.push(JSON.stringify(dto.context_metadata));
+    }
+
+    params.push(id);
+    const sql = `
+      UPDATE qa_environments
+      SET ${updates.join(', ')}
+      WHERE id = $${pIdx} AND is_active = TRUE
+      RETURNING *
+    `;
+
+    const res = await this.db.query(sql, params);
+    return res.rows[0];
+  }
+
+  async deleteEnvironment(id: string, userId: string) {
+    await this.getEnvironmentById(id);
+
+    await this.db.query(
+      `UPDATE qa_environments
+      SET is_active = FALSE, updated_by = $1, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $2`,
+      [userId, id],
+    );
+    return { success: true, message: `QA environment ${id} deleted` };
+  }
+
+  // ========================================================
+  // 7. Issue Environment Observations & Retests (QA-002)
+  // ========================================================
+
+  async createIssueObservation(dto: CreateIssueObservationDto, user: any) {
+    const taskRes = await this.db.query(
+      `SELECT id, task_code, title, project_id, product_id, version_id FROM tasks WHERE id = $1 AND is_active = TRUE`,
+      [dto.task_id],
+    );
+    if (!taskRes.rowCount || taskRes.rowCount === 0) {
+      throw new NotFoundException(`Task with ID ${dto.task_id} not found`);
+    }
+
+    const envRes = await this.db.query(
+      `SELECT id, env_code, env_type, client_id FROM qa_environments WHERE id = $1 AND is_active = TRUE`,
+      [dto.environment_id],
+    );
+    if (!envRes.rowCount || envRes.rowCount === 0) {
+      throw new NotFoundException(`Environment with ID ${dto.environment_id} not found`);
+    }
+
+    const verRes = await this.db.query(
+      `SELECT id, version_code FROM versions WHERE id = $1 AND is_active = TRUE`,
+      [dto.version_id],
+    );
+    if (!verRes.rowCount || verRes.rowCount === 0) {
+      throw new NotFoundException(`Version with ID ${dto.version_id} not found`);
+    }
+
+    const code = await this.generateObservationCode();
+    const userId = user.userId || user.id;
+    const isClientVis = dto.is_client_visible !== undefined ? dto.is_client_visible : (envRes.rows[0].env_type === 'CLIENT_UAT' || envRes.rows[0].env_type === 'ON_PREMISE_CLIENT');
+
+    const res = await this.db.query(
+      `INSERT INTO issue_environment_observations (
+        observation_code, task_id, environment_id, version_id,
+        observation_type, observed_at, tester_user_id, client_contact_id,
+        browser_info, os_info, device_info, build_label,
+        evidence_notes, attachment_url, is_client_visible, is_active,
+        created_by, updated_by
+      ) VALUES ($1, $2, $3, $4, $5, COALESCE($6, CURRENT_TIMESTAMP), $7, $8, $9, $10, $11, $12, $13, $14, $15, TRUE, $16, $16)
+      RETURNING *`,
+      [
+        code,
+        dto.task_id,
+        dto.environment_id,
+        dto.version_id,
+        dto.observation_type,
+        dto.observed_at || null,
+        dto.tester_user_id || userId,
+        dto.client_contact_id || null,
+        dto.browser_info || null,
+        dto.os_info || null,
+        dto.device_info || null,
+        dto.build_label || null,
+        dto.evidence_notes || null,
+        dto.attachment_url || null,
+        isClientVis,
+        userId,
+      ],
+    );
+
+    // CRITICAL QA-002 ACCEPTANCE ENFORCEMENT:
+    // A fix passing internal QA does NOT automatically close or mark client environments as passed.
+    // Client UAT and customer-specific on-premise environments remain strictly independent facts.
+
+    return res.rows[0];
+  }
+
+  async getIssueObservations(query: QueryIssueObservationsDto, user: any) {
+    const page = query.page || 1;
+    const limit = query.limit || 50;
+    const offset = (page - 1) * limit;
+
+    const conditions: string[] = ['ieo.is_active = TRUE'];
+    const params: any[] = [];
+    let pIdx = 1;
+
+    // Privacy boundary: If client user, restrict strictly to their client-visible items
+    const isClient = !!user?.clientId;
+    if (isClient) {
+      conditions.push(
+        `(ieo.is_client_visible = TRUE AND (qe.scope_type = 'GLOBAL' OR qe.client_id = $${pIdx}))`,
+      );
+      params.push(user.clientId);
+      pIdx++;
+    } else if (query.is_client_visible !== undefined) {
+      conditions.push(`ieo.is_client_visible = $${pIdx++}`);
+      params.push(query.is_client_visible);
+    }
+
+    if (query.task_id) {
+      conditions.push(`ieo.task_id = $${pIdx++}`);
+      params.push(query.task_id);
+    }
+    if (query.environment_id) {
+      conditions.push(`ieo.environment_id = $${pIdx++}`);
+      params.push(query.environment_id);
+    }
+    if (query.version_id) {
+      conditions.push(`ieo.version_id = $${pIdx++}`);
+      params.push(query.version_id);
+    }
+    if (query.observation_type) {
+      conditions.push(`ieo.observation_type = $${pIdx++}`);
+      params.push(query.observation_type);
+    }
+    if (query.product_id) {
+      conditions.push(`(t.product_id = $${pIdx} OR qe.product_id = $${pIdx})`);
+      params.push(query.product_id);
+      pIdx++;
+    }
+    if (query.project_id) {
+      conditions.push(`(t.project_id = $${pIdx} OR qe.project_id = $${pIdx})`);
+      params.push(query.project_id);
+      pIdx++;
+    }
+    if (query.client_id && !isClient) {
+      conditions.push(`qe.client_id = $${pIdx++}`);
+      params.push(query.client_id);
+    }
+
+    const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+
+    const countRes = await this.db.query(
+      `SELECT COUNT(*)::int as total
+      FROM issue_environment_observations ieo
+      JOIN tasks t ON ieo.task_id = t.id
+      JOIN qa_environments qe ON ieo.environment_id = qe.id
+      ${whereClause}`,
+      params,
+    );
+    const total = countRes.rows[0]?.total || 0;
+
+    const sql = `
+      SELECT
+        ieo.*,
+        t.task_code,
+        t.title AS task_title,
+        qe.env_code,
+        qe.env_name,
+        qe.env_type,
+        qe.region AS env_region,
+        c.client_name,
+        v.version_code,
+        v.version_name,
+        u.display_name AS tester_name,
+        u.email AS tester_email,
+        cc.first_name || ' ' || cc.last_name AS client_contact_name
+      FROM issue_environment_observations ieo
+      JOIN tasks t ON ieo.task_id = t.id
+      JOIN qa_environments qe ON ieo.environment_id = qe.id
+      JOIN versions v ON ieo.version_id = v.id
+      LEFT JOIN clients c ON qe.client_id = c.id
+      LEFT JOIN users u ON ieo.tester_user_id = u.id
+      LEFT JOIN client_contacts cc ON ieo.client_contact_id = cc.id
+      ${whereClause}
+      ORDER BY ieo.observed_at DESC
+      LIMIT $${pIdx++} OFFSET $${pIdx++}
+    `;
+
+    params.push(limit, offset);
+    const res = await this.db.query(sql, params);
+
+    return {
+      items: res.rows,
+      total,
+      page,
+      limit,
+      total_pages: Math.ceil(total / limit),
+    };
+  }
+
+  async getTaskEnvironmentMatrix(taskId: string, user: any) {
+    const taskRes = await this.db.query(
+      `SELECT
+        t.id, t.task_code, t.title, t.priority,
+        ts.status_name,
+        v.version_code AS task_version_code,
+        p.product_name,
+        prj.project_name
+      FROM tasks t
+      LEFT JOIN task_statuses ts ON t.status_id = ts.id
+      LEFT JOIN versions v ON t.version_id = v.id
+      LEFT JOIN products p ON t.product_id = p.id
+      LEFT JOIN projects prj ON t.project_id = prj.id
+      WHERE t.id = $1 AND t.is_active = TRUE`,
+      [taskId],
+    );
+
+    if (!taskRes.rowCount || taskRes.rowCount === 0) {
+      throw new NotFoundException(`Task with ID ${taskId} not found`);
+    }
+
+    const task = taskRes.rows[0];
+    const isClient = !!user?.clientId;
+
+    const privacyCondition = isClient
+      ? `AND (ieo.is_client_visible = TRUE AND (qe.scope_type = 'GLOBAL' OR qe.client_id = '${user.clientId}'))`
+      : '';
+
+    // Fetch latest observation per environment and version
+    const observationsSql = `
+      SELECT DISTINCT ON (ieo.environment_id, ieo.version_id)
+        ieo.id,
+        ieo.observation_code,
+        ieo.observation_type,
+        ieo.observed_at,
+        ieo.build_label,
+        ieo.browser_info,
+        ieo.os_info,
+        ieo.evidence_notes,
+        ieo.is_client_visible,
+        qe.id AS environment_id,
+        qe.env_code,
+        qe.env_name,
+        qe.env_type,
+        qe.scope_type,
+        c.client_name,
+        v.id AS version_id,
+        v.version_code,
+        v.version_name,
+        u.display_name AS tester_name,
+        cc.first_name || ' ' || cc.last_name AS client_contact_name
+      FROM issue_environment_observations ieo
+      JOIN qa_environments qe ON ieo.environment_id = qe.id
+      JOIN versions v ON ieo.version_id = v.id
+      LEFT JOIN clients c ON qe.client_id = c.id
+      LEFT JOIN users u ON ieo.tester_user_id = u.id
+      LEFT JOIN client_contacts cc ON ieo.client_contact_id = cc.id
+      WHERE ieo.task_id = $1 AND ieo.is_active = TRUE ${privacyCondition}
+      ORDER BY ieo.environment_id, ieo.version_id, ieo.observed_at DESC
+    `;
+
+    const obsRes = await this.db.query(observationsSql, [taskId]);
+
+    // Compute status rollup
+    const hasPassedInternalQa = obsRes.rows.some(
+      (r: any) => r.env_type === 'INTERNAL_QA' && r.observation_type === 'PASSED',
+    );
+    const hasFailingClientUat = obsRes.rows.some(
+      (r: any) => r.env_type === 'CLIENT_UAT' && r.observation_type === 'FAILED',
+    );
+    const hasUnresolvedOlderVersion = obsRes.rows.some(
+      (r: any) =>
+        (r.observation_type === 'FOUND_REPRODUCED' || r.observation_type === 'FAILED') &&
+        r.version_code !== task.task_version_code,
+    );
+
+    return {
+      task,
+      matrix: obsRes.rows,
+      evaluationSummary: {
+        hasPassedInternalQa,
+        hasFailingClientUat,
+        hasUnresolvedOlderVersion,
+        // Proves QA-002: Internal pass does not resolve client issues
+        isFullyResolvedAcrossAllEnvironments:
+          obsRes.rows.length > 0 &&
+          obsRes.rows.every((r: any) => r.observation_type === 'PASSED'),
+      },
+    };
+  }
 }
+

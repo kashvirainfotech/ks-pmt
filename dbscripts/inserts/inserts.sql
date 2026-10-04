@@ -346,7 +346,56 @@ BEGIN
         -- What Changed Activity Summaries & Baselines (COLLAB-004)
         ('ACTIVITY', 'READ', 'ACTIVITY:READ', 'Permission to view What Changed activity summaries and change streams', TRUE, v_admin_id),
         ('ACTIVITY', 'BASELINES', 'ACTIVITY:BASELINES', 'Permission to capture and manage change activity baselines', TRUE, v_admin_id),
-        ('ACTIVITY', 'CLIENT_SUMMARY', 'ACTIVITY:CLIENT_SUMMARY', 'Permission to generate and export client-safe change summaries', TRUE, v_admin_id)
+        ('ACTIVITY', 'CLIENT_SUMMARY', 'ACTIVITY:CLIENT_SUMMARY', 'Permission to generate and export client-safe change summaries', TRUE, v_admin_id),
+        -- Product Goals & Outcome Reviews (PROD-002)
+        ('PRODUCT_GOALS', 'READ', 'PRODUCT_GOALS:READ', 'Permission to view product goals and outcome reviews', TRUE, v_admin_id),
+        ('PRODUCT_GOALS', 'MANAGE', 'PRODUCT_GOALS:MANAGE', 'Permission to create, update, and track product goals and metrics', TRUE, v_admin_id),
+        ('PRODUCT_OUTCOMES', 'REVIEW', 'PRODUCT_OUTCOMES:REVIEW', 'Permission to conduct post-release outcome evaluation reviews', TRUE, v_admin_id),
+        -- Scoped Environments & Environment-Specific Issue Verification (QA-002)
+        ('QA_ENVIRONMENTS', 'READ', 'QA_ENVIRONMENTS:READ', 'Permission to view QA test environments and context metadata', TRUE, v_admin_id),
+        ('QA_ENVIRONMENTS', 'MANAGE', 'QA_ENVIRONMENTS:MANAGE', 'Permission to configure and manage QA test environments', TRUE, v_admin_id),
+        ('QA_OBSERVATIONS', 'READ', 'QA_OBSERVATIONS:READ', 'Permission to view environment-specific issue observations and retest matrix', TRUE, v_admin_id),
+        ('QA_OBSERVATIONS', 'RECORD', 'QA_OBSERVATIONS:RECORD', 'Permission to record environment observations and retest outcomes', TRUE, v_admin_id),
+        -- Retainer & AMC Entitlements (COMM-001)
+        ('COMMERCIAL', 'READ', 'COMMERCIAL:READ', 'Permission to view retainer/AMC contracts, periods, allowances, and client statements', TRUE, v_admin_id),
+        ('COMMERCIAL', 'MANAGE', 'COMMERCIAL:MANAGE', 'Permission to create and manage contracts, periods, and rollover policies', TRUE, v_admin_id),
+        ('COMMERCIAL', 'CONSUME', 'COMMERCIAL:CONSUME', 'Permission to link and reconcile approved worklog allowance consumptions', TRUE, v_admin_id),
+        ('COMMERCIAL', 'OVERAGE', 'COMMERCIAL:OVERAGE', 'Permission to create, review, and authorize overage requests', TRUE, v_admin_id),
+        -- Data Import & Portable Exports (DATA-001)
+        ('DATA_EXCHANGE', 'READ', 'DATA_EXCHANGE:READ', 'Permission to view data import batches, dry-run validations, and row outcomes', TRUE, v_admin_id),
+        ('DATA_EXCHANGE', 'IMPORT', 'DATA_EXCHANGE:IMPORT', 'Permission to upload, validate, execute, and retry data imports', TRUE, v_admin_id),
+        ('DATA_EXCHANGE', 'EXPORT', 'DATA_EXCHANGE:EXPORT', 'Permission to export entity data in formula-safe formats', TRUE, v_admin_id),
+        -- Contractual SLA & Risk Alerts (ANALYTICS-001)
+        ('SLA', 'READ', 'SLA:READ', 'Permission to view SLA policies, cycle timers, compliance metrics, and risk alerts', TRUE, v_admin_id),
+        ('SLA', 'MANAGE', 'SLA:MANAGE', 'Permission to configure SLA policies, target times, pause reasons, and escalation rules', TRUE, v_admin_id),
+        ('SLA', 'OPERATE', 'SLA:OPERATE', 'Permission to pause/resume SLA cycles, acknowledge/resolve risk alerts, and record date extensions', TRUE, v_admin_id),
+        -- Flow Analytics, WIP Limits & Bottleneck Tracking (ANALYTICS-002)
+        ('FLOW_ANALYTICS', 'READ', 'FLOW:READ', 'Permission to view flow analytics, cumulative flow diagrams, dwell heatmaps, cycle time distributions, and WIP metrics', TRUE, v_admin_id),
+        ('FLOW_ANALYTICS', 'MANAGE', 'FLOW:MANAGE', 'Permission to configure WIP limits, flow aging thresholds, and rebuild flow snapshots', TRUE, v_admin_id),
+        ('FLOW_ANALYTICS', 'OVERRIDE', 'FLOW:OVERRIDE', 'Permission to authorize expedited WIP limit override exceptions', TRUE, v_admin_id),
+        -- Workload, Capacity & Skill Insights (ANALYTICS-003)
+        ('CAPACITY', 'READ', 'CAPACITY:READ', 'Permission to view capacity insights, workload allocation vs demand, team reliability, and skill suggestions', TRUE, v_admin_id),
+        ('CAPACITY', 'MANAGE', 'CAPACITY:MANAGE', 'Permission to configure engineering skills, capacity reservations, and co-assignee effort shares', TRUE, v_admin_id),
+        -- Project Financials, Variance & Reconciliation (ANALYTICS-004)
+        ('FINANCIALS', 'READ', 'FINANCIALS:READ', 'Permission to view project financials, budget consumption, variance, and forecast burn curves', TRUE, v_admin_id),
+        ('FINANCIALS', 'MANAGE', 'FINANCIALS:MANAGE', 'Permission to configure financial baselines, rate cards, and budget thresholds', TRUE, v_admin_id),
+        ('FINANCIALS', 'COST_RATES_VIEW', 'FINANCIALS:COST_RATES_VIEW', 'Permission to view confidential internal labor cost rates, direct contribution, and profit margins', TRUE, v_admin_id),
+        -- Advanced Scheduling, Scenarios & Composite Health (LATER-001)
+        ('SCHEDULE_SCENARIOS', 'READ', 'SCHEDULE_SCENARIOS:READ', 'Permission to view critical path networks, schedule scenarios, and health scores', TRUE, v_admin_id),
+        ('SCHEDULE_SCENARIOS', 'MANAGE', 'SCHEDULE_SCENARIOS:MANAGE', 'Permission to create What-If schedule scenarios and run CPM simulations', TRUE, v_admin_id),
+        ('SCHEDULE_SCENARIOS', 'APPLY', 'SCHEDULE_SCENARIOS:APPLY', 'Permission to explicitly apply simulated schedule scenario dates to live tasks', TRUE, v_admin_id),
+        ('PROJECT_HEALTH', 'MANAGE', 'PROJECT_HEALTH:MANAGE', 'Permission to configure composite health weights, thresholds, and record PM overrides', TRUE, v_admin_id),
+        -- Scoped Outbound Webhooks & Delivery Replay (API-001)
+        ('WEBHOOKS', 'READ', 'WEBHOOKS:READ', 'Permission to view outbound webhook subscriptions and delivery audit history', TRUE, v_admin_id),
+        ('WEBHOOKS', 'MANAGE', 'WEBHOOKS:MANAGE', 'Permission to create/edit webhook subscriptions and rotate signing secrets', TRUE, v_admin_id),
+        ('WEBHOOKS', 'REPLAY', 'WEBHOOKS:REPLAY', 'Permission to manually re-dispatch/replay webhook deliveries', TRUE, v_admin_id),
+        -- Single-Company Setup Wizard & Configuration Packages (ADMIN-001)
+        ('ADMIN', 'SETUP_WIZARD', 'ADMIN:SETUP_WIZARD', 'Permission to run the single-company setup wizard and update general company settings', TRUE, v_admin_id),
+        ('ADMIN', 'CONFIG_PACKAGES', 'ADMIN:CONFIG_PACKAGES', 'Permission to export, import, dry-run preview, and apply configuration packages', TRUE, v_admin_id),
+        -- Source-Linked Drafting & Human-Reviewed Summaries (LATER-002)
+        ('DRAFTING', 'READ', 'DRAFTING:READ', 'Permission to view source-linked draft suggestions, gap reports, and summaries', TRUE, v_admin_id),
+        ('DRAFTING', 'GENERATE', 'DRAFTING:GENERATE', 'Permission to run gap analysis, duplicate detection, and draft generation', TRUE, v_admin_id),
+        ('DRAFTING', 'REVIEW', 'DRAFTING:REVIEW', 'Permission to review, edit, accept, apply, or reject drafts', TRUE, v_admin_id)
     ON CONFLICT (permission_code) DO NOTHING;
 
     INSERT INTO role_permissions (role_id, permission_id, created_by)
@@ -373,7 +422,19 @@ BEGIN
         'KNOWLEDGE:READ', 'KNOWLEDGE:MANAGE', 'KNOWLEDGE:PUBLISH', 'KNOWLEDGE:ARCHIVE',
         'TEMPLATES:READ', 'TEMPLATES:MANAGE', 'TEMPLATES:INSTANTIATE', 'RECURRENCE:MANAGE',
         'NOTIFICATIONS:PREFERENCES', 'NOTIFICATIONS:WATCH', 'NOTIFICATIONS:DISPATCH_QUEUE',
-        'ACTIVITY:READ', 'ACTIVITY:BASELINES', 'ACTIVITY:CLIENT_SUMMARY'
+        'ACTIVITY:READ', 'ACTIVITY:BASELINES', 'ACTIVITY:CLIENT_SUMMARY',
+        'PRODUCT_GOALS:READ', 'PRODUCT_GOALS:MANAGE', 'PRODUCT_OUTCOMES:REVIEW',
+        'QA_ENVIRONMENTS:READ', 'QA_ENVIRONMENTS:MANAGE', 'QA_OBSERVATIONS:READ', 'QA_OBSERVATIONS:RECORD',
+        'COMMERCIAL:READ', 'COMMERCIAL:MANAGE', 'COMMERCIAL:CONSUME', 'COMMERCIAL:OVERAGE',
+        'DATA_EXCHANGE:READ', 'DATA_EXCHANGE:IMPORT', 'DATA_EXCHANGE:EXPORT',
+        'SLA:READ', 'SLA:MANAGE', 'SLA:OPERATE',
+        'FLOW:READ', 'FLOW:MANAGE', 'FLOW:OVERRIDE',
+        'CAPACITY:READ', 'CAPACITY:MANAGE',
+        'FINANCIALS:READ', 'FINANCIALS:MANAGE', 'FINANCIALS:COST_RATES_VIEW',
+        'SCHEDULE_SCENARIOS:READ', 'SCHEDULE_SCENARIOS:MANAGE', 'SCHEDULE_SCENARIOS:APPLY', 'PROJECT_HEALTH:MANAGE',
+        'WEBHOOKS:READ', 'WEBHOOKS:MANAGE', 'WEBHOOKS:REPLAY',
+        'ADMIN:SETUP_WIZARD', 'ADMIN:CONFIG_PACKAGES',
+        'DRAFTING:READ', 'DRAFTING:GENERATE', 'DRAFTING:REVIEW'
     )
     ON CONFLICT (role_id, permission_id) DO NOTHING;
 
@@ -393,7 +454,19 @@ BEGIN
         'KNOWLEDGE:READ', 'KNOWLEDGE:MANAGE', 'KNOWLEDGE:PUBLISH', 'KNOWLEDGE:ARCHIVE',
         'TEMPLATES:READ', 'TEMPLATES:MANAGE', 'TEMPLATES:INSTANTIATE', 'RECURRENCE:MANAGE',
         'NOTIFICATIONS:PREFERENCES', 'NOTIFICATIONS:WATCH', 'NOTIFICATIONS:DISPATCH_QUEUE',
-        'ACTIVITY:READ', 'ACTIVITY:BASELINES', 'ACTIVITY:CLIENT_SUMMARY'
+        'ACTIVITY:READ', 'ACTIVITY:BASELINES', 'ACTIVITY:CLIENT_SUMMARY',
+        'PRODUCT_GOALS:READ', 'PRODUCT_GOALS:MANAGE', 'PRODUCT_OUTCOMES:REVIEW',
+        'QA_ENVIRONMENTS:READ', 'QA_ENVIRONMENTS:MANAGE', 'QA_OBSERVATIONS:READ', 'QA_OBSERVATIONS:RECORD',
+        'COMMERCIAL:READ', 'COMMERCIAL:MANAGE', 'COMMERCIAL:CONSUME', 'COMMERCIAL:OVERAGE',
+        'DATA_EXCHANGE:READ', 'DATA_EXCHANGE:IMPORT', 'DATA_EXCHANGE:EXPORT',
+        'SLA:READ', 'SLA:MANAGE', 'SLA:OPERATE',
+        'FLOW:READ', 'FLOW:MANAGE', 'FLOW:OVERRIDE',
+        'CAPACITY:READ', 'CAPACITY:MANAGE',
+        'FINANCIALS:READ', 'FINANCIALS:MANAGE', 'FINANCIALS:COST_RATES_VIEW',
+        'SCHEDULE_SCENARIOS:READ', 'SCHEDULE_SCENARIOS:MANAGE', 'SCHEDULE_SCENARIOS:APPLY', 'PROJECT_HEALTH:MANAGE',
+        'WEBHOOKS:READ', 'WEBHOOKS:MANAGE', 'WEBHOOKS:REPLAY',
+        'ADMIN:SETUP_WIZARD',
+        'DRAFTING:READ', 'DRAFTING:GENERATE', 'DRAFTING:REVIEW'
     )
     ON CONFLICT (role_id, permission_id) DO NOTHING;
 
@@ -409,7 +482,12 @@ BEGIN
         'PRODUCT_IDEAS:READ',
         'KNOWLEDGE:READ',
         'NOTIFICATIONS:PREFERENCES', 'NOTIFICATIONS:WATCH',
-        'ACTIVITY:READ', 'ACTIVITY:CLIENT_SUMMARY'
+        'ACTIVITY:READ', 'ACTIVITY:CLIENT_SUMMARY',
+        'QA_ENVIRONMENTS:READ', 'QA_OBSERVATIONS:READ', 'QA_OBSERVATIONS:RECORD',
+        'COMMERCIAL:READ',
+        'DATA_EXCHANGE:READ', 'DATA_EXCHANGE:EXPORT',
+        'SLA:READ', 'SLA:OPERATE',
+        'FLOW:READ'
     )
     ON CONFLICT (role_id, permission_id) DO NOTHING;
 
@@ -425,7 +503,18 @@ BEGIN
         'AUDIT_LOGS:VIEW', 'CLIENT_REPORTS:READ', 'RAID:READ', 'KNOWLEDGE:READ',
         'TEMPLATES:READ', 'TEMPLATES:INSTANTIATE',
         'NOTIFICATIONS:PREFERENCES', 'NOTIFICATIONS:WATCH',
-        'ACTIVITY:READ', 'ACTIVITY:CLIENT_SUMMARY'
+        'ACTIVITY:READ', 'ACTIVITY:CLIENT_SUMMARY',
+        'QA_ENVIRONMENTS:READ', 'QA_OBSERVATIONS:READ',
+        'COMMERCIAL:READ',
+        'DATA_EXCHANGE:READ', 'DATA_EXCHANGE:EXPORT',
+        'SLA:READ', 'SLA:MANAGE', 'SLA:OPERATE',
+        'FLOW:READ', 'FLOW:MANAGE',
+        'CAPACITY:READ', 'CAPACITY:MANAGE',
+        'FINANCIALS:READ', 'FINANCIALS:COST_RATES_VIEW',
+        'SCHEDULE_SCENARIOS:READ', 'SCHEDULE_SCENARIOS:MANAGE', 'PROJECT_HEALTH:MANAGE',
+        'WEBHOOKS:READ',
+        'ADMIN:SETUP_WIZARD',
+        'DRAFTING:READ', 'DRAFTING:GENERATE', 'DRAFTING:REVIEW'
     ) ON CONFLICT (role_id, permission_id) DO NOTHING;
 
     -- Developer Role Permissions
@@ -440,7 +529,16 @@ BEGIN
         'PRODUCT_IDEAS:READ', 'TESTING:READ', 'KNOWLEDGE:READ', 'KNOWLEDGE:MANAGE',
         'TEMPLATES:READ', 'TEMPLATES:INSTANTIATE',
         'NOTIFICATIONS:PREFERENCES', 'NOTIFICATIONS:WATCH',
-        'ACTIVITY:READ'
+        'ACTIVITY:READ',
+        'PRODUCT_GOALS:READ',
+        'QA_ENVIRONMENTS:READ', 'QA_OBSERVATIONS:READ', 'QA_OBSERVATIONS:RECORD',
+        'COMMERCIAL:READ',
+        'DATA_EXCHANGE:READ', 'DATA_EXCHANGE:EXPORT',
+        'SLA:READ',
+        'FLOW:READ',
+        'CAPACITY:READ',
+        'FINANCIALS:READ',
+        'SCHEDULE_SCENARIOS:READ'
     ) ON CONFLICT (role_id, permission_id) DO NOTHING;
 
     -- QA Tester Role Permissions
@@ -456,7 +554,15 @@ BEGIN
         'TESTING:READ', 'TESTING:MANAGE', 'TESTING:EXECUTE', 'TESTING:SIGNOFF',
         'KNOWLEDGE:READ', 'KNOWLEDGE:MANAGE',
         'NOTIFICATIONS:PREFERENCES', 'NOTIFICATIONS:WATCH',
-        'ACTIVITY:READ'
+        'ACTIVITY:READ',
+        'PRODUCT_GOALS:READ', 'PRODUCT_OUTCOMES:REVIEW',
+        'QA_ENVIRONMENTS:READ', 'QA_ENVIRONMENTS:MANAGE', 'QA_OBSERVATIONS:READ', 'QA_OBSERVATIONS:RECORD',
+        'COMMERCIAL:READ',
+        'DATA_EXCHANGE:READ', 'DATA_EXCHANGE:EXPORT',
+        'SLA:READ',
+        'FLOW:READ',
+        'CAPACITY:READ',
+        'SCHEDULE_SCENARIOS:READ'
     ) ON CONFLICT (role_id, permission_id) DO NOTHING;
 
     -- Standard Operational Designations

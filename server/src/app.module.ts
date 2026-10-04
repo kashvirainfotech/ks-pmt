@@ -41,6 +41,17 @@ import { QaModule } from './modules/qa/qa.module';
 import { KnowledgeModule } from './modules/knowledge/knowledge.module';
 import { TemplatesModule } from './modules/templates/templates.module';
 import { ActivityModule } from './modules/activity/activity.module';
+import { ProductGoalsModule } from './modules/product-goals/product-goals.module';
+import { CommercialModule } from './modules/commercial/commercial.module';
+import { DataExchangeModule } from './modules/data-exchange/data-exchange.module';
+import { SlaModule } from './modules/sla/sla.module';
+import { FlowAnalyticsModule } from './modules/flow-analytics/flow-analytics.module';
+import { CapacityInsightsModule } from './modules/capacity-insights/capacity-insights.module';
+import { FinancialAnalyticsModule } from './modules/financial-analytics/financial-analytics.module';
+import { AdvancedSchedulingModule } from './modules/advanced-scheduling/advanced-scheduling.module';
+import { WebhooksModule } from './modules/webhooks/webhooks.module';
+import { ConfigToolkitModule } from './modules/config-toolkit/config-toolkit.module';
+import { DraftingModule } from './modules/drafting/drafting.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { DynamicRbacGuard } from './modules/rbac/rbac.guard';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
@@ -93,6 +104,17 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
     KnowledgeModule,
     TemplatesModule,
     ActivityModule,
+    ProductGoalsModule,
+    CommercialModule,
+    DataExchangeModule,
+    SlaModule,
+    FlowAnalyticsModule,
+    CapacityInsightsModule,
+    FinancialAnalyticsModule,
+    AdvancedSchedulingModule,
+    WebhooksModule,
+    ConfigToolkitModule,
+    DraftingModule,
   ],
   providers: [
     {

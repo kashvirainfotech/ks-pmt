@@ -1,9 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsIn, IsNotEmpty, IsOptional, IsString } from "class-validator";
+import { IsIn, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
 import { IsUUID } from "../../../common/validators/record-id";
 
 export const TASK_LINK_TYPES = [
   "FINISH_TO_START",
+  "START_TO_START",
+  "FINISH_TO_FINISH",
+  "START_TO_FINISH",
   "BLOCKS",
   "RELATED_TO",
   "DUPLICATE_OF",
@@ -42,6 +45,23 @@ export class CreateDependencyDto {
   @IsNotEmpty()
   @IsIn(TASK_LINK_TYPES)
   linkType: TaskLinkType;
+
+  @ApiPropertyOptional({
+    example: 8.0,
+    description: "Lead/Lag duration (positive for waiting delay, negative for lead/overlap)",
+  })
+  @IsNumber()
+  @IsOptional()
+  lagDurationHours?: number;
+
+  @ApiPropertyOptional({
+    example: "HOURS",
+    enum: ["HOURS", "DAYS"],
+    description: "Unit of lag duration",
+  })
+  @IsIn(["HOURS", "DAYS"])
+  @IsOptional()
+  lagUnit?: "HOURS" | "DAYS";
 
   @ApiPropertyOptional({
     example: "Backend authentication API must be merged before Frontend login page can be tested",

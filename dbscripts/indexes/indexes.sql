@@ -400,3 +400,225 @@ CREATE INDEX IF NOT EXISTS idx_activity_baselines_scope ON change_activity_basel
 CREATE INDEX IF NOT EXISTS idx_activity_saved_queries_user ON user_activity_saved_queries(user_id);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_created_entity ON audit_logs(created_at DESC, entity_name);
 
+
+-- ========================================================
+-- Date & Time: 2026-10-01 10:36:00 IST
+-- Description: PROD-002 - Indexes for Product Goals & Outcome Reviews
+-- ========================================================
+CREATE INDEX IF NOT EXISTS idx_product_goals_prod ON product_goals(product_id, status);
+CREATE INDEX IF NOT EXISTS idx_product_goals_code ON product_goals(goal_code);
+CREATE INDEX IF NOT EXISTS idx_product_goals_target_date ON product_goals(target_date);
+CREATE INDEX IF NOT EXISTS idx_product_goals_owner ON product_goals(owner_user_id) WHERE owner_user_id IS NOT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_outcome_reviews_prod ON product_outcome_reviews(product_id, review_date DESC);
+CREATE INDEX IF NOT EXISTS idx_outcome_reviews_code ON product_outcome_reviews(review_code);
+CREATE INDEX IF NOT EXISTS idx_outcome_reviews_goal ON product_outcome_reviews(goal_id) WHERE goal_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_outcome_reviews_version ON product_outcome_reviews(version_id) WHERE version_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_outcome_reviews_idea ON product_outcome_reviews(idea_id) WHERE idea_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_outcome_reviews_reviewer ON product_outcome_reviews(reviewer_user_id) WHERE reviewer_user_id IS NOT NULL;
+
+-- ========================================================
+-- Date & Time: 2026-10-01 10:46:00 IST
+-- Description: QA-002 - Indexes for QA Environments & Issue Observations
+-- ========================================================
+CREATE INDEX IF NOT EXISTS idx_qa_environments_type ON qa_environments(env_type);
+CREATE INDEX IF NOT EXISTS idx_qa_environments_scope ON qa_environments(scope_type, product_id, project_id, client_id);
+CREATE INDEX IF NOT EXISTS idx_qa_environments_code ON qa_environments(env_code);
+
+CREATE INDEX IF NOT EXISTS idx_issue_observations_task ON issue_environment_observations(task_id, observed_at DESC);
+CREATE INDEX IF NOT EXISTS idx_issue_observations_env_ver ON issue_environment_observations(environment_id, version_id);
+CREATE INDEX IF NOT EXISTS idx_issue_observations_type ON issue_environment_observations(observation_type);
+CREATE INDEX IF NOT EXISTS idx_issue_observations_code ON issue_environment_observations(observation_code);
+CREATE INDEX IF NOT EXISTS idx_issue_observations_tester ON issue_environment_observations(tester_user_id) WHERE tester_user_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_issue_observations_contact ON issue_environment_observations(client_contact_id) WHERE client_contact_id IS NOT NULL;
+
+-- ========================================================
+-- Date & Time: 2026-10-01 11:06:00 IST
+-- Description: COMM-001 - Indexes for Commercial Contracts, Periods, Consumptions & Overages
+-- ========================================================
+CREATE INDEX IF NOT EXISTS idx_contracts_client ON commercial_contracts(client_id, status);
+CREATE INDEX IF NOT EXISTS idx_contracts_project ON commercial_contracts(project_id) WHERE project_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_contracts_product ON commercial_contracts(product_id) WHERE product_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_contracts_number ON commercial_contracts(contract_number);
+CREATE INDEX IF NOT EXISTS idx_contracts_status ON commercial_contracts(status);
+
+CREATE INDEX IF NOT EXISTS idx_contract_periods_contract ON contract_periods(contract_id, period_sequence);
+CREATE INDEX IF NOT EXISTS idx_contract_periods_code ON contract_periods(period_code);
+CREATE INDEX IF NOT EXISTS idx_contract_periods_dates ON contract_periods(start_date, end_date);
+CREATE INDEX IF NOT EXISTS idx_contract_periods_status ON contract_periods(status);
+
+CREATE INDEX IF NOT EXISTS idx_contract_consumptions_period ON contract_worklog_consumptions(contract_period_id);
+CREATE INDEX IF NOT EXISTS idx_contract_consumptions_timelog ON contract_worklog_consumptions(time_log_id);
+
+CREATE INDEX IF NOT EXISTS idx_overage_requests_period ON contract_overage_requests(contract_period_id);
+CREATE INDEX IF NOT EXISTS idx_overage_requests_cr ON contract_overage_requests(change_request_id) WHERE change_request_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_overage_requests_code ON contract_overage_requests(request_code);
+CREATE INDEX IF NOT EXISTS idx_overage_requests_status ON contract_overage_requests(status);
+
+-- ========================================================
+-- Date & Time: 2026-10-01 15:22:00 IST
+-- Description: DATA-001 - Indexes for Data Import Batches & Row Outcomes
+-- ========================================================
+CREATE INDEX IF NOT EXISTS idx_import_batches_entity ON data_import_batches(entity_type, status);
+CREATE INDEX IF NOT EXISTS idx_import_batches_number ON data_import_batches(batch_number);
+CREATE INDEX IF NOT EXISTS idx_import_batches_user ON data_import_batches(created_by);
+CREATE INDEX IF NOT EXISTS idx_import_batches_created ON data_import_batches(created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_import_row_batch ON data_import_row_outcomes(batch_id, status);
+CREATE INDEX IF NOT EXISTS idx_import_row_external ON data_import_row_outcomes(external_id) WHERE external_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_import_row_record ON data_import_row_outcomes(record_id) WHERE record_id IS NOT NULL;
+
+-- ========================================================
+-- Date & Time: 2026-10-01 15:36:00 IST
+-- Description: ANALYTICS-001 - Indexes for SLA Policies, Tracking Cycles & Risk Alerts
+-- ========================================================
+CREATE INDEX IF NOT EXISTS idx_sla_policies_client_project ON sla_policies(client_id, project_id);
+CREATE INDEX IF NOT EXISTS idx_sla_policies_precedence ON sla_policies(precedence_rank, is_active);
+CREATE INDEX IF NOT EXISTS idx_sla_policies_code ON sla_policies(policy_code);
+
+CREATE INDEX IF NOT EXISTS idx_sla_cycles_task ON sla_tracking_cycles(task_id, status);
+CREATE INDEX IF NOT EXISTS idx_sla_cycles_request ON sla_tracking_cycles(client_request_id, status);
+CREATE INDEX IF NOT EXISTS idx_sla_cycles_policy ON sla_tracking_cycles(sla_policy_id);
+CREATE INDEX IF NOT EXISTS idx_sla_cycles_number ON sla_tracking_cycles(cycle_number);
+CREATE INDEX IF NOT EXISTS idx_sla_cycles_deadlines ON sla_tracking_cycles(response_deadline, resolution_deadline);
+
+CREATE INDEX IF NOT EXISTS idx_risk_alerts_status_severity ON risk_alerts(status, severity);
+CREATE INDEX IF NOT EXISTS idx_risk_alerts_cycle ON risk_alerts(sla_cycle_id) WHERE sla_cycle_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_risk_alerts_task ON risk_alerts(task_id) WHERE task_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_risk_alerts_project ON risk_alerts(project_id) WHERE project_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_risk_alerts_code ON risk_alerts(alert_code);
+CREATE INDEX IF NOT EXISTS idx_risk_alerts_type ON risk_alerts(alert_type);
+
+-- ========================================================
+-- Date & Time: 2026-10-01 15:55:00 IST
+-- Description: ANALYTICS-002 - Indexes for WIP Limits, Durations, Aging & CFD Snapshots
+-- ========================================================
+CREATE INDEX IF NOT EXISTS idx_wip_limits_scope ON wip_limits(limit_type, is_active);
+CREATE INDEX IF NOT EXISTS idx_wip_limits_project ON wip_limits(project_id) WHERE project_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_wip_limits_team ON wip_limits(team_id) WHERE team_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_wip_limits_user ON wip_limits(user_id) WHERE user_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_wip_limits_status ON wip_limits(status_id) WHERE status_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_wip_limits_code ON wip_limits(limit_code);
+
+CREATE INDEX IF NOT EXISTS idx_wip_exceptions_task ON wip_override_exceptions(task_id);
+CREATE INDEX IF NOT EXISTS idx_wip_exceptions_limit ON wip_override_exceptions(wip_limit_id) WHERE wip_limit_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_wip_exceptions_authorized ON wip_override_exceptions(authorized_by, authorized_at);
+CREATE INDEX IF NOT EXISTS idx_wip_exceptions_project ON wip_override_exceptions(project_id) WHERE project_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_wip_exceptions_code ON wip_override_exceptions(exception_code);
+
+CREATE INDEX IF NOT EXISTS idx_task_durations_task ON task_status_durations(task_id, is_current);
+CREATE INDEX IF NOT EXISTS idx_task_durations_status ON task_status_durations(status_id, flow_interval_type);
+CREATE INDEX IF NOT EXISTS idx_task_durations_user ON task_status_durations(assigned_user_id, is_current) WHERE assigned_user_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_task_durations_team ON task_status_durations(responsible_team_id, is_current) WHERE responsible_team_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_task_durations_dates ON task_status_durations(started_at, ended_at);
+CREATE INDEX IF NOT EXISTS idx_task_durations_rework ON task_status_durations(is_rework) WHERE is_rework = TRUE;
+
+CREATE INDEX IF NOT EXISTS idx_flow_aging_project ON flow_aging_configurations(project_id, is_active);
+CREATE INDEX IF NOT EXISTS idx_flow_aging_precedence ON flow_aging_configurations(precedence_rank ASC, is_active);
+CREATE INDEX IF NOT EXISTS idx_flow_aging_code ON flow_aging_configurations(config_code);
+
+CREATE INDEX IF NOT EXISTS idx_cfd_snapshots_lookup ON daily_cumulative_flow_snapshots(project_id, sprint_id, snapshot_date);
+CREATE INDEX IF NOT EXISTS idx_cfd_snapshots_date_cat ON daily_cumulative_flow_snapshots(snapshot_date, status_category);
+CREATE INDEX IF NOT EXISTS idx_cfd_snapshots_prod ON daily_cumulative_flow_snapshots(product_id, snapshot_date) WHERE product_id IS NOT NULL;
+
+-- ========================================================
+-- Date & Time: 2026-10-01 16:15:00 IST
+-- Description: ANALYTICS-003 - Indexes for Skills, Capacity Reservations & Team Metrics
+-- ========================================================
+CREATE INDEX IF NOT EXISTS idx_skills_category ON skills(category, is_active);
+CREATE INDEX IF NOT EXISTS idx_skills_code ON skills(skill_code);
+
+CREATE INDEX IF NOT EXISTS idx_user_skills_user ON user_skills(user_id, is_active);
+CREATE INDEX IF NOT EXISTS idx_user_skills_skill ON user_skills(skill_id, proficiency_level);
+
+CREATE INDEX IF NOT EXISTS idx_task_skills_task ON task_required_skills(task_id);
+CREATE INDEX IF NOT EXISTS idx_task_skills_skill ON task_required_skills(skill_id, importance);
+
+CREATE INDEX IF NOT EXISTS idx_capacity_reservations_user ON capacity_reservations(user_id, is_active);
+CREATE INDEX IF NOT EXISTS idx_capacity_reservations_dates ON capacity_reservations(start_date, end_date);
+CREATE INDEX IF NOT EXISTS idx_capacity_reservations_type ON capacity_reservations(reservation_type);
+CREATE INDEX IF NOT EXISTS idx_capacity_reservations_code ON capacity_reservations(reservation_code);
+
+CREATE INDEX IF NOT EXISTS idx_team_capacity_lookup ON team_capacity_metrics(team_id, project_id, sprint_id);
+CREATE INDEX IF NOT EXISTS idx_team_capacity_period ON team_capacity_metrics(metric_period_start, metric_period_end);
+
+-- ========================================================
+-- Date & Time: 2026-10-01 16:33:00 IST
+-- Description: ANALYTICS-004 - Indexes for Project Financial Rates, Baselines, Metrics & Currencies
+-- ========================================================
+CREATE INDEX IF NOT EXISTS idx_fin_rates_project ON project_financial_rates(project_id, is_active);
+CREATE INDEX IF NOT EXISTS idx_fin_rates_user ON project_financial_rates(user_id, is_active) WHERE user_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_fin_rates_role ON project_financial_rates(role_id, is_active) WHERE role_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_fin_rates_dates ON project_financial_rates(effective_start_date, effective_end_date);
+CREATE INDEX IF NOT EXISTS idx_fin_rates_code ON project_financial_rates(rate_code);
+
+CREATE INDEX IF NOT EXISTS idx_fin_baselines_project ON project_financial_baselines(project_id, is_active);
+CREATE INDEX IF NOT EXISTS idx_fin_baselines_code ON project_financial_baselines(baseline_code);
+CREATE INDEX IF NOT EXISTS idx_fin_baselines_date ON project_financial_baselines(baseline_date);
+
+CREATE INDEX IF NOT EXISTS idx_fin_metrics_project ON project_financial_metrics(project_id, is_active);
+CREATE INDEX IF NOT EXISTS idx_fin_metrics_period ON project_financial_metrics(period_start, period_end);
+CREATE INDEX IF NOT EXISTS idx_fin_metrics_baseline ON project_financial_metrics(baseline_id) WHERE baseline_id IS NOT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_currency_rates_pair ON currency_exchange_rates(from_currency, to_currency, effective_date);
+
+-- ========================================================
+-- Date & Time: 2026-10-01 16:50:00 (IST)
+-- Description: LATER-001 - Advanced Scheduling, Critical Path Method (CPM),
+--              What-If Scenarios & Calibrated Composite Health Scores
+-- ========================================================
+
+CREATE INDEX IF NOT EXISTS idx_task_deps_link_lag ON task_dependencies(link_type, lag_duration_hours);
+CREATE INDEX IF NOT EXISTS idx_scenarios_project ON schedule_scenarios(project_id, status, is_active);
+CREATE INDEX IF NOT EXISTS idx_scenarios_code ON schedule_scenarios(scenario_code);
+CREATE INDEX IF NOT EXISTS idx_scenario_overrides_scenario ON schedule_scenario_task_overrides(scenario_id, is_active);
+CREATE INDEX IF NOT EXISTS idx_scenario_overrides_task ON schedule_scenario_task_overrides(task_id);
+CREATE INDEX IF NOT EXISTS idx_scenario_overrides_cpm ON schedule_scenario_task_overrides(scenario_id, is_critical_path);
+CREATE INDEX IF NOT EXISTS idx_health_configs_project ON project_health_score_configs(project_id, is_active);
+CREATE INDEX IF NOT EXISTS idx_health_eval_project_date ON project_health_evaluations(project_id, evaluation_date);
+CREATE INDEX IF NOT EXISTS idx_health_eval_state ON project_health_evaluations(project_id, health_state);
+
+-- ========================================================
+-- Date & Time: 2026-10-01 17:35:00 (IST)
+-- Description: API-001 - Scoped Outbound Webhooks, Signed Deliveries & Event Replay
+-- ========================================================
+
+CREATE INDEX IF NOT EXISTS idx_webhooks_code ON webhook_subscriptions(subscription_code);
+CREATE INDEX IF NOT EXISTS idx_webhooks_enabled ON webhook_subscriptions(is_enabled, is_active);
+CREATE INDEX IF NOT EXISTS idx_webhook_deliv_sub ON webhook_deliveries(subscription_id, status);
+CREATE INDEX IF NOT EXISTS idx_webhook_deliv_event ON webhook_deliveries(event_id);
+CREATE INDEX IF NOT EXISTS idx_webhook_deliv_retry ON webhook_deliveries(status, next_retry_at) WHERE status = 'RETRYING';
+CREATE INDEX IF NOT EXISTS idx_webhook_deliv_created ON webhook_deliveries(created_at DESC);
+
+-- ========================================================
+-- Date & Time: 2026-10-01 17:52:00 (IST)
+-- Description: ADMIN-001 - Single-Company Setup Wizard & Configuration Packages
+-- ========================================================
+
+CREATE INDEX IF NOT EXISTS idx_company_settings_active ON company_settings(is_active);
+CREATE INDEX IF NOT EXISTS idx_config_pkg_code ON configuration_packages(package_code);
+CREATE INDEX IF NOT EXISTS idx_config_pkg_type ON configuration_packages(package_type, is_active);
+CREATE INDEX IF NOT EXISTS idx_config_audit_pkg ON configuration_audit_logs(package_id);
+CREATE INDEX IF NOT EXISTS idx_config_audit_created ON configuration_audit_logs(created_at DESC);
+
+-- ========================================================
+-- Date & Time: 2026-10-02 13:32:00 (IST)
+-- Description: LATER-002 - Source-Linked Drafting, Gap Analysis & Human-Reviewed Summaries
+-- ========================================================
+
+CREATE INDEX IF NOT EXISTS idx_draft_sugg_code ON draft_suggestions(draft_code);
+CREATE INDEX IF NOT EXISTS idx_draft_sugg_source ON draft_suggestions(source_entity_type, source_entity_id);
+CREATE INDEX IF NOT EXISTS idx_draft_sugg_status ON draft_suggestions(status, is_active);
+CREATE INDEX IF NOT EXISTS idx_draft_sugg_type ON draft_suggestions(draft_type);
+CREATE INDEX IF NOT EXISTS idx_draft_sugg_audience ON draft_suggestions(audience_scope);
+CREATE INDEX IF NOT EXISTS idx_draft_rules_code ON draft_rule_configs(rule_code);
+CREATE INDEX IF NOT EXISTS idx_draft_rules_type ON draft_rule_configs(rule_type, is_enabled);
+
+
+
+
+
+
+
+
+

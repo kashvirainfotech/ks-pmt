@@ -35,6 +35,17 @@ import { QualityAssuranceWorkspace } from './components/qa/QualityAssuranceWorks
 import { KnowledgeBaseWorkspace } from './components/knowledge/KnowledgeBaseWorkspace';
 import { TemplatesWorkspaceView } from './components/templates/TemplatesWorkspaceView';
 import { WhatChangedWorkspaceView } from './components/activity/WhatChangedWorkspaceView';
+import { ProductGoalsWorkspaceView } from './components/product-goals/ProductGoalsWorkspaceView';
+import { CommercialRetainerWorkspace } from './components/commercial/CommercialRetainerWorkspace';
+import { DataExchangeWorkspace } from './components/data-exchange/DataExchangeWorkspace';
+import { SlaAlertsWorkspace } from './components/sla/SlaAlertsWorkspace';
+import { FlowAnalyticsWorkspace } from './components/flow-analytics/FlowAnalyticsWorkspace';
+import { CapacityInsightsWorkspace } from './components/capacity-insights/CapacityInsightsWorkspace';
+import { FinancialAnalyticsWorkspace } from './components/financial-analytics/FinancialAnalyticsWorkspace';
+import { AdvancedSchedulingWorkspace } from './components/advanced-scheduling/AdvancedSchedulingWorkspace';
+import { WebhooksWorkspace } from './components/webhooks/WebhooksWorkspace';
+import { ConfigToolkitWorkspace } from './components/config-toolkit/ConfigToolkitWorkspace';
+import { DraftingWorkspace } from './components/drafting/DraftingWorkspace';
 
 // Protected Route Wrapper
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
@@ -100,6 +111,17 @@ export const App: React.FC = () => {
         <Route path="client-reports" element={<ClientReportsView />} />
         <Route path="raid" element={<RaidWorkspaceView />} />
         <Route path="product-roadmap" element={<ProductRoadmapView />} />
+        <Route path="product-goals" element={<ProductGoalsWorkspaceView />} />
+        <Route path="commercial" element={<CommercialRetainerWorkspace />} />
+        <Route path="data-exchange" element={<DataExchangeWorkspace />} />
+        <Route path="sla" element={<SlaAlertsWorkspace />} />
+        <Route path="flow-analytics" element={<FlowAnalyticsWorkspace />} />
+        <Route path="capacity-insights" element={<CapacityInsightsWorkspace />} />
+        <Route path="financial-analytics" element={<FinancialAnalyticsWorkspace />} />
+        <Route path="advanced-scheduling" element={<AdvancedSchedulingWorkspace />} />
+        <Route path="webhooks" element={<WebhooksWorkspace />} />
+        <Route path="config-toolkit" element={<ConfigToolkitWorkspace />} />
+        <Route path="drafting" element={<DraftingWorkspace />} />
         <Route path="customer-portal" element={<CustomerPortalWorkspace />} />
         <Route path="admin" element={<Navigate to="/admin/branches" replace />} />
         {adminScreens.map(screen => (

@@ -91,6 +91,59 @@ import {
   TaskTemplate,
   RecurringWorkRule,
   RecurringTaskOccurrence,
+  ProductGoal,
+  ProductOutcomeReview,
+  ProductGoalsSummary,
+  QaEnvironment,
+  IssueEnvironmentObservation,
+  TaskEnvironmentMatrixResponse,
+  CommercialContract,
+  ContractPeriod,
+  ContractWorklogConsumption,
+  ContractOverageRequest,
+  ClientStatementResponse,
+  ImportEntityType,
+  ImportMode,
+  DataImportBatch,
+  DataImportPreviewResponse,
+  DataExportQuery,
+  SlaPolicy,
+  SlaTrackingCycle,
+  RiskAlert,
+  SlaDashboardResponse,
+  WipLimit,
+  WipOverrideException,
+  WipBoardResponse,
+  OperationalAgingResponse,
+  FlowTimePartitionResponse,
+  CycleTimeMetricsResponse,
+  CfdDataPoint,
+  DwellTimeResponse,
+  FlowAgingConfig,
+  Skill,
+  UserSkill,
+  TaskRequiredSkill,
+  CapacityReservation,
+  CapacityWorkloadResponse,
+  SkillSuggestionsResponse,
+  TeamEstimationMetricsResponse,
+  ProjectFinancialOverview,
+  ProjectFinancialBaseline,
+  ProjectFinancialRateCard,
+  ProjectFinancialPeriodicMetric,
+  CurrencyExchangeRate,
+  CPMAnalysisResult,
+  ScheduleScenario,
+  ProjectHealthEvaluation,
+  ProjectHealthConfig,
+  WebhookSubscription,
+  WebhookDelivery,
+  CompanySettings,
+  ConfigurationPackage,
+  ConfigurationAuditLog,
+  PackageDiffResult,
+  DraftSuggestion,
+  DraftRuleConfig,
 } from '../types';
 
 // ==========================================
@@ -1313,6 +1366,32 @@ export const qaApi = {
   // Traceability Matrix
   getTraceabilityMatrix: (params?: { productId?: string; projectId?: string }): Promise<{ data: { summary: TraceabilitySummary; items: TraceabilityItem[] } }> =>
     api.get('/qa/traceability', { params }),
+
+  // QA Environments & Scoped Labels (QA-002)
+  getEnvironments: (params?: any): Promise<{ data: QaEnvironment[] }> =>
+    api.get('/qa/environments', { params }),
+
+  getEnvironmentById: (id: string): Promise<{ data: QaEnvironment }> =>
+    api.get(`/qa/environments/${id}`),
+
+  createEnvironment: (data: any): Promise<{ data: QaEnvironment }> =>
+    api.post('/qa/environments', data),
+
+  updateEnvironment: (id: string, data: any): Promise<{ data: QaEnvironment }> =>
+    api.patch(`/qa/environments/${id}`, data),
+
+  deleteEnvironment: (id: string) =>
+    api.delete(`/qa/environments/${id}`),
+
+  // Issue Environment Observations & Retests (QA-002)
+  getIssueObservations: (params?: any): Promise<{ data: { items: IssueEnvironmentObservation[]; total: number; page: number; limit: number; total_pages: number } }> =>
+    api.get('/qa/observations', { params }),
+
+  createIssueObservation: (data: any): Promise<{ data: IssueEnvironmentObservation }> =>
+    api.post('/qa/observations', data),
+
+  getTaskEnvironmentMatrix: (taskId: string): Promise<{ data: TaskEnvironmentMatrixResponse }> =>
+    api.get(`/qa/tasks/${taskId}/environment-matrix`),
 };
 // ==========================================
 // Knowledge Base, ADRs & Specs (COLLAB-001)
@@ -1419,3 +1498,624 @@ export const templatesApi = {
   triggerRule: (id: string, data?: { targetDate?: string }): Promise<{ data: { occurrence: RecurringTaskOccurrence; generated_task: any; next_run_date: string } }> =>
     api.post(`/templates/recurrence-rules/${id}/trigger`, data || {}),
 };
+
+// ==========================================
+// Product Goals & Outcome Reviews (PROD-002)
+// ==========================================
+export const productGoalsApi = {
+  getGoals: (params?: any): Promise<{ data: { items: ProductGoal[]; total: number; page: number; limit: number; total_pages: number } }> =>
+    api.get('/product-goals', { params }),
+
+  getGoalById: (id: string): Promise<{ data: ProductGoal }> =>
+    api.get(`/product-goals/${id}`),
+
+  createGoal: (data: any): Promise<{ data: ProductGoal }> =>
+    api.post('/product-goals', data),
+
+  updateGoal: (id: string, data: any): Promise<{ data: ProductGoal }> =>
+    api.put(`/product-goals/${id}`, data),
+
+  updateGoalProgress: (id: string, data: { current_value: number; status?: string }): Promise<{ data: ProductGoal }> =>
+    api.put(`/product-goals/${id}/progress`, data),
+
+  deleteGoal: (id: string): Promise<{ data: any }> =>
+    api.delete(`/product-goals/${id}`),
+
+  getSummary: (productId?: string): Promise<{ data: ProductGoalsSummary }> =>
+    api.get('/product-goals/summary', { params: productId ? { product_id: productId } : undefined }),
+
+  getOutcomeReviews: (params?: any): Promise<{ data: { items: ProductOutcomeReview[]; total: number; page: number; limit: number; total_pages: number } }> =>
+    api.get('/product-goals/reviews', { params }),
+
+  getOutcomeReviewById: (id: string): Promise<{ data: ProductOutcomeReview }> =>
+    api.get(`/product-goals/reviews/${id}`),
+
+  createOutcomeReview: (data: any): Promise<{ data: ProductOutcomeReview }> =>
+    api.post('/product-goals/reviews', data),
+};
+
+// ==========================================
+// Commercial Retainer & AMC Entitlements (COMM-001)
+// ==========================================
+export const commercialApi = {
+  getContracts: (params?: any): Promise<{ data: CommercialContract[] }> =>
+    api.get('/commercial/contracts', { params }),
+
+  getContractById: (id: string): Promise<{ data: CommercialContract }> =>
+    api.get(`/commercial/contracts/${id}`),
+
+  createContract: (data: any): Promise<{ data: CommercialContract }> =>
+    api.post('/commercial/contracts', data),
+
+  updateContract: (id: string, data: any): Promise<{ data: CommercialContract }> =>
+    api.patch(`/commercial/contracts/${id}`, data),
+
+  createPeriod: (contractId: string, data: any): Promise<{ data: ContractPeriod }> =>
+    api.post(`/commercial/contracts/${contractId}/periods`, data),
+
+  getPeriodById: (id: string): Promise<{ data: ContractPeriod }> =>
+    api.get(`/commercial/periods/${id}`),
+
+  reconcilePeriod: (id: string): Promise<{ data: any }> =>
+    api.post(`/commercial/periods/${id}/reconcile`),
+
+  closeAndRolloverPeriod: (id: string): Promise<{ data: { closedPeriod: ContractPeriod; nextPeriod: ContractPeriod; rolloverSummary: any } }> =>
+    api.post(`/commercial/periods/${id}/close-and-rollover`),
+
+  consumeWorklog: (periodId: string, data: { timeLogId: string; hoursConsumed?: number }): Promise<{ data: ContractWorklogConsumption }> =>
+    api.post(`/commercial/periods/${periodId}/consume`, data),
+
+  removeConsumption: (consumptionId: string): Promise<{ data: any }> =>
+    api.delete(`/commercial/consumptions/${consumptionId}`),
+
+  createOverageRequest: (periodId: string, data: any): Promise<{ data: ContractOverageRequest }> =>
+    api.post(`/commercial/periods/${periodId}/overage-requests`, data),
+
+  decideOverageRequest: (id: string, data: any): Promise<{ data: ContractOverageRequest }> =>
+    api.patch(`/commercial/overage-requests/${id}/decision`, data),
+
+  getClientStatement: (contractId: string, periodId?: string): Promise<{ data: ClientStatementResponse }> =>
+    api.get('/commercial/statements', { params: { contractId, periodId } }),
+};
+
+// ==========================================
+// Data Exchange & Portable Imports / Exports (DATA-001)
+// ==========================================
+export const dataExchangeApi = {
+  getTemplate: (entityType: ImportEntityType): Promise<{ data: { entityType: ImportEntityType; headers: string[]; descriptions: Record<string, string>; sampleRow: Record<string, any> } }> =>
+    api.get(`/data-exchange/templates/${entityType}`),
+
+  dryRunImport: (data: {
+    entityType: ImportEntityType;
+    importMode: ImportMode;
+    rawCsvContent: string;
+    columnMapping?: Record<string, string>;
+    originalFileName?: string;
+  }): Promise<{ data: DataImportPreviewResponse }> =>
+    api.post('/data-exchange/dry-run', data),
+
+  executeImport: (
+    batchId: string,
+    data?: { allowPartial?: boolean },
+  ): Promise<{ data: DataImportBatch }> =>
+    api.post(`/data-exchange/batches/${batchId}/execute`, data || {}),
+
+  retryBatch: (batchId: string): Promise<{ data: DataImportBatch }> =>
+    api.post(`/data-exchange/batches/${batchId}/retry`),
+
+  getAllBatches: (): Promise<{ data: DataImportBatch[] }> =>
+    api.get('/data-exchange/batches'),
+
+  getBatchById: (id: string): Promise<{ data: DataImportBatch }> =>
+    api.get(`/data-exchange/batches/${id}`),
+
+  exportData: (params: DataExportQuery): Promise<{ data: { format: string; entityType: string; count: number; filename: string; csvContent?: string; data?: any[] } }> =>
+    api.get('/data-exchange/export', { params }),
+};
+
+// ==========================================
+// ANALYTICS-001: Contractual SLA & Risk Alerts
+// ==========================================
+export const slaApi = {
+  // Policies
+  getPolicies: (params?: { clientId?: string; projectId?: string; tier?: string }): Promise<{ data: SlaPolicy[] }> =>
+    api.get('/sla/policies', { params }),
+
+  getPolicyById: (id: string): Promise<{ data: SlaPolicy }> =>
+    api.get(`/sla/policies/${id}`),
+
+  createPolicy: (data: any): Promise<{ data: SlaPolicy }> =>
+    api.post('/sla/policies', data),
+
+  updatePolicy: (id: string, data: any): Promise<{ data: SlaPolicy }> =>
+    api.put(`/sla/policies/${id}`, data),
+
+  deletePolicy: (id: string) =>
+    api.delete(`/sla/policies/${id}`),
+
+  // Cycles
+  getCycles: (params?: { taskId?: string; status?: string; projectId?: string }): Promise<{ data: SlaTrackingCycle[] }> =>
+    api.get('/sla/cycles', { params }),
+
+  getCycleById: (id: string): Promise<{ data: SlaTrackingCycle }> =>
+    api.get(`/sla/cycles/${id}`),
+
+  startCycle: (data: { taskId?: string; clientRequestId?: string; policyId?: string }): Promise<{ data: SlaTrackingCycle }> =>
+    api.post('/sla/cycles', data),
+
+  recordFirstResponse: (id: string, data: { isCustomerVisible: boolean; notes?: string }): Promise<{ data: SlaTrackingCycle }> =>
+    api.post(`/sla/cycles/${id}/first-response`, data),
+
+  recordResolution: (id: string, data: { terminalStatusCategory: string; notes?: string }): Promise<{ data: SlaTrackingCycle }> =>
+    api.post(`/sla/cycles/${id}/resolution`, data),
+
+  pauseCycle: (id: string, data: { pauseReason: string; notes?: string }): Promise<{ data: SlaTrackingCycle }> =>
+    api.post(`/sla/cycles/${id}/pause`, data),
+
+  resumeCycle: (id: string): Promise<{ data: SlaTrackingCycle }> =>
+    api.post(`/sla/cycles/${id}/resume`),
+
+  extendDeadline: (id: string, data: { addedMinutes: number; reason: string; changeRequestId?: string }): Promise<{ data: SlaTrackingCycle }> =>
+    api.post(`/sla/cycles/${id}/extend`, data),
+
+  reopenCycle: (id: string, data: { reason: string }): Promise<{ data: SlaTrackingCycle }> =>
+    api.post(`/sla/cycles/${id}/reopen`, data),
+
+  // Alerts
+  evaluateAlerts: (params?: { projectId?: string; clientId?: string }): Promise<{ data: RiskAlert[] }> =>
+    api.post('/sla/alerts/evaluate', {}, { params }),
+
+  getAlerts: (params?: { status?: string; severity?: string; projectId?: string }): Promise<{ data: RiskAlert[] }> =>
+    api.get('/sla/alerts', { params }),
+
+  acknowledgeAlert: (id: string, data?: { notes?: string }): Promise<{ data: RiskAlert }> =>
+    api.post(`/sla/alerts/${id}/acknowledge`, data || {}),
+
+  resolveAlert: (id: string, data: { resolutionNotes: string }): Promise<{ data: RiskAlert }> =>
+    api.post(`/sla/alerts/${id}/resolve`, data),
+
+  dismissAlert: (id: string, data: { notes: string }): Promise<{ data: RiskAlert }> =>
+    api.post(`/sla/alerts/${id}/dismiss`, data),
+
+  // Dashboard
+  getDashboard: (params?: { projectId?: string; clientId?: string }): Promise<{ data: SlaDashboardResponse }> =>
+    api.get('/sla/dashboard', { params }),
+};
+
+// ==========================================
+// Flow Analytics & Bottlenecks (ANALYTICS-002)
+// ==========================================
+export const flowAnalyticsApi = {
+  // WIP Limits
+  getWipLimits: (params?: { projectId?: string; teamId?: string; userId?: string; limitType?: string }): Promise<{ data: WipLimit[] }> =>
+    api.get('/flow-analytics/wip-limits', { params }),
+
+  createWipLimit: (data: any): Promise<{ data: WipLimit }> =>
+    api.post('/flow-analytics/wip-limits', data),
+
+  updateWipLimit: (id: string, data: any): Promise<{ data: WipLimit }> =>
+    api.put(`/flow-analytics/wip-limits/${id}`, data),
+
+  deleteWipLimit: (id: string) =>
+    api.delete(`/flow-analytics/wip-limits/${id}`),
+
+  checkWip: (data: { statusId?: string; userId?: string; teamId?: string; projectId?: string }) =>
+    api.post('/flow-analytics/check-wip', data),
+
+  getWipBoard: (params?: { projectId?: string; teamId?: string }): Promise<{ data: WipBoardResponse }> =>
+    api.get('/flow-analytics/wip-board', { params }),
+
+  // WIP Override Exceptions
+  createOverrideException: (data: any): Promise<{ data: WipOverrideException }> =>
+    api.post('/flow-analytics/wip-override-exceptions', data),
+
+  getOverrideExceptions: (params?: { projectId?: string; taskId?: string }): Promise<{ data: WipOverrideException[] }> =>
+    api.get('/flow-analytics/wip-override-exceptions', { params }),
+
+  // Operational Aging
+  getOperationalAging: (params?: any): Promise<{ data: OperationalAgingResponse }> =>
+    api.get('/flow-analytics/operational-aging', { params }),
+
+  // Flow Time Partitioning
+  getFlowTimePartition: (params?: any): Promise<{ data: FlowTimePartitionResponse }> =>
+    api.get('/flow-analytics/flow-time-partition', { params }),
+
+  // Cycle Time Metrics & Percentiles
+  getCycleTimeMetrics: (params?: any): Promise<{ data: CycleTimeMetricsResponse }> =>
+    api.get('/flow-analytics/cycle-time-metrics', { params }),
+
+  // Cumulative Flow Diagrams (CFD)
+  getCumulativeFlow: (params?: { projectId?: string; sprintId?: string; startDate?: string; endDate?: string }): Promise<{ data: CfdDataPoint[] }> =>
+    api.get('/flow-analytics/cumulative-flow', { params }),
+
+  rebuildCfd: (data: { projectId?: string; sprintId?: string; productId?: string }) =>
+    api.post('/flow-analytics/rebuild-cfd', data),
+
+  // Dwell Time Heatmap
+  getDwellTimeHeatmap: (params?: { projectId?: string; sprintId?: string }): Promise<{ data: DwellTimeResponse }> =>
+    api.get('/flow-analytics/dwell-time-heatmap', { params }),
+
+  // Aging Configurations
+  getAgingConfigs: (params?: { projectId?: string }): Promise<{ data: FlowAgingConfig[] }> =>
+    api.get('/flow-analytics/aging-configs', { params }),
+
+  createAgingConfig: (data: any): Promise<{ data: FlowAgingConfig }> =>
+    api.post('/flow-analytics/aging-configs', data),
+};
+
+// ==========================================
+// Delivery, Workload and Capacity Insights (ANALYTICS-003)
+// ==========================================
+export const capacityInsightsApi = {
+  // Workload Heatmap
+  getWorkload: (params?: {
+    startDate?: string;
+    endDate?: string;
+    teamId?: string;
+    projectId?: string;
+    branchId?: string;
+    departmentId?: string;
+    userId?: string;
+  }): Promise<{ data: CapacityWorkloadResponse }> =>
+    api.get('/capacity-insights/workload', { params }),
+
+  // Split Effort Allocation
+  splitEffort: (data: {
+    taskId: string;
+    assignees: Array<{ userId: string; effortSharePercentage: number }>;
+  }): Promise<{ data: any }> =>
+    api.post('/capacity-insights/split-effort', data),
+
+  // Explainable Skill Suggestions
+  getSkillSuggestions: (taskId: string): Promise<{ data: SkillSuggestionsResponse }> =>
+    api.get(`/capacity-insights/tasks/${taskId}/skill-suggestions`),
+
+  // Team Estimation Reliability & Metrics
+  getTeamEstimationMetrics: (params?: {
+    teamId?: string;
+    projectId?: string;
+    sprintId?: string;
+  }): Promise<{ data: TeamEstimationMetricsResponse }> =>
+    api.get('/capacity-insights/team-estimation-metrics', { params }),
+
+  // Skills Catalog
+  getSkills: (params?: { category?: string; search?: string }): Promise<{ data: Skill[] }> =>
+    api.get('/capacity-insights/skills', { params }),
+
+  createSkill: (data: { skill_code: string; name: string; category: string; description?: string }): Promise<{ data: Skill }> =>
+    api.post('/capacity-insights/skills', data),
+
+  // User Skills
+  getUserSkills: (userId: string): Promise<{ data: UserSkill[] }> =>
+    api.get(`/capacity-insights/users/${userId}/skills`),
+
+  assignUserSkill: (userId: string, data: {
+    skill_id: string;
+    proficiency_level: number;
+    years_of_experience?: number;
+    is_certified?: boolean;
+    notes?: string;
+  }): Promise<{ data: UserSkill }> =>
+    api.post(`/capacity-insights/users/${userId}/skills`, data),
+
+  removeUserSkill: (userId: string, skillId: string): Promise<{ data: any }> =>
+    api.delete(`/capacity-insights/users/${userId}/skills/${skillId}`),
+
+  // Task Required Skills
+  getTaskRequiredSkills: (taskId: string): Promise<{ data: TaskRequiredSkill[] }> =>
+    api.get(`/capacity-insights/tasks/${taskId}/required-skills`),
+
+  setTaskRequiredSkill: (taskId: string, data: {
+    skill_id: string;
+    minimum_proficiency?: number;
+    is_mandatory?: boolean;
+  }): Promise<{ data: TaskRequiredSkill }> =>
+    api.post(`/capacity-insights/tasks/${taskId}/required-skills`, data),
+
+  removeTaskRequiredSkill: (taskId: string, skillId: string): Promise<{ data: any }> =>
+    api.delete(`/capacity-insights/tasks/${taskId}/required-skills/${skillId}`),
+
+  // Capacity Reservations
+  getReservations: (params?: {
+    userId?: string;
+    reservationType?: string;
+    startDate?: string;
+    endDate?: string;
+  }): Promise<{ data: CapacityReservation[] }> =>
+    api.get('/capacity-insights/reservations', { params }),
+
+  createReservation: (data: {
+    reservation_code: string;
+    user_id: string;
+    reservation_type: string;
+    title: string;
+    description?: string;
+    start_date: string;
+    end_date: string;
+    daily_hours?: number;
+    total_reserved_hours?: number;
+    is_recurring?: boolean;
+    recurrence_pattern?: string;
+  }): Promise<{ data: CapacityReservation }> =>
+    api.post('/capacity-insights/reservations', data),
+
+  deleteReservation: (id: string): Promise<{ data: any }> =>
+    api.delete(`/capacity-insights/reservations/${id}`),
+};
+
+// ==========================================
+// Project Financials, Variance & Reconciliation (ANALYTICS-004)
+// ==========================================
+export const financialAnalyticsApi = {
+  // Overview & Reconciliation
+  getOverview: (projectId: string): Promise<{ data: ProjectFinancialOverview }> =>
+    api.get(`/financial-analytics/projects/${projectId}/overview`),
+
+  // Baselines
+  getBaselines: (projectId: string): Promise<{ data: ProjectFinancialBaseline[] }> =>
+    api.get(`/financial-analytics/projects/${projectId}/baselines`),
+
+  createBaseline: (data: {
+    project_id: string;
+    baseline_code: string;
+    name: string;
+    description?: string;
+    baseline_date?: string;
+    budgeted_hours?: number;
+    budgeted_cost?: number;
+    budgeted_revenue?: number;
+    currency?: string;
+    scope_tasks_count?: number;
+    scope_story_points?: number;
+    warning_threshold_pct?: number;
+    critical_threshold_pct?: number;
+  }): Promise<{ data: ProjectFinancialBaseline }> =>
+    api.post('/financial-analytics/baselines', data),
+
+  toggleFreezeBaseline: (id: string): Promise<{ data: ProjectFinancialBaseline }> =>
+    api.patch(`/financial-analytics/baselines/${id}/toggle-freeze`),
+
+  // Effective-Dated Rate Cards
+  getRateCards: (projectId?: string): Promise<{ data: ProjectFinancialRateCard[] }> =>
+    api.get('/financial-analytics/rate-cards', { params: { projectId } }),
+
+  createRateCard: (data: {
+    rate_code: string;
+    project_id?: string;
+    role_id?: string;
+    user_id?: string;
+    currency?: string;
+    hourly_billing_rate: number;
+    hourly_cost_rate: number;
+    effective_start_date: string;
+    effective_end_date?: string;
+    description?: string;
+  }): Promise<{ data: ProjectFinancialRateCard }> =>
+    api.post('/financial-analytics/rate-cards', data),
+
+  deleteRateCard: (id: string): Promise<{ data: any }> =>
+    api.delete(`/financial-analytics/rate-cards/${id}`),
+
+  // Periodic Metrics
+  getMetrics: (projectId: string): Promise<{ data: ProjectFinancialPeriodicMetric[] }> =>
+    api.get(`/financial-analytics/projects/${projectId}/metrics`),
+
+  recordMetric: (data: any): Promise<{ data: ProjectFinancialPeriodicMetric }> =>
+    api.post('/financial-analytics/metrics', data),
+
+  // Currency Exchange Rates
+  getExchangeRates: (): Promise<{ data: CurrencyExchangeRate[] }> =>
+    api.get('/financial-analytics/exchange-rates'),
+
+  createExchangeRate: (data: {
+    from_currency: string;
+    to_currency: string;
+    exchange_rate: number;
+    effective_date?: string;
+    source?: string;
+  }): Promise<{ data: CurrencyExchangeRate }> =>
+    api.post('/financial-analytics/exchange-rates', data),
+};
+
+// ==========================================
+// Advanced Scheduling & Scenarios (LATER-001)
+// ==========================================
+export const advancedSchedulingApi = {
+  calculateCPM: (projectId: string): Promise<{ data: CPMAnalysisResult }> =>
+    api.get(`/advanced-scheduling/cpm/${projectId}`),
+
+  getScenarios: (params?: { projectId?: string; status?: string }): Promise<{ data: ScheduleScenario[] }> =>
+    api.get('/advanced-scheduling/scenarios', { params }),
+
+  getScenarioById: (id: string): Promise<{ data: ScheduleScenario }> =>
+    api.get(`/advanced-scheduling/scenarios/${id}`),
+
+  createScenario: (data: {
+    projectId: string;
+    scenarioCode: string;
+    name: string;
+    description?: string;
+    scenarioType: string;
+  }): Promise<{ data: ScheduleScenario }> =>
+    api.post('/advanced-scheduling/scenarios', data),
+
+  updateOverride: (scenarioId: string, overrideId: string, data: any): Promise<{ data: ScheduleScenario }> =>
+    api.patch(`/advanced-scheduling/scenarios/${scenarioId}/overrides/${overrideId}`, data),
+
+  simulateScenario: (id: string): Promise<{ data: ScheduleScenario }> =>
+    api.post(`/advanced-scheduling/scenarios/${id}/simulate`),
+
+  applyScenario: (id: string): Promise<{ data: any }> =>
+    api.post(`/advanced-scheduling/scenarios/${id}/apply`),
+
+  // Health Score Engine
+  getProjectHealth: (projectId: string): Promise<{ data: ProjectHealthEvaluation }> =>
+    api.get(`/advanced-scheduling/health/${projectId}`),
+
+  getHealthHistory: (projectId: string): Promise<{ data: any[] }> =>
+    api.get(`/advanced-scheduling/health/${projectId}/history`),
+
+  getHealthConfig: (projectId?: string): Promise<{ data: ProjectHealthConfig }> =>
+    api.get('/advanced-scheduling/health-config', { params: { projectId } }),
+
+  upsertHealthConfig: (data: ProjectHealthConfig): Promise<{ data: ProjectHealthConfig }> =>
+    api.put('/advanced-scheduling/health-config', data),
+
+  recordHealthOverride: (data: {
+    projectId: string;
+    overrideState?: 'GREEN' | 'AMBER' | 'RED' | null;
+    overrideReason: string;
+  }): Promise<{ data: ProjectHealthEvaluation }> =>
+    api.post('/advanced-scheduling/health-override', data),
+};
+
+// ==========================================
+// API-001: Webhooks & Event Integrations
+// ==========================================
+
+export const webhooksApi = {
+  getSubscriptions: (params?: { isEnabled?: boolean; eventType?: string; projectId?: string }): Promise<{ data: WebhookSubscription[] }> =>
+    api.get('/webhooks/subscriptions', { params }),
+
+  getSubscriptionById: (id: string): Promise<{ data: WebhookSubscription }> =>
+    api.get(`/webhooks/subscriptions/${id}`),
+
+  createSubscription: (data: {
+    subscriptionCode: string;
+    name: string;
+    targetUrl: string;
+    eventTypes: string[];
+    scopeProjectIds?: string[];
+    isEnabled?: boolean;
+    maxRetries?: number;
+    timeoutSeconds?: number;
+    description?: string;
+  }): Promise<{ data: WebhookSubscription }> =>
+    api.post('/webhooks/subscriptions', data),
+
+  updateSubscription: (
+    id: string,
+    data: {
+      name?: string;
+      targetUrl?: string;
+      eventTypes?: string[];
+      scopeProjectIds?: string[];
+      isEnabled?: boolean;
+      maxRetries?: number;
+      timeoutSeconds?: number;
+      description?: string;
+    },
+  ): Promise<{ data: WebhookSubscription }> =>
+    api.patch(`/webhooks/subscriptions/${id}`, data),
+
+  rotateSecret: (id: string): Promise<{ data: { id: string; subscription_code: string; raw_secret_key: string; masked_secret: string; secret_rotated_at: string } }> =>
+    api.post(`/webhooks/subscriptions/${id}/rotate-secret`),
+
+  deleteSubscription: (id: string): Promise<{ data: { success: boolean; id: string } }> =>
+    api.delete(`/webhooks/subscriptions/${id}`),
+
+  simulateEvent: (data: { eventType?: string; subscriptionId?: string }): Promise<{ data: { dispatched: number; eventId?: string } }> =>
+    api.post('/webhooks/simulate', data),
+
+  getDeliveries: (params?: { subscriptionId?: string; status?: string; eventType?: string; eventId?: string }): Promise<{ data: WebhookDelivery[] }> =>
+    api.get('/webhooks/deliveries', { params }),
+
+  replayDelivery: (id: string): Promise<{ data: any }> =>
+    api.post(`/webhooks/deliveries/${id}/replay`),
+};
+
+// ==========================================
+// ADMIN-001: Configuration Toolkit & Setup Wizard
+// ==========================================
+
+export const configToolkitApi = {
+  getSettings: (): Promise<{ data: CompanySettings }> =>
+    api.get('/config-toolkit/settings'),
+
+  updateSettings: (data: Partial<CompanySettings>): Promise<{ data: CompanySettings }> =>
+    api.put('/config-toolkit/settings', data),
+
+  resetWizard: (): Promise<{ data: CompanySettings }> =>
+    api.post('/config-toolkit/settings/reset-wizard'),
+
+  getPackages: (): Promise<{ data: ConfigurationPackage[] }> =>
+    api.get('/config-toolkit/packages'),
+
+  getPackageById: (id: string): Promise<{ data: ConfigurationPackage }> =>
+    api.get(`/config-toolkit/packages/${id}`),
+
+  exportConfiguration: (data: {
+    packageCode: string;
+    packageName: string;
+    packageType?: string;
+    description?: string;
+  }): Promise<{ data: ConfigurationPackage }> =>
+    api.post('/config-toolkit/packages/export', data),
+
+  dryRunPackage: (data: {
+    packageId?: string;
+    rawPackageData?: any;
+  }): Promise<{ data: PackageDiffResult }> =>
+    api.post('/config-toolkit/packages/dry-run', data),
+
+  applyPackage: (data: {
+    packageId?: string;
+    rawPackageData?: any;
+    conflictResolution?: 'OVERWRITE' | 'SKIP' | 'FAIL_ON_CONFLICT';
+  }): Promise<{ data: { success: boolean; appliedCount: number; skippedCount: number; items: any[] } }> =>
+    api.post('/config-toolkit/packages/apply', data),
+
+  getAuditLogs: (): Promise<{ data: ConfigurationAuditLog[] }> =>
+    api.get('/config-toolkit/audit-logs'),
+};
+
+export const draftingApi = {
+  getDrafts: (params?: any): Promise<{ data: DraftSuggestion[] }> =>
+    api.get('/drafting/suggestions', { params }),
+
+  getDraftById: (id: string): Promise<{ data: DraftSuggestion }> =>
+    api.get(`/drafting/suggestions/${id}`),
+
+  generateDraft: (data: {
+    generatorType: 'SUBTASKS' | 'ACCEPTANCE_CRITERIA' | 'RELEASE_NOTES' | 'GAP_AUDIT' | 'DUPLICATE_CHECK';
+    entityId: string;
+    entityType: 'TASK' | 'REQUIREMENT' | 'VERSION' | 'SPRINT' | 'PROJECT';
+    audienceScope?: 'INTERNAL_ONLY' | 'CLIENT_SAFE' | 'PUBLIC_COMMUNITY';
+  }): Promise<{ data: any }> =>
+    api.post('/drafting/generate', data),
+
+  reviewDraft: (
+    id: string,
+    data: {
+      status: 'ACCEPTED' | 'MODIFIED_AND_ACCEPTED' | 'REJECTED' | 'DISCARDED';
+      reviewNotes?: string;
+      reviewedContent?: any;
+      applyToSource?: boolean;
+    },
+  ): Promise<{ data: DraftSuggestion }> =>
+    api.post(`/drafting/suggestions/${id}/review`, data),
+
+  getRules: (): Promise<{ data: DraftRuleConfig[] }> =>
+    api.get('/drafting/rules'),
+
+  updateRule: (
+    id: string,
+    data: {
+      isEnabled?: boolean;
+      similarityThreshold?: number;
+      ruleParameters?: Record<string, any>;
+      description?: string;
+    },
+  ): Promise<{ data: DraftRuleConfig }> =>
+    api.put(`/drafting/rules/${id}`, data),
+};
+
+
+
+
+
+
+
+
+
+

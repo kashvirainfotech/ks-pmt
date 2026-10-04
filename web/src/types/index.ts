@@ -2425,3 +2425,1507 @@ export interface RecurringTaskOccurrence {
   created_at: string;
 }
 
+
+// ==========================================
+// PROD-002: Product Goals & Outcome Reviews
+// ==========================================
+
+export type ProductGoalCategory =
+  | 'ADOPTION'
+  | 'PERFORMANCE'
+  | 'REVENUE_GROWTH'
+  | 'QUALITY_RELIABILITY'
+  | 'USER_SATISFACTION'
+  | 'STRATEGIC';
+
+export type ProductGoalStatus =
+  | 'DRAFT'
+  | 'IN_PROGRESS'
+  | 'ACHIEVED'
+  | 'MISSED'
+  | 'ABANDONED';
+
+export type OutcomeVerdict =
+  | 'MET_EXPECTATIONS'
+  | 'EXCEEDED_EXPECTATIONS'
+  | 'BELOW_EXPECTATIONS'
+  | 'INCONCLUSIVE';
+
+export interface ProductGoal {
+  id: string;
+  goal_code: string;
+  product_id: string;
+  product_name?: string;
+  product_code?: string;
+  title: string;
+  description?: string;
+  category: ProductGoalCategory;
+  metric_name: string;
+  metric_unit: string;
+  baseline_value: number;
+  target_value: number;
+  current_value: number;
+  target_date: string;
+  owner_user_id?: string;
+  owner_name?: string;
+  owner_email?: string;
+  status: ProductGoalStatus;
+  progress_percentage?: number;
+  reviews_count?: number;
+  latest_review?: {
+    review_code: string;
+    review_date: string;
+    outcome_verdict: OutcomeVerdict;
+    actual_metric_value?: number;
+  };
+  outcome_reviews?: ProductOutcomeReview[];
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProductOutcomeReview {
+  id: string;
+  review_code: string;
+  product_id: string;
+  product_name?: string;
+  product_code?: string;
+  goal_id?: string;
+  goal_code?: string;
+  goal_title?: string;
+  metric_name?: string;
+  metric_unit?: string;
+  target_value?: number;
+  baseline_value?: number;
+  version_id?: string;
+  version_code?: string;
+  version_name?: string;
+  idea_id?: string;
+  idea_code?: string;
+  idea_title?: string;
+  review_title: string;
+  review_date: string;
+  reviewer_user_id?: string;
+  reviewer_name?: string;
+  reviewer_email?: string;
+  actual_metric_value?: number;
+  outcome_verdict: OutcomeVerdict;
+  adoption_observations?: string;
+  customer_evidence?: string;
+  feedback_summary?: string;
+  learnings_and_next_steps?: string;
+  reconciled_allowance_used?: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProductGoalsSummary {
+  goals: {
+    total_goals: number;
+    achieved_count: number;
+    in_progress_count: number;
+    missed_count: number;
+    draft_count: number;
+    abandoned_count: number;
+    adoption_count: number;
+    performance_count: number;
+    revenue_count: number;
+    quality_count: number;
+    satisfaction_count: number;
+  };
+  reviews: {
+    total_reviews: number;
+    exceeded_count: number;
+    met_count: number;
+    below_count: number;
+    inconclusive_count: number;
+    total_reconciled_allowance: number;
+  };
+}
+
+// ==========================================
+// QA-002: Scoped Environments & Issue Verification
+// ==========================================
+
+export type QaEnvironmentType =
+  | 'INTERNAL_QA'
+  | 'DEV'
+  | 'STAGING'
+  | 'CLIENT_UAT'
+  | 'CLIENT_PRODUCTION'
+  | 'ON_PREMISE_CLIENT';
+
+export type QaScopeType = 'GLOBAL' | 'PRODUCT' | 'PROJECT' | 'CLIENT';
+
+export type IssueObservationType =
+  | 'FOUND_REPRODUCED'
+  | 'FIX_AVAILABLE'
+  | 'READY_FOR_RETEST'
+  | 'PASSED'
+  | 'FAILED'
+  | 'CANNOT_REPRODUCE'
+  | 'BLOCKED';
+
+export interface QaEnvironment {
+  id: string;
+  env_code: string;
+  env_name: string;
+  env_type: QaEnvironmentType;
+  scope_type: QaScopeType;
+  product_id?: string;
+  product_name?: string;
+  project_id?: string;
+  project_name?: string;
+  client_id?: string;
+  client_name?: string;
+  region?: string;
+  description?: string;
+  context_metadata?: Record<string, any>;
+  observations_count?: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IssueEnvironmentObservation {
+  id: string;
+  observation_code: string;
+  task_id: string;
+  task_code?: string;
+  task_title?: string;
+  environment_id: string;
+  env_code?: string;
+  env_name?: string;
+  env_type?: QaEnvironmentType;
+  env_region?: string;
+  client_name?: string;
+  version_id: string;
+  version_code?: string;
+  version_name?: string;
+  observation_type: IssueObservationType;
+  observed_at: string;
+  tester_user_id?: string;
+  tester_name?: string;
+  tester_email?: string;
+  client_contact_id?: string;
+  client_contact_name?: string;
+  browser_info?: string;
+  os_info?: string;
+  device_info?: string;
+  build_label?: string;
+  evidence_notes?: string;
+  attachment_url?: string;
+  is_client_visible: boolean;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TaskEnvironmentMatrixResponse {
+  task: {
+    id: string;
+    task_code: string;
+    title: string;
+    priority: string;
+    status_name?: string;
+    task_version_code?: string;
+    product_name?: string;
+    project_name?: string;
+  };
+  matrix: IssueEnvironmentObservation[];
+  evaluationSummary: {
+    hasPassedInternalQa: boolean;
+    hasFailingClientUat: boolean;
+    hasUnresolvedOlderVersion: boolean;
+    isFullyResolvedAcrossAllEnvironments: boolean;
+  };
+}
+
+// ========================================================
+// COMM-001: Retainer & AMC Entitlements
+// ========================================================
+
+export type CommercialContractType = 'RETAINER' | 'AMC' | 'TIME_AND_MATERIALS_CAP' | 'FIXED_HOURS_BUCKET';
+export type CommercialPeriodicity = 'MONTHLY' | 'QUARTERLY' | 'ANNUALLY' | 'CUSTOM';
+export type CommercialRolloverRule = 'NO_ROLLOVER' | 'FULL_ROLLOVER' | 'CAPPED_ROLLOVER' | 'EXPIRE_AFTER_N_PERIODS';
+export type CommercialContractStatus = 'DRAFT' | 'ACTIVE' | 'EXPIRED' | 'PENDING_RENEWAL' | 'SUSPENDED' | 'TERMINATED';
+export type ContractPeriodStatus = 'UPCOMING' | 'OPEN' | 'CLOSED' | 'RECONCILED';
+export type OverageRequestStatus = 'PENDING_CLIENT_APPROVAL' | 'APPROVED' | 'REJECTED' | 'WAIVED';
+
+export interface CommercialContract {
+  id: string;
+  contract_number: string;
+  client_id: string;
+  client_name?: string;
+  client_code?: string;
+  project_id?: string;
+  project_name?: string;
+  project_code?: string;
+  product_id?: string;
+  product_name?: string;
+  product_code?: string;
+  title: string;
+  contract_type: CommercialContractType;
+  periodicity: CommercialPeriodicity;
+  included_hours_per_period: number;
+  hourly_rate: number;
+  overage_hourly_rate: number;
+  currency: string;
+  rollover_rule: CommercialRolloverRule;
+  max_rollover_hours: number;
+  rollover_expiry_periods: number;
+  start_date: string;
+  end_date: string;
+  status: CommercialContractStatus;
+  accountable_pm_user_id?: string;
+  accountable_pm_name?: string;
+  terms_and_conditions?: string;
+  notes?: string;
+  current_period?: Partial<ContractPeriod>;
+  total_periods_count?: number;
+  periods?: ContractPeriod[];
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ContractPeriod {
+  id: string;
+  contract_id: string;
+  contract_number?: string;
+  contract_title?: string;
+  contract_type?: CommercialContractType;
+  rollover_rule?: CommercialRolloverRule;
+  max_rollover_hours?: number;
+  client_id?: string;
+  client_name?: string;
+  project_id?: string;
+  project_name?: string;
+  product_id?: string;
+  product_name?: string;
+  period_code: string;
+  period_sequence: number;
+  start_date: string;
+  end_date: string;
+  included_hours: number;
+  rolled_over_hours_in: number;
+  total_allowance_hours: number;
+  approved_consumed_hours: number;
+  remaining_allowance_hours: number;
+  overage_hours: number;
+  rolled_over_hours_out: number;
+  hourly_rate: number;
+  overage_hourly_rate: number;
+  currency: string;
+  status: ContractPeriodStatus;
+  closed_at?: string;
+  closed_by?: string;
+  closed_by_user_name?: string;
+  reconciled_notes?: string;
+  consumed_worklogs_count?: number;
+  overage_requests_count?: number;
+  consumptions?: ContractWorklogConsumption[];
+  overage_requests?: ContractOverageRequest[];
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ContractWorklogConsumption {
+  id: string;
+  contract_period_id: string;
+  time_log_id: string;
+  hours_consumed: number;
+  is_overage: boolean;
+  consumed_at: string;
+  log_date?: string;
+  worklog_hours?: number;
+  worklog_description?: string;
+  approval_status?: string;
+  task_code?: string;
+  task_title?: string;
+  task_type_name?: string;
+  logged_by_user_name?: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ContractOverageRequest {
+  id: string;
+  request_code: string;
+  contract_period_id: string;
+  change_request_id?: string;
+  cr_number?: string;
+  cr_title?: string;
+  requested_overage_hours: number;
+  estimated_amount: number;
+  currency: string;
+  justification: string;
+  status: OverageRequestStatus;
+  approved_hours: number;
+  approved_by_contact_id?: string;
+  approved_by_contact_name?: string;
+  approved_at?: string;
+  client_remarks?: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ClientStatementResponse {
+  statementDate: string;
+  contract: {
+    id: string;
+    contractNumber: string;
+    title: string;
+    contractType: CommercialContractType;
+    periodicity: CommercialPeriodicity;
+    clientName: string;
+    projectName?: string;
+    productName?: string;
+    currency: string;
+    hourlyRate: number;
+    overageHourlyRate: number;
+    rolloverRule: CommercialRolloverRule;
+    maxRolloverHours: number;
+  };
+  period: {
+    id: string;
+    periodCode: string;
+    periodSequence: number;
+    startDate: string;
+    endDate: string;
+    status: ContractPeriodStatus;
+    includedHours: number;
+    rolledOverHoursIn: number;
+    totalAllowanceHours: number;
+    approvedConsumedHours: number;
+    remainingAllowanceHours: number;
+    overageHours: number;
+    rolledOverHoursOut: number;
+  };
+  summary: {
+    allowanceBurnPercentage: number;
+    authorizedOverageHours: number;
+    isOveragePresent: boolean;
+  };
+  approvedUsage: Array<{
+    consumptionId: string;
+    date: string;
+    taskCode: string;
+    taskTitle: string;
+    taskType: string;
+    hoursConsumed: number;
+    isOverage: boolean;
+    workDescription: string;
+    approvalStatus: string;
+    consumedAt: string;
+  }>;
+  overageAuthorizations: Array<{
+    requestId: string;
+    requestCode: string;
+    crNumber?: string;
+    requestedHours: number;
+    approvedHours: number;
+    status: OverageRequestStatus;
+    estimatedAmount: number;
+    currency: string;
+    justification: string;
+    clientRemarks?: string;
+    approvedAt?: string;
+  }>;
+}
+
+// ==========================================
+// DATA-001: Data Exchange & Portable Imports / Exports
+// ==========================================
+
+export type ImportEntityType = 'TASKS' | 'REQUIREMENTS' | 'TEST_CASES' | 'CLIENT_REQUESTS' | 'RAID_ITEMS';
+export type ImportMode = 'CREATE_ONLY' | 'UPDATE_ONLY' | 'UPSERT';
+export type ImportBatchStatus = 'PREVIEW_READY' | 'VALIDATED' | 'PROCESSING' | 'COMPLETED' | 'PARTIALLY_FAILED' | 'FAILED';
+export type RowOutcomeStatus = 'VALID' | 'INVALID' | 'CREATED' | 'UPDATED' | 'SKIPPED' | 'FAILED';
+
+export interface DataImportRowOutcome {
+  id: string;
+  batch_id: string;
+  row_index: number;
+  external_id?: string;
+  raw_payload?: Record<string, any>;
+  mapped_payload?: Record<string, any>;
+  outcome_status: RowOutcomeStatus;
+  target_record_id?: string;
+  target_record_code?: string;
+  action_performed?: string;
+  validation_errors?: Array<{ field: string; message: string; code: string }>;
+  execution_error?: string;
+  is_retried: boolean;
+  retried_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DataImportBatch {
+  id: string;
+  batch_number: string;
+  entity_type: ImportEntityType;
+  import_mode: ImportMode;
+  status: ImportBatchStatus;
+  original_file_name: string;
+  total_rows: number;
+  preview_valid_count: number;
+  preview_error_count: number;
+  success_count: number;
+  failed_count: number;
+  skipped_count: number;
+  column_mapping?: Record<string, string>;
+  error_summary?: Array<{ rowIndex: number; externalId?: string; errors: Array<{ field: string; message: string; code: string }> }>;
+  executed_by_id: string;
+  executed_by_name?: string;
+  created_by_name?: string;
+  started_at?: string;
+  completed_at?: string;
+  created_at: string;
+  updated_at: string;
+  row_outcomes?: DataImportRowOutcome[];
+}
+
+export interface DataImportPreviewResponse {
+  batchId: string;
+  batchNumber: string;
+  entityType: ImportEntityType;
+  importMode: ImportMode;
+  totalRows: number;
+  validRowsCount: number;
+  invalidRowsCount: number;
+  columnMapping: Record<string, string>;
+  detectedHeaders: string[];
+  templateHeaders: string[];
+  previewRows: Array<{
+    rowIndex: number;
+    externalId?: string;
+    isValid: boolean;
+    errors: Array<{ field: string; message: string; code: string }>;
+    mappedData: Record<string, any>;
+    rawRow: Record<string, any>;
+  }>;
+}
+
+export interface DataExportQuery {
+  entityType: ImportEntityType;
+  projectId?: string;
+  productId?: string;
+  format?: 'csv' | 'json';
+  fromDate?: string;
+  toDate?: string;
+}
+
+// ==========================================
+// ANALYTICS-001: Contractual SLA & Risk Alerts
+// ==========================================
+
+export type SlaTier = 'TIER_1_CRITICAL' | 'TIER_2_HIGH' | 'TIER_3_STANDARD' | 'TIER_4_BASIC';
+export type SlaTimeBasis = 'BUSINESS_HOURS' | 'ELAPSED_HOURS';
+export type SlaCycleStatus =
+  | 'RUNNING'
+  | 'PAUSED'
+  | 'RESPONSE_MET'
+  | 'RESPONSE_BREACHED'
+  | 'RESOLVED_MET'
+  | 'RESOLVED_BREACHED'
+  | 'CANCELLED';
+export type SlaResponseStatus = 'PENDING' | 'MET' | 'BREACHED';
+
+export interface SlaPolicy {
+  id: string;
+  policy_code: string;
+  policy_name: string;
+  description?: string;
+  client_id?: string;
+  client_name?: string;
+  project_id?: string;
+  project_name?: string;
+  task_type_id?: string;
+  task_type_name?: string;
+  priority?: string;
+  severity?: string;
+  tier: SlaTier;
+  calendar_id?: string;
+  calendar_name?: string;
+  response_time_minutes: number;
+  response_time_basis: SlaTimeBasis;
+  resolution_time_minutes: number;
+  resolution_time_basis: SlaTimeBasis;
+  response_warning_threshold_pct: number;
+  resolution_warning_threshold_pct: number;
+  escalation_rules?: any[];
+  precedence_rank: number;
+  is_default: boolean;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SlaTrackingCycle {
+  id: string;
+  cycle_number: string;
+  task_id?: string;
+  task_code?: string;
+  task_title?: string;
+  client_request_id?: string;
+  sla_policy_id: string;
+  policy_name?: string;
+  tier?: string;
+  project_name?: string;
+  cycle_iteration: number;
+  policy_snapshot: any;
+  calendar_snapshot: any;
+  status: SlaCycleStatus;
+  response_deadline: string;
+  responded_at?: string;
+  responded_by_user_id?: string;
+  responded_by_name?: string;
+  response_status: SlaResponseStatus;
+  elapsed_response_minutes: number;
+  business_response_minutes: number;
+  resolution_deadline: string;
+  resolved_at?: string;
+  resolved_by_user_id?: string;
+  resolved_by_name?: string;
+  resolution_status: SlaResponseStatus;
+  elapsed_resolution_minutes: number;
+  business_resolution_minutes: number;
+  is_paused: boolean;
+  current_pause_started_at?: string;
+  current_pause_reason?: string;
+  total_paused_minutes: number;
+  pause_episodes: any[];
+  original_resolution_deadline: string;
+  extension_count: number;
+  extension_history: any[];
+  change_request_id?: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RiskAlert {
+  id: string;
+  alert_code: string;
+  alert_type: string;
+  severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  sla_cycle_id?: string;
+  task_id?: string;
+  task_code?: string;
+  task_title?: string;
+  project_id?: string;
+  project_name?: string;
+  client_id?: string;
+  client_name?: string;
+  title: string;
+  description: string;
+  trigger_reason: string;
+  recommended_action: string;
+  status: 'ACTIVE' | 'ACKNOWLEDGED' | 'RESOLVED' | 'DISMISSED' | 'AUTO_CLEARED';
+  escalation_tier: number;
+  assigned_owner_id?: string;
+  owner_name?: string;
+  acknowledged_at?: string;
+  resolved_at?: string;
+  resolution_notes?: string;
+  freshness_updated_at: string;
+  created_at: string;
+}
+
+export interface SlaDashboardResponse {
+  summary: {
+    totalCycles: number;
+    runningCycles: number;
+    pausedCycles: number;
+    overallComplianceRate: number;
+    responseComplianceRate: number;
+    resolutionComplianceRate: number;
+    avgResponseMinutes: number;
+    avgResolutionMinutes: number;
+  };
+  alerts: {
+    totalActive: number;
+    critical: number;
+    high: number;
+    medium: number;
+    responseAlerts: number;
+    resolutionAlerts: number;
+    staleWorkAlerts: number;
+  };
+}
+
+// ==========================================
+// ANALYTICS-002: Flow Analytics & WIP Limits
+// ==========================================
+
+export interface WipLimit {
+  id: string;
+  limit_code: string;
+  name: string;
+  description?: string;
+  limit_type: 'STAGE' | 'USER' | 'TEAM' | 'PROJECT';
+  project_id?: string;
+  project_name?: string;
+  team_id?: string;
+  team_name?: string;
+  user_id?: string;
+  user_name?: string;
+  status_id?: string;
+  status_name?: string;
+  status_category?: string;
+  max_wip_count: number;
+  enforcement_mode: 'SOFT_WARNING' | 'HARD_GUARD';
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface WipOverrideException {
+  id: string;
+  exception_code: string;
+  wip_limit_id?: string;
+  limit_name?: string;
+  limit_type?: string;
+  task_id: string;
+  task_code: string;
+  task_title: string;
+  user_id?: string;
+  user_name?: string;
+  project_id?: string;
+  project_name?: string;
+  current_wip_count: number;
+  limit_value: number;
+  reason: string;
+  is_expedited: boolean;
+  authorized_by: string;
+  authorized_by_name: string;
+  authorized_at: string;
+  expires_at?: string;
+  created_at: string;
+}
+
+export interface WipStageColumn {
+  status_id: string;
+  status_code: string;
+  status_name: string;
+  status_category: string;
+  sequence_order: number;
+  total_tasks: number;
+  blocked_overlay_count: number;
+  max_wip_limit: number;
+  enforcement_mode?: 'SOFT_WARNING' | 'HARD_GUARD';
+}
+
+export interface WipAssigneeRow {
+  user_id: string;
+  full_name: string;
+  email: string;
+  primary_active_wip: number;
+  collaborator_active_wip: number;
+  blocked_primary_count: number;
+  max_wip_limit: number;
+  enforcement_mode?: 'SOFT_WARNING' | 'HARD_GUARD';
+}
+
+export interface WipBoardResponse {
+  stages: WipStageColumn[];
+  assignees: WipAssigneeRow[];
+  timestamp: string;
+}
+
+export interface OperationalAgingItem {
+  taskId: string;
+  taskCode: string;
+  title: string;
+  priority: string;
+  statusName: string;
+  statusCategory: string;
+  projectName?: string;
+  primaryAssignee: string;
+  isBlocked: boolean;
+  totalItemAgeHours: number;
+  currentStatusTenureHours: number;
+  primaryOwnerTenureHours: number;
+  blockedAgeHours: number;
+  queueWaitingAgeHours: number;
+  warningThresholdHours: number;
+  criticalThresholdHours: number;
+  agingSeverity: 'NORMAL' | 'WARNING' | 'CRITICAL';
+}
+
+export interface OperationalAgingResponse {
+  summary: {
+    totalActiveTasks: number;
+    normalCount: number;
+    warningCount: number;
+    criticalCount: number;
+    averageTenureHours: number;
+  };
+  items: OperationalAgingItem[];
+  notice: string;
+}
+
+export interface FlowTimePartitionResponse {
+  partitionValidation: {
+    activeMinutes: number;
+    waitingMinutes: number;
+    unclassifiedMinutes: number;
+    totalCycleTimeMinutes: number;
+    isPartitionExact: boolean;
+  };
+  durationsHours: {
+    activeHours: number;
+    waitingHours: number;
+    unclassifiedHours: number;
+    totalCycleTimeHours: number;
+  };
+  flowEfficiencyPercent: number;
+  waitingBreakdown: Record<
+    string,
+    { elapsedMinutes: number; businessMinutes: number; count: number }
+  >;
+  standardNotice: string;
+}
+
+export interface CycleTimeMetricsResponse {
+  sampleSize: number;
+  cancelledCount: number;
+  leadTime: {
+    min: number;
+    max: number;
+    avg: number;
+    p50: number;
+    p85: number;
+    p95: number;
+  };
+  cycleTime: {
+    min: number;
+    max: number;
+    avg: number;
+    p50: number;
+    p85: number;
+    p95: number;
+  };
+  qualityMetrics: {
+    firstTimeRightCount: number;
+    reworkCount: number;
+    firstTimeRightRatePercent: number;
+  };
+  scatterPoints: Array<{
+    taskId: string;
+    taskCode: string;
+    title: string;
+    leadTimeHours: number;
+    cycleTimeHours: number;
+    storyPoints: number;
+    hasRework: boolean;
+  }>;
+  disclosure: string;
+}
+
+export interface CfdDataPoint {
+  date: string;
+  TODO: number;
+  IN_PROGRESS: number;
+  REVIEW_TEST: number;
+  DONE: number;
+  CANCELLED: number;
+}
+
+export interface DwellTimeStage {
+  statusId: string;
+  statusCode: string;
+  statusName: string;
+  statusCategory: string;
+  sampleSize: number;
+  avgDwellHours: number;
+  avgBusinessDwellHours: number;
+  maxDwellHours: number;
+  isBottleneck: boolean;
+}
+
+export interface DwellTimeResponse {
+  stages: DwellTimeStage[];
+  timestamp: string;
+}
+
+export interface FlowAgingConfig {
+  id: string;
+  config_code: string;
+  name: string;
+  description?: string;
+  project_id?: string;
+  project_name?: string;
+  team_id?: string;
+  team_name?: string;
+  task_type_id?: string;
+  type_name?: string;
+  priority?: string;
+  status_id?: string;
+  status_name?: string;
+  warning_threshold_hours: number;
+  critical_threshold_hours: number;
+  time_basis: 'BUSINESS_HOURS' | 'ELAPSED_HOURS';
+  calendar_id?: string;
+  precedence_rank: number;
+  is_active: boolean;
+  created_at: string;
+}
+
+// ==========================================
+// ANALYTICS-003: Delivery, Workload and Capacity Insights
+// ==========================================
+
+export interface Skill {
+  id: string;
+  skill_code: string;
+  name: string;
+  category: string;
+  description?: string;
+  is_active: boolean;
+  created_at: string;
+  user_count?: number;
+}
+
+export interface UserSkill {
+  id: string;
+  user_id: string;
+  skill_id: string;
+  skill_name: string;
+  skill_code: string;
+  category: string;
+  proficiency_level: number;
+  years_of_experience?: number;
+  is_certified: boolean;
+  last_used_date?: string;
+  notes?: string;
+  created_at: string;
+}
+
+export interface TaskRequiredSkill {
+  id: string;
+  task_id: string;
+  skill_id: string;
+  skill_name: string;
+  skill_code: string;
+  category: string;
+  minimum_proficiency: number;
+  is_mandatory: boolean;
+  created_at: string;
+}
+
+export interface CapacityReservation {
+  id: string;
+  reservation_code: string;
+  user_id: string;
+  user_name?: string;
+  user_email?: string;
+  reservation_type: string;
+  title: string;
+  description?: string;
+  start_date: string;
+  end_date: string;
+  daily_hours: number;
+  total_reserved_hours: number;
+  is_recurring: boolean;
+  recurrence_pattern?: string;
+  approved_by?: string;
+  approver_name?: string;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface CapacityWorkloadMember {
+  userId: string;
+  userName: string;
+  userEmail: string;
+  branchName?: string;
+  departmentName?: string;
+  roleName?: string;
+  timezone?: string;
+  baseWorkingHours: number;
+  reservedOverheadHours: number;
+  netAvailableHours: number;
+  committedAllocationPercent: number;
+  activeAssignedTasksCount: number;
+  activeTaskDemandHours: number;
+  demandUtilizationPercent: number;
+  status: 'UNDER_ALLOCATED' | 'BALANCED' | 'NEAR_CAPACITY' | 'OVERALLOCATED';
+  statusColor: string;
+  skills: Array<{
+    skill_id: string;
+    skill_name: string;
+    proficiency_level: number;
+  }>;
+  reservations: Array<{
+    id: string;
+    title: string;
+    reservation_type: string;
+    daily_hours: number;
+  }>;
+  assignedTasks: Array<{
+    taskId: string;
+    taskCode: string;
+    title: string;
+    status: string;
+    totalRemainingHours: number;
+    userEffortSharePercent: number;
+    userDemandHours: number;
+  }>;
+}
+
+export interface CapacityWorkloadResponse {
+  startDate: string;
+  endDate: string;
+  totalMembers: number;
+  summary: {
+    totalBaseHours: number;
+    totalReservedHours: number;
+    totalNetAvailableHours: number;
+    totalActiveDemandHours: number;
+    overallUtilizationPercent: number;
+    membersOverallocated: number;
+    membersNearCapacity: number;
+    membersBalanced: number;
+    membersUnderallocated: number;
+  };
+  members: CapacityWorkloadMember[];
+}
+
+export interface SkillSuggestionCandidate {
+  userId: string;
+  userName: string;
+  userEmail: string;
+  departmentName?: string;
+  branchName?: string;
+  timezone?: string;
+  totalFitScore: number;
+  skillMatchScore: number;
+  availabilityScore: number;
+  timezoneScore: number;
+  netAvailableHours: number;
+  activeTaskDemandHours: number;
+  demandUtilizationPercent: number;
+  skillsMatched: Array<{
+    skillName: string;
+    requiredProficiency: number;
+    actualProficiency: number;
+    isMandatory: boolean;
+  }>;
+  missingMandatorySkills: string[];
+  explanation: string;
+}
+
+export interface SkillSuggestionsResponse {
+  taskId: string;
+  taskCode: string;
+  taskTitle: string;
+  remainingHours: number;
+  requiredSkills: Array<{
+    skillId: string;
+    skillName: string;
+    minimumProficiency: number;
+    isMandatory: boolean;
+  }>;
+  candidates: SkillSuggestionCandidate[];
+}
+
+export interface TeamEstimationMetricsResponse {
+  teamId?: string;
+  projectId?: string;
+  sprintId?: string;
+  summary: {
+    totalTasksAnalyzed: number;
+    totalEstimatedHours: number;
+    totalActualHours: number;
+    estimationAccuracyIndex: number;
+    estimationBias: 'OVER_ESTIMATING' | 'UNDER_ESTIMATING' | 'BALANCED';
+    estimationBiasPercentage: number;
+    onTimeDeliveryRatePercent: number;
+    firstTimeRightRatePercent: number;
+    reworkTaskCount: number;
+    completedTaskCount: number;
+  };
+  trends: Array<{
+    period: string;
+    tasksCount: number;
+    estimatedHours: number;
+    actualHours: number;
+    eai: number;
+    onTimeDeliveryRate: number;
+  }>;
+  historicalSnapshots: any[];
+  disclosure: string;
+}
+
+// ==========================================
+// ANALYTICS-004: Project Financials, Variance & Reconciliation
+// ==========================================
+
+export interface ProjectFinancialRateCard {
+  id: string;
+  rate_code: string;
+  project_id?: string;
+  project_name?: string;
+  role_id?: string;
+  desig_name?: string;
+  user_id?: string;
+  user_name?: string;
+  currency: string;
+  hourly_billing_rate: number;
+  hourly_cost_rate?: number | null;
+  effective_start_date: string;
+  effective_end_date?: string;
+  description?: string;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface ProjectFinancialBaseline {
+  id: string;
+  baseline_code: string;
+  project_id: string;
+  name: string;
+  description?: string;
+  baseline_date: string;
+  budgeted_hours: number;
+  budgeted_cost?: number | null;
+  budgeted_revenue: number;
+  currency: string;
+  scope_tasks_count: number;
+  scope_story_points: number;
+  warning_threshold_pct: number;
+  critical_threshold_pct: number;
+  is_frozen: boolean;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface ProjectFinancialPeriodicMetric {
+  id: string;
+  project_id: string;
+  baseline_id?: string;
+  period_label: string;
+  period_start: string;
+  period_end: string;
+  budgeted_hours: number;
+  actual_logged_hours: number;
+  approved_billable_hours: number;
+  unapproved_draft_hours: number;
+  remaining_hours: number;
+  eac_hours: number;
+  effort_variance_hours: number;
+  budget_consumption_pct: number;
+  total_recognized_revenue: number;
+  total_direct_cost?: number | null;
+  direct_contribution?: number | null;
+  contribution_margin_pct?: number | null;
+  burn_rate_hours_per_week: number;
+  projected_completion_date?: string;
+  currency: string;
+  notes?: string;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface CurrencyExchangeRate {
+  id: string;
+  from_currency: string;
+  to_currency: string;
+  exchange_rate: number;
+  effective_date: string;
+  source?: string;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface ProjectFinancialOverview {
+  project: {
+    id: string;
+    projectCode: string;
+    projectName: string;
+    clientName?: string;
+    billingType: string;
+    currency: string;
+    status: string;
+  };
+  baseline: {
+    id: string;
+    baselineCode: string;
+    name: string;
+    baselineDate: string;
+    budgetedHours: number;
+    budgetedRevenue: number;
+    budgetedCost?: number | null;
+    warningThresholdPct: number;
+    criticalThresholdPct: number;
+    isFrozen: boolean;
+  } | null;
+  effortMetrics: {
+    budgetedHours: number;
+    totalBaselineEstimatedHours: number;
+    totalCurrentEstimatedHours: number;
+    actualLoggedHours: number;
+    approvedBillableHours: number;
+    approvedNonBillableHours: number;
+    unapprovedDraftHours: number;
+    remainingHours: number;
+    eacHours: number;
+    effortVarianceHours: number;
+    budgetConsumptionPct: number | null;
+    eacVarianceHours: number | null;
+    thresholdStatus: 'NORMAL' | 'WARNING' | 'CRITICAL' | 'OVERRUN';
+    totalTasksCount: number;
+    completedTasksCount: number;
+    worklogEntriesCount: number;
+  };
+  financialMetrics: {
+    totalRecognizedRevenue: number;
+    totalDirectCost: number | null;
+    directContribution: number | null;
+    contributionMarginPct: number | null;
+    currency: string;
+    isCostRedacted: boolean;
+  };
+  burnCurve: Array<{
+    date: string;
+    weeklyHours: number;
+    cumulativeActualHours: number;
+    approvedHours: number;
+  }>;
+  disclosure: string;
+}
+
+// ========================================================
+// LATER-001: Advanced Scheduling, CPM, What-If Scenarios & Calibrated Composite Health
+// ========================================================
+
+export interface CPMTaskNode {
+  taskId: string;
+  taskCode: string;
+  title: string;
+  durationHours: number;
+  durationDays: number;
+  startDate: string | null;
+  dueDate: string | null;
+  priority: string;
+  predecessors: Array<{
+    sourceTaskId: string;
+    linkType: string;
+    lagHours: number;
+  }>;
+  successors: Array<{
+    targetTaskId: string;
+    linkType: string;
+    lagHours: number;
+  }>;
+  es: number;
+  ef: number;
+  ls: number;
+  lf: number;
+  totalSlack: number;
+  freeSlack: number;
+  isCritical: boolean;
+}
+
+export interface CPMAnalysisResult {
+  criticalPathLengthHours: number;
+  projectDurationDays: number;
+  criticalTasksCount: number;
+  totalTasksCount: number;
+  nodes: CPMTaskNode[];
+  criticalChain: string[];
+}
+
+export interface ScheduleScenario {
+  id: string;
+  project_id: string;
+  project_name?: string;
+  scenario_code: string;
+  name: string;
+  description?: string;
+  scenario_type: 'DATE_SHIFT' | 'CAPACITY_REDUCTION' | 'SCOPE_EXPANSION' | 'PRIORITY_RESHUFFLE' | 'CRITICAL_PATH_OPTIMIZATION' | 'CUSTOM';
+  status: 'DRAFT' | 'SIMULATED' | 'APPLIED' | 'ARCHIVED';
+  baseline_end_date?: string;
+  simulated_end_date?: string;
+  critical_path_length_hours: number;
+  schedule_variance_days: number;
+  impacted_tasks_count: number;
+  simulation_summary?: {
+    critical_path_tasks?: string[];
+    critical_path_length_hours?: number;
+    project_duration_days?: number;
+    total_tasks_count?: number;
+    critical_tasks_count?: number;
+    total_float_gain_hours?: number;
+  };
+  applied_at?: string;
+  applied_by?: string;
+  applied_by_name?: string;
+  created_at: string;
+  updated_at: string;
+  overrides?: ScheduleScenarioOverride[];
+}
+
+export interface ScheduleScenarioOverride {
+  id: string;
+  scenario_id: string;
+  task_id: string;
+  task_code?: string;
+  title?: string;
+  original_estimated_hours?: number;
+  original_start_date?: string;
+  original_due_date?: string;
+  original_priority?: string;
+  simulated_start_date?: string;
+  simulated_due_date?: string;
+  simulated_estimated_hours?: number;
+  simulated_priority?: string;
+  earliest_start_date?: string;
+  earliest_finish_date?: string;
+  latest_start_date?: string;
+  latest_finish_date?: string;
+  total_slack_hours: number;
+  free_slack_hours: number;
+  is_critical_path: boolean;
+  notes?: string;
+}
+
+export interface ProjectHealthConfig {
+  id?: string;
+  project_id?: string;
+  weight_schedule: number;
+  weight_scope: number;
+  weight_quality: number;
+  weight_blockers: number;
+  weight_budget_flow: number;
+  schedule_slip_warning_days: number;
+  schedule_slip_critical_days: number;
+  defect_density_critical_ratio: number;
+  blocker_age_critical_hours: number;
+  missing_data_strategy: 'NEUTRAL_SCORE' | 'EXCLUDE_DIMENSION' | 'STRICT_PENALTY';
+}
+
+export interface ProjectHealthEvaluation {
+  projectId: string;
+  compositeScore: number;
+  computedState: 'GREEN' | 'AMBER' | 'RED';
+  effectiveState: 'GREEN' | 'AMBER' | 'RED';
+  isOverridden: boolean;
+  activeOverride?: {
+    manual_override_state: 'GREEN' | 'AMBER' | 'RED';
+    override_reason: string;
+    overridden_at: string;
+    overridden_by_name?: string;
+  } | null;
+  dimensionScores: {
+    schedule: number;
+    scope: number;
+    quality: number;
+    blockers: number;
+    budgetFlow: number;
+  };
+  dimensionDetails: {
+    schedule: { score: number; weight: number; maxSlipDays: number; overdueTasks: number; totalTasks: number };
+    scope: { score: number; weight: number; crCount: number };
+    quality: { score: number; weight: number; openBugs: number; activeWork: number; defectRatio: number };
+    blockers: { score: number; weight: number; activeBlockers: number; maxBlockerAgeHours: number };
+    budgetFlow: { score: number; weight: number; budgetConsumptionPct: number };
+  };
+  config: ProjectHealthConfig;
+}
+
+export interface WebhookSubscription {
+  id: string;
+  subscription_code: string;
+  name: string;
+  target_url: string;
+  masked_secret: string;
+  raw_secret_key?: string;
+  secret_rotated_at?: string;
+  event_types: string[];
+  scope_project_ids?: string[];
+  is_enabled: boolean;
+  max_retries: number;
+  timeout_seconds: number;
+  description?: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at?: string;
+  stats?: {
+    total_deliveries: string | number;
+    successful_deliveries: string | number;
+    failed_deliveries: string | number;
+    retrying_deliveries: string | number;
+    last_delivered_at?: string;
+  };
+}
+
+export interface WebhookDelivery {
+  id: string;
+  subscription_id: string;
+  subscription_name?: string;
+  subscription_code?: string;
+  event_id: string;
+  event_type: string;
+  payload: any;
+  destination_url: string;
+  attempt_number: number;
+  max_attempts: number;
+  status: 'PENDING' | 'SUCCESS' | 'RETRYING' | 'FAILED' | 'MANUAL_REPLAY';
+  response_status_code?: number;
+  response_headers?: any;
+  response_body?: string;
+  execution_duration_ms?: number;
+  error_message?: string;
+  next_retry_at?: string;
+  delivered_at?: string;
+  created_at: string;
+}
+
+// ==========================================
+// ADMIN-001: Configuration Toolkit & Setup Wizard
+// ==========================================
+
+export interface CompanySettings {
+  id: string;
+  company_name: string;
+  legal_name?: string;
+  registration_number?: string;
+  tax_id?: string;
+  company_domain?: string;
+  primary_email?: string;
+  support_email?: string;
+  headquarters_branch_id?: string;
+  headquarters_branch_name?: string;
+  default_currency: string;
+  timezone: string;
+  date_format: string;
+  branding_primary_color: string;
+  branding_accent_color: string;
+  logo_url?: string;
+  favicon_url?: string;
+  setup_wizard_completed: boolean;
+  setup_wizard_step: number;
+  setup_completed_at?: string;
+  enabled_modules: Record<string, boolean>;
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface ConfigurationPackage {
+  id: string;
+  package_code: string;
+  package_name: string;
+  version: string;
+  pmt_version_compatibility: string;
+  package_type: 'FULL' | 'WORKFLOWS_ONLY' | 'ROLES_PERMISSIONS' | 'TEMPLATES' | 'SLA_POLICIES';
+  description?: string;
+  manifest: Record<string, any>;
+  package_data: Record<string, any>;
+  is_builtin_template: boolean;
+  applied_at?: string;
+  applied_by?: string;
+  applied_by_name?: string;
+  created_at: string;
+}
+
+export interface ConfigurationAuditLog {
+  id: string;
+  package_id?: string;
+  package_name?: string;
+  package_code?: string;
+  action: 'DRY_RUN_PREVIEW' | 'APPLY_PACKAGE' | 'ROLLBACK' | 'EXPORT_PACKAGE';
+  applied_changes: any[];
+  conflicts_detected: any[];
+  status: 'SUCCESS' | 'WARNINGS' | 'FAILED';
+  executed_by: string;
+  executed_by_name?: string;
+  created_at: string;
+}
+
+export interface PackageDiffResult {
+  compatible: boolean;
+  pmtVersion: string;
+  totalChanges: number;
+  newEntities: number;
+  existingEntities: number;
+  conflicts: Array<{ entity: string; identifier: string; reason: string }>;
+  diffs: Array<{ entity: string; identifier: string; action: string; details: string }>;
+}
+
+// ========================================================
+// Source-Linked Drafting & Human-Reviewed Summaries (LATER-002)
+// ========================================================
+
+export type DraftType =
+  | 'DRAFT_SUBTASKS'
+  | 'DRAFT_ACCEPTANCE_CRITERIA'
+  | 'DRAFT_RELEASE_NOTES'
+  | 'DRAFT_SPRINT_SUMMARY'
+  | 'DRAFT_BUG_TRIAGE'
+  | 'GAP_SUGGESTION'
+  | 'DUPLICATE_SUGGESTION';
+
+export type DraftStatus =
+  | 'PENDING_REVIEW'
+  | 'ACCEPTED'
+  | 'MODIFIED_AND_ACCEPTED'
+  | 'REJECTED'
+  | 'DISCARDED';
+
+export type AudienceScope =
+  | 'INTERNAL_ONLY'
+  | 'CLIENT_SAFE'
+  | 'PUBLIC_COMMUNITY';
+
+export interface DraftSuggestion {
+  id: string;
+  draft_code: string;
+  draft_type: DraftType;
+  title: string;
+  source_entity_type: 'TASK' | 'REQUIREMENT' | 'VERSION' | 'SPRINT' | 'CLIENT_INTAKE' | 'PRODUCT_IDEA' | 'PROJECT';
+  source_entity_id: string;
+  source_entity_code?: string;
+  audience_scope: AudienceScope;
+  status: DraftStatus;
+  suggested_content: any;
+  reviewed_content?: any;
+  review_notes?: string;
+  reviewed_by?: string;
+  reviewed_by_name?: string;
+  reviewer_name?: string;
+  reviewed_at?: string;
+  applied_entity_type?: string;
+  applied_entity_id?: string;
+  created_by: string;
+  creator_name?: string;
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface DraftRuleConfig {
+  id: string;
+  rule_code: string;
+  rule_name: string;
+  rule_type: 'GAP_DETECTION' | 'DUPLICATE_DETECTION' | 'WBS_GENERATION' | 'SUMMARY_GENERATION';
+  is_enabled: boolean;
+  similarity_threshold?: number;
+  rule_parameters: Record<string, any>;
+  description?: string;
+  created_at: string;
+  updated_at?: string;
+}
+
+
+
+
+
+
+
+

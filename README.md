@@ -4,6 +4,7 @@
 
 ### *Enterprise Project & Product Management for Multi-Branch IT Teams and Clients*
 
+[![Status: Beta](https://img.shields.io/badge/Status-Beta%20Version-orange.svg)](https://github.com/kashvirainfotech/ks-pmt)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Backend: NestJS](https://img.shields.io/badge/Backend-NestJS%2010-E0234E?logo=nestjs&logoColor=white)](https://nestjs.com/)
 [![Frontend: React + Vite](https://img.shields.io/badge/Frontend-React%2019%20%7C%20Vite-61DAFB?logo=react&logoColor=black)](https://vitejs.dev/)
@@ -18,6 +19,15 @@
 **KS-PMT** is a centralized, self-hosted project and product management platform designed for IT software companies operating across **multiple branches and geographical locations**. It provides a single operational ecosystem supporting both **commercial software products** (licensing, AMC, feature releases) and **custom client software development services** (fixed-cost/T&M contracts, milestones, worklogs).
 
 </div>
+
+---
+
+> [!IMPORTANT]
+> ### ⚠️ Beta Version Notice — Database Installation & Upgrade Policy
+>
+> **KS-PMT is currently in Beta version (active development).**
+> - **Blank Database / Fresh Install Only**: All database scripts located in [`dbscripts/`](dbscripts/) are strictly intended for a **blank database / fresh installation** and **not for upgrade purposes**. During this phase, database schemas are maintained directly in their canonical `CREATE` definitions without intermediate migration history.
+> - **Future Upgrades & Migration Scripts**: Once we complete development of all planned points and thorough testing, we will establish a stable baseline. From that point onward, all future changes, feature additions, and bug fixes will be provided with formal **upgrade and migration scripts** to preserve existing database installations.
 
 ---
 
@@ -39,11 +49,12 @@ Explore and interact with a live, hosted deployment of **KS-PMT**:
 
 ## 📑 Table of Contents
 
+- [⚠️ Beta Version & Database Notice](#️-beta-version-notice--database-installation--upgrade-policy)
 - [Live Demo & Preview](#-live-demo--preview)
 - [Architectural Overview](#-architectural-overview)
 - [What KS-PMT Does](#-what-ks-pmt-does)
-- [Current Implementation Status (Completed Modules)](#-current-implementation-status-completed-modules)
-- [Comprehensive Feature Roadmap (Planned Scope)](#-comprehensive-feature-roadmap-planned-scope)
+- [Completed Features & Functional Modules](#-completed-features--functional-modules)
+- [Planned Roadmap & Future Scope](#-planned-roadmap--future-scope)
 - [Core Documentation Index](#-core-documentation-index)
 - [Technology Stack](#-technology-stack)
 - [Directory Structure](#-directory-structure)
@@ -108,102 +119,95 @@ Most off-the-shelf tools force organizations to choose between developer task tr
 
 ---
 
-## ✅ Current Implementation Status (Completed Modules)
+## ✅ Completed Features & Functional Modules
 
-The core foundational architecture, enterprise planning engine, and operational modules are implemented and available for development testing:
+The entire functional scope spanning Tiers A through E and Advanced Extensions has been implemented and is actively available in the codebase:
 
-| Module / Area | Status | Implemented Capabilities |
-| :--- | :---: | :--- |
-| **Organizational Hierarchy & Masters** | ✅ Implemented | Multiple branches with GPS coordinates & geofencing radius, corporate departments, designations with ranking hierarchy, employee master. |
-| **Authentication & Dynamic RBAC** | ✅ Implemented | Dual login (Email + Password with bcrypt & Mobile + OTP mock verification), JWT access & refresh tokens, dynamic roles/permissions, branch & user permission overrides. |
-| **Clients, Projects & Products** | ✅ Implemented | CRM-lite client/prospect directory, Project commercials (Fixed-cost vs T&M, budgets), Proprietary products, licensing terms, AMC renewal dates, team allocations. |
-| **Working Calendars & Capacity (`FND-001`)** | ✅ Implemented | Configurable working shifts, corporate public holidays, calendar assignments, employee leave requests/approvals, and dynamic effective working capacity calculation (`calculateWorkingCapacity`). |
-| **Task Management Engine** | ✅ Implemented | Dynamic task types, customizable workflow statuses, multi-assignees, parent-child subtasks, rule-based & least-loaded auto-assignment, priority/severity flags. |
-| **Jira-Style Task Experience** | ✅ Implemented | Inline quick-create modal, slide-over task drawer, full-page task view, Markdown descriptions, typed custom values, revision conflict detection. |
-| **Work Hierarchy, Sprints & Milestones (`PLAN-001`)** | ✅ Implemented | 4-level hierarchy (`Initiative` → `Epic` → `Task/Story/Bug` → `Subtask`), independent sprints and product/project milestones, backlog ranking, sprint commitment and rollover tracking, scope-change ledger with baseline snapshots. |
-| **Dependencies, Blockers & Defect Templates (`PLAN-002`)** | ✅ Implemented | Finish-to-Start & Blocks/Blocked-by links with cycle prevention; Blocker Radar tracking active episodes, root-causes, and non-overlapping blocked duration; structured defect templates (steps, actual vs expected, environment, workaround, severity vs priority, resolution classifications). |
-| **Saved Views, Inline Editing & Bulk Actions (`PLAN-003`)** | ✅ Implemented | Personal and team saved views, scope-based sharing (Personal, Team, Project, Global), system presets, inline grid cell editing, permission-aware bulk updates with optimistic concurrency / revision checks & partial failure reporting, Attention Workspaces. |
-| **Weekly Timesheets & Persistent Global Timer (`TIME-001`)** | ✅ Implemented | Monday-to-Sunday weekly effort matrix, calendar expected hours integration with missing hours warnings, cross-project reviewer portion routing with self-approval prevention & rejection resubmission, database-backed persistent global timer across tabs/devices invariant to browser blur with task-switch auto-logging. |
-| **Delivery Teams & Software Components (`PLAN-004`)** | ✅ Implemented | Independent delivery teams, effective-dated member rosters with capacity allocations, software components catalog, architecture dependency maps, and authorized work/defect/tech debt drill-downs. |
-| **Work Handoff Tracking & Queues (`FLOW-001`)** | ✅ Implemented | Cross-role handoffs (BA → Dev → Review → QA → UAT), inbound ("Waiting for Me") & outbound queues, dual metric tracking (elapsed wall-clock vs business calendar duration), separate acknowledgment vs work start, rework/redirect successor chains, and aggregate queue analytics without individual blame. |
-| **Workflow Schemes & Transition Gates (`CONFIG-001`)** | ✅ Implemented | Visual workflow scheme editor, versioned project & product overrides, transition gate rules (roles, required fields, release association, resolution classification, manual gates), graph reachability validation, active task remapping on publish, and unified server-side gate enforcement across single, drawer, inline, and bulk updates. |
-| **Customer Portal & Intake Triage (`CLIENT-001` & `CLIENT-002`)** | ✅ Implemented | Invitation-only contact activation, RBAC separation (`CLIENT_USER`, `CLIENT_ADMIN`, `CLIENT_APPROVER`), scoped project grants, private ticket intake (bugs, support, change requests) with customer impact assessment, separate internal severity/priority triage, 1-click delivery task conversion, customer-safe status mapping, internal vs public clarification stream, and complete zero-leak cross-client data isolation. |
-| **Requirements & Acceptance Traceability (`CLIENT-003`)** | ✅ Implemented | Versioned requirement specifications, scope boundaries, measurable acceptance criteria, immutable frozen baselines, delivery task linking, QA verification evidence, client sign-off workflows, coverage gap radar, and end-to-end traceability matrix. |
-| **Scope & Change-Request Approval (`CLIENT-004`)** | ✅ Implemented | Formal change request quotations with effort (hours), commercial price/currency, schedule delay impact, accountable PM, and milestone linkage; material revision engine ($N+1$) with re-approval guarantees; attributable client approver decisions with audit timestamps; zero-leak internal notes; and approved change delivery task mapping. |
-| **Client UAT & Milestone Sign-Off (`CLIENT-005`)** | ✅ Implemented | Versioned UAT acceptance packages with milestone linkage, build/commit metadata, test environment URL; independent tri-state verification (`Developer-Done` &rarr; `QA-Verified` &rarr; `Client-Accepted`); transparent known issues disclosure; attributable client approver sign-off (`APPROVE` / `REQUEST_CHANGES` / `REJECT`); material revision ($N+1$) re-approval enforcement; client-installed version registry; and customer portal verification without internal QA leakage. |
-| **Progress Reports & Status Briefings (`CLIENT-006`)** | ✅ Implemented | PM-curated client progress reports with executive narrative, overall status (Green/Amber/Red), milestone target vs committed dates, decisions needed, material revisions, and formatted Markdown digest export. |
-| **RAID Items & Client Action Requests (`DEL-001`)** | ✅ Implemented | Project risks with matrix score (Likelihood × Impact), assumptions with validation dates, architecture/project decisions (ADR format with alternatives considered and supersession chains), and client action requests with approver sign-offs and zero internal risk leakage. |
-| **Product Discovery, Voting & Roadmaps (`PROD-001`)** | ✅ Implemented | Product discovery backlog with objective RICE prioritization (Reach, Impact, Confidence, Effort, Strategic Fit); PM curation and moderation with sanitized public summaries; atomic one-vote-per-organization voting system (`UNIQUE (idea_id, client_id)`) with independent follows; duplicate merging with atomic vote deduplication; and authenticated Now / Next / Later public roadmaps with indicative targets and approved changelog release notes. |
-| **Manual QA, Test Runs & Release Gatekeeper (`QA-001`)** | ✅ Implemented | Reusable test suites and manual test cases with step-by-step instructions, expected results, priority/severity, and requirement criteria linkage; version/milestone-gated test runs with pass/fail/blocked execution tracking; 1-click defect logging directly from test run items; release readiness checklists with mandatory sign-off gates (`QA_TESTING`, `SECURITY`, `CLIENT_UAT`, `PERFORMANCE`, `DATA_MIGRATION`, `DOCUMENTATION`); and QA requirement traceability matrix with pass rate calculation. |
-| **Knowledge Base, ADRs & Runbooks (`COLLAB-001`)** | ✅ Implemented | Versioned documentation system for architecture decision records (ADRs), specifications, and operational runbooks; multi-level audience boundaries (`INTERNAL_ONLY`, `CLIENT_SHARED`, `PUBLIC_COMMUNITY`); immutable revision snapshots with visual text diff comparison (`unified` and `split` views); bi-directional task/milestone/criterion entity linking; and revision-pinned AWS S3 attachment metadata management. |
-| **Project/Task Templates & Recurring Work (`COLLAB-002`)** | ✅ Implemented | Reusable project blueprints (Client Onboarding, Fixed-Price Delivery, Retainers) and task template library with structured checklists; relative date calculation engine (`anchorStartDate + start_offset_days` and `duration_days`); idempotent recurring schedules (`DAILY`, `WEEKLY`, `BIWEEKLY`, `MONTHLY`, `QUARTERLY`, `ANNUALLY`) with unique scheduled date deduplication (`UNIQUE (rule_id, scheduled_date)`) preventing duplicate work generation; and strict isolation boundaries with zero implicit copying of client permissions, past worklogs, or confidential attachments. |
-| **Notification Preferences, Watchers & Digests (`COLLAB-003`)** | ✅ Implemented | Independent work item watchers across tasks, knowledge docs, ideas, and CRs; granular channel toggles (In-App, Email, Push); digest modes (`INSTANT`, `DAILY`, `WEEKLY`); quiet hours windowing with urgent bypass; 8-category event preferences; and reliable deduplicated delivery queue with authorization re-check engine. |
-| **"What Changed?" Activity Summaries & Baselines (`COLLAB-004`)** | ✅ Implemented | Deterministic baseline diffing and activity stream since last login, 24h/7d/30d windows, or frozen scope baselines; source-linked event counts vs distinct item counts; missing-history disclosure; and client-safe executive summaries without AI. |
-| **Web Views & Grid Experience** | ✅ Implemented | Interactive drag-and-drop Kanban board, shared TanStack DataGrid (faceted search, multi-column sorting, nested grouping, CSV/Print export), light/dark theme. |
-| **AWS S3 Cloud Storage** | ✅ Implemented | Direct-to-S3 pre-signed PUT/GET URL generation for attachments, screenshots, and logs; zero binary storage on backend API server. |
-| **Audit Trails & Activity Logs** | ✅ Implemented | Central audit log capturing entity mutations, old/new diffs, timestamps, user IDs, IP addresses, and user-agent tags. |
-| **Cross-Platform Mobile (Flutter)** | 🟡 Foundation Built | Flutter 3.x codebase (Android & iOS), 5-tab navigation, secure token storage, automatic 401 token refresh queue, GPS geofencing branch check, camera integration. |
+### 🏢 1. Enterprise Foundations, Multi-Branch & Security
+- **Organizational Hierarchy & Masters**: Multi-branch support with GPS coordinates & geofencing radius, corporate departments, designations with ranking hierarchy, and employee master.
+- **Authentication & Dynamic RBAC**: Dual login (Email + Password with bcrypt & Mobile + OTP mock verification), JWT access & refresh tokens, dynamic roles/permissions, and granular branch/user-level permission overrides.
+- **`FND-001` Working Calendars & Capacity Planning**: Configurable employee and contractor working calendars (shifts, corporate holidays, approved leave); effective working capacity calculation (`calculateWorkingCapacity`).
+- **AWS S3 Cloud Storage**: Direct-to-S3 pre-signed PUT/GET URL generation for attachments, screenshots, and logs; zero binary storage on backend API server.
+- **Immutable Audit Trails**: Central audit log capturing entity mutations, old/new diffs, timestamps, user IDs, IP addresses, and user-agent tags.
 
-> *Note: Live provider credentials (production SMS gateway, AWS SES email, FCM push) and native store builds undergo formal environment acceptance as detailed in the [Tasks Checklist](docs/tasks-checklist.md).*
+### ⚡ 2. Agile Planning, Work Breakdown & Daily Operations
+- **Jira-Style Task Experience**: Inline quick-create modal, slide-over task drawer, full-page task view, Markdown descriptions, typed custom values, and revision conflict detection with TanStack DataGrid.
+- **`PLAN-001` Work Hierarchy, Backlog & Sprints**: 4-level hierarchy (`Initiative` → `Epic` → `Task/Story/Bug` → `Subtask`), independent sprints and product/project milestones, backlog ranking, sprint commitment and rollover tracking, and scope-change ledger with baseline snapshots.
+- **`PLAN-002` Dependencies, Blocker Radar & Defect Templates**: Finish-to-Start & Blocks/Blocked-by links with circular dependency prevention; Blocker Radar tracking active blocker episodes, root causes, and non-overlapping duration; structured defect reproduction templates.
+- **`PLAN-003` Saved Views, Inline Grid Editing & Bulk Actions**: Personal and team saved views, scope-based sharing (Personal, Team, Project, Global), system presets, inline grid cell editing, and permission-aware bulk updates with optimistic concurrency checks and partial failure reporting.
+- **`TIME-001` Weekly Timesheets & Persistent Global Timer**: Monday-to-Sunday weekly effort matrix with calendar expected hours integration and missing hours warnings; cross-project reviewer portion routing with self-approval prevention; database-backed persistent global timer across tabs/devices invariant to browser blur with task-switch auto-logging.
+- **`PLAN-004` Delivery Teams & Software Components**: Independent delivery teams, effective-dated member rosters with capacity allocations, software components catalog, architecture dependency maps, and authorized work/defect/tech debt drill-downs.
+- **`FLOW-001` Work Handoff Tracking & Queues**: Cross-role handoffs (BA → Dev → Review → QA → UAT), inbound ("Waiting for Me") & outbound queues, dual metric tracking (elapsed wall-clock vs business calendar duration), separate acknowledgment vs work start, rework/redirect successor chains, and aggregate queue analytics.
+- **`CONFIG-001` Workflow Schemes & Transition Gates**: Visual workflow scheme editor, versioned project & product overrides, transition gate rules (roles, required fields, release association, resolution classification, manual gates), graph reachability validation, active task remapping on publish, and unified server-side gate enforcement.
+
+### 🤝 3. Client Delivery Lifecycle, Customer Portal & Milestone Sign-Off
+- **`CLIENT-001` & `CLIENT-002` Customer Portal & Intake Triage**: Invitation-only contact activation, RBAC separation (`CLIENT_USER`, `CLIENT_ADMIN`, `CLIENT_APPROVER`), scoped project grants, private ticket intake (bugs, support, change requests) with customer impact assessment, separate internal severity/priority triage, 1-click delivery task conversion, customer-safe status mapping, internal vs public clarification stream, and complete zero-leak cross-client data isolation.
+- **`CLIENT-003` Requirements Specification & Traceability Matrix**: Versioned functional requirements, scope boundaries, measurable acceptance criteria, immutable frozen baselines with amendment workflows, delivery task linking, QA verification evidence, client sign-off workflows, coverage gap radar, and end-to-end traceability matrix.
+- **`CLIENT-004` Scope & Change-Request Approval**: Formal change request quotations with effort (hours), commercial price/currency, schedule delay impact, accountable PM, and milestone linkage; material revision engine ($N+1$) with re-approval guarantees; attributable client approver decisions with audit timestamps; zero-leak internal notes; and approved change delivery task mapping.
+- **`CLIENT-005` Client UAT & Milestone Sign-Off**: Versioned UAT acceptance packages with milestone linkage, build/commit metadata, test environment URL; independent tri-state verification (`Developer-Done` &rarr; `QA-Verified` &rarr; `Client-Accepted`); transparent known issues disclosure; attributable client approver sign-off (`APPROVE` / `REQUEST_CHANGES` / `REJECT`); material revision ($N+1$) re-approval enforcement; client-installed version registry; and customer portal verification without internal QA leakage.
+- **`CLIENT-006` Progress Reports & Status Briefings**: PM-curated client progress reports with executive narrative, overall health status (`ON_TRACK`, `NEEDS_ATTENTION`, `AT_RISK`), milestone target vs committed dates, decisions needed, material revisions, and formatted Markdown digest export.
+- **`DEL-001` RAID Items & Client Action Requests**: Project risks with matrix score (Likelihood × Impact), assumptions with validation dates, architecture/project decisions (ADR format with alternatives considered and supersession chains), and client action requests with approver sign-offs and zero internal risk leakage.
+
+### 🎯 4. Product Operations, Repeatable Quality & Collaboration
+- **`PROD-001` Product Discovery, Voting & Roadmaps**: Product discovery backlog with objective RICE prioritization (Reach, Impact, Confidence, Effort, Strategic Fit); PM curation and moderation with sanitized public summaries; atomic one-vote-per-organization voting system (`UNIQUE (idea_id, client_id)`) with independent follows; duplicate merging with atomic vote deduplication; and authenticated Now / Next / Later public roadmaps with indicative targets and approved changelog release notes.
+- **`QA-001` Manual Test Cases, Test Runs & Release Gates**: Reusable test suites and manual test cases with step-by-step instructions, expected results, priority/severity, and requirement criteria linkage; version/milestone-gated test runs with pass/fail/blocked execution tracking; 1-click defect logging directly from test run items; release readiness checklists with mandatory sign-off gates (`QA_TESTING`, `SECURITY`, `CLIENT_UAT`, `PERFORMANCE`, `DATA_MIGRATION`, `DOCUMENTATION`); and QA requirement traceability matrix with pass rate calculation.
+- **`COLLAB-001` Knowledge Base, ADRs & Runbooks**: Versioned documentation system for architecture decision records (ADRs), specifications, and operational runbooks; multi-level audience boundaries (`INTERNAL_ONLY`, `CLIENT_SHARED`, `PUBLIC_COMMUNITY`); immutable revision snapshots with visual text diff comparison (`unified` and `split` views); bi-directional task/milestone/criterion entity linking; and revision-pinned AWS S3 attachment metadata management.
+- **`COLLAB-002` Project & Task Templates with Idempotent Recurrence**: Reusable project blueprints (Client Onboarding, Fixed-Price Delivery, Retainers) and task template library with structured checklists; relative date calculation engine (`anchorStartDate + start_offset_days` and `duration_days`); idempotent recurring schedules (`DAILY`, `WEEKLY`, `BIWEEKLY`, `MONTHLY`, `QUARTERLY`, `ANNUALLY`) with unique scheduled date deduplication (`UNIQUE (rule_id, scheduled_date)`) preventing duplicate work generation; and strict isolation boundaries with zero implicit copying of client permissions, past worklogs, or confidential attachments.
+- **`PROD-002` Product Goals & Outcome Reviews**: Strategic and operational product goals scoped to software products with measurable baseline, target, and current progress metrics; dated post-release outcome evaluation reviews linking released versions and discovery ideas; qualitative feedback, adoption telemetry, and customer evidence tracking; and reconciliation of approved customer allowances without double consumption.
+- **`QA-002` QA Environments & Retest Matrix**: Scoped test environment definitions (Internal QA, Staging, Client UAT, Client Production, On-Premise Air-Gapped) with context metadata; environment-and-version-specific issue observations/retests; strict enforcement that internal QA verification does not automatically resolve client environments or older client versions; and cross-client confidentiality boundaries.
+- **`COLLAB-003` Notification Preferences, Watchers & Digests**: Independent work item watchers across tasks, knowledge docs, ideas, and CRs; granular channel toggles (In-App, Email, Push); digest modes (`INSTANT`, `DAILY`, `WEEKLY`); quiet hours windowing with urgent bypass; 8-category event preferences; and reliable deduplicated delivery queue with authorization re-check engine.
+- **`COLLAB-004` "What Changed?" Activity Summaries & Baselines**: Deterministic baseline diffing and activity stream since last login, 24h/7d/30d windows, or frozen scope baselines; source-linked event counts vs distinct item counts; missing-history disclosure; and client-safe executive summaries without AI.
+- **`COMM-001` Retainer & AMC Entitlements**: Commercial contracts & recurring periods management; included, approved, remaining, and rolled-over allowance accounting; strict single-consumption ledger (rejecting worklog consumes nothing, approval retries never consume twice); agreed rollover engine (`NO_ROLLOVER`, `FULL_ROLLOVER`, `CAPPED_ROLLOVER`); CLIENT-004 linked overage authorizations; and transparent client entitlement statements without internal margin leaks.
+- **`DATA-001` Data Import & Portable Exports**: Guided CSV onboarding wizard with field mapping, zero-write dry-run validation with reference checks, idempotent retry engine, protected-field security boundaries, and CWE-1236 sanitized portable exports.
+
+### 📊 5. Delivery Intelligence, Analytics & Financial Management
+- **`ANALYTICS-001` Contractual SLA & Risk Alerts**: Deterministic policy matching by client, project, type, priority, and severity; calendar-based vs elapsed duration tracking; strict customer visibility rules for response SLA; terminal customer-facing status enforcement for resolution; pause outward deadline shifting; CR-linked extensions; and rule-based non-duplicating risk alerts with auto-clearing triggers.
+- **`ANALYTICS-002` Flow Analytics & Bottlenecks**: Configurable maximum WIP limits (stage, user, team, project) with soft warnings, hard guards, and audited expedited override exceptions; distinct work item counting with blocked task overlay; operational aging radar (status tenure, primary owner tenure, blocked age, queue waiting age); active vs waiting flow time partitioning; lead & cycle time percentile distributions (p50, p85, p95); stage dwell time heatmap; and daily rebuildable Cumulative Flow Diagrams (CFD).
+- **`ANALYTICS-003` Delivery, Workload & Capacity Insights**: Non-additive capacity views (calendar working hours, reserved overhead, net available capacity, committed allocation %, active task demand); split co-assignee effort shares summing to 100% (or $1/N$ default); non-task capacity reservations (support rotations, mentoring, training, recurring meetings); explainable skill matching with transparent scoring breakdown; and team-level estimation reliability metrics (EAI, estimation bias direction, OTD %, FTR %) strictly without individual rankings.
+- **`ANALYTICS-004` Project Financials, Variance & Reconciliation**: Baseline effort variance, budget consumption thresholds with alert triggers, independent remaining estimates (EAC), weekly cumulative burn curves, effective-dated rate snapshots, multi-currency conversion, and confidential direct delivery margin reporting with N/A handling.
+
+### 🔧 6. Platform Extensibility, Automation & Configuration Toolkit
+- **`LATER-001` Advanced Scheduling, Critical Path & Scenario Previews**: Critical Path Method (CPM), forward/backward pass network analysis, total/free float slack calculation, SS/FF/SF dependencies with lead/lag duration, What-If schedule scenario simulations with explicit live application, and calibrated composite project health scoring across 5 weighted dimensions.
+- **`API-001` Scoped Outbound Webhooks & Event Integrations**: Allowlisted PMT event distribution, HMAC-SHA256 signature verification (`X-PMT-Signature`), graceful secret key rotation, destination SSRF blocking (private RFC 1918 subnets & cloud metadata endpoints), bounded exponential backoff retries, delivery audit ledger, and 1-click manual replay.
+- **`ADMIN-001` Enterprise Setup Wizard & Configuration Packages**: 6-step single-company initialization wizard, constrained corporate branding profile, versioned portable package bundles (JSON export/import), dry-run diff preview with conflict resolution policies (`SKIP` vs `OVERWRITE`), zero-leak artifact boundaries, and execution audit logging.
+- **`LATER-002` Source-Linked Drafting & Human-Reviewed Summaries**: Deterministic 4-phase WBS generator (Architecture, Backend, Frontend, QA), Given-When-Then acceptance criteria derivation, audience-bounded release notes compiler (CLIENT_SAFE redacting dev refactors), automated coverage gap audit (`RULE-GAP-TESTING`, `RULE-GAP-ACCEPTANCE`), Jaccard token duplicate detection (`RULE-DUP-TASKS`), and human review ledger with 1-click instantiation into live entities.
+
+### 📱 7. Cross-Platform Mobile Application (Flutter)
+- **Cross-Platform Mobile (Android & iOS)**: Complete Flutter 3.x mobile codebase, 5-tab workspace navigation (Dashboard, Tasks, Timesheets, Approvals, Profile), secure token storage with automatic 401 token refresh queue, GPS geofencing branch validation, and native camera integration for work evidence.
 
 ---
 
-## 🗺️ Comprehensive Feature Roadmap (Planned Scope)
+## 🗺️ Planned Roadmap & Future Scope
 
-All roadmap items are categorized by strategic delivery increment. Each feature has a stable specification ID linked directly to the [Software Requirements Specification (SRS)](docs/requirements.md) and [Master Implementation Plan](docs/plan.md):
+With all foundational, agile, client delivery, quality, intelligence, and integration modules implemented in the codebase, our roadmap now focuses on production hardening, formal environment acceptance, and post-beta enterprise capabilities:
 
 ```mermaid
 flowchart LR
-    A["Tier A: Foundations & Boundaries (Active)"] --> B["Tier B: Agile Development Planning (Complete)"]
-    B --> C["Tier C: Client Delivery & UAT (Complete)"]
-    C --> D["Tier D: Product Operations & QA"]
-    D --> E["Tier E: Delivery Intelligence"]
-    E --> F["Future: Advanced Extensions"]
+    A["Core Functional Modules (Completed)"] --> B["Beta Hardening & Live Providers (Current)"]
+    B --> C["Production Release & Upgrade Scripts"]
+    C --> D["Post-Beta Enterprise Extensions"]
 ```
 
-### 📌 Tier A: Foundations & Boundary Governance
-- **`FND-001` Shared Planning Foundations** [✅ Core Implemented]: Configurable employee and contractor working calendars (working days, shifts, holidays, approved leave); effective capacity calculation; multi-tenant audience isolation (internal, client-shared, product-community); reproducible baseline and event-history tracking.
+### 🎯 Current Focus: Beta Hardening & Live Provider Acceptance
+1. **Production SMS Gateway Credentials**: Validate live transactional SMS gateway credentials (replacing the development OTP mock) with carrier delivery reporting and retry bounds.
+2. **Production AWS SES Email Verification**: Complete production AWS SES domain validation, DKIM signing, and bounce/complaint handling for transactional email notifications.
+3. **Production Firebase Cloud Messaging (FCM)**: Configure production service account keys, APNs certificates, and FCM topics for mobile push notifications.
+4. **Mobile Store Builds & Distribution**: Configure release keystores, ProGuard rules, iOS provisioning profiles, and automated pipeline builds for Google Play Store and Apple App Store distribution.
+5. **High-Concurrency Load & Stress Testing**: Run stress test suites simulating concurrent multi-branch timesheet approvals, rapid Kanban card reordering, and bulk status updates.
 
-### 📌 Tier B: Agile Development & Daily Planning
-- **`PLAN-001` Work Hierarchy, Backlog & Sprints** [✅ Implemented]: 4-level hierarchy (`Initiative` → `Epic/Feature` → `Story/Task/Bug` → `Subtask`); ranked project and product backlogs; sprints independent of releases; sprint goals, team sizing, and commitment/rollover tracking; scope-change ledger.
-- **`PLAN-002` Task Dependencies & Blocker Management** [✅ Implemented]: Finish-to-Start and Blocks/Blocked-by links with circular dependency prevention; Blocker Radar tracking blocker owners, reasons, next actions, and elapsed blocker episodes; rich bug reproduction templates.
-- **`PLAN-003` Advanced Views, Inline Editing & Bulk Actions** [✅ Implemented]: Personal and team saved views, favorites, inline cell editing in listing grids, permission-aware bulk status/assignee updates with conflict handling, server-side query optimizations, and "My Work" focused queues.
-- **`TIME-001` Effort & Timesheets with Durable Timer** [✅ Implemented]: Schedule-aware weekly timesheets with cross-project approval and audited amendments; durable single active timer in database across browser tabs that does not stop on window blur; task-switching auto-logging.
-- **`PLAN-004` Delivery Teams & Software Component Ownership** [✅ Implemented]: Dedicated delivery teams and component architecture catalogs; tracking defects and technical debt per component without expanding project access boundaries.
-- **`FLOW-001` Work Handoff Tracking** [✅ Implemented]: Explicit handoffs between roles/teams (e.g., Dev → QA), tracking acknowledgment time, work-start time, return/redirect history, unbroken successor chaining, and queue waiting time analysis.
-- **`CONFIG-001` Project-Specific Workflow Overrides & Gates** [✅ Implemented]: Visual workflow editor allowing versioned project/product workflow progression, mandatory custom fields per status transition, role-restricted gates, release & resolution requirements, graph reachability validation, active task remapping on publish, and unified API/inline/bulk enforcement.
+### 🔮 Post-Beta Enterprise Extensions (Deferred Scope)
+As defined in Section 11.6 of the project specification, the following enterprise capabilities are deferred to post-beta phases:
+- **Multi-Tenant Partner & Hosting Management**: Centralized management portal for IT service providers hosting and maintaining multiple isolated PMT instances across different client companies.
+- **Sandboxed Plugin & Extension Architecture**: Sandboxed plugin runtime allowing third-party developers to contribute custom web widgets, report exporters, and custom integration connectors.
+- **In-Product Automated Backup & Disaster Recovery**: Web-based administration console for scheduling automated PostgreSQL dumps, off-site S3 backup replication, and 1-click restore verification.
+- **Universal Visual Automation Designer**: Graphical workflow builder for composing custom cross-entity automation triggers (e.g., "When task moves to QA, automatically notify client lead and assign specific test run").
+- **Dedicated Monthly Invoicing & Billing Lifecycle**: Formal billing cycles with downloadable PDF client invoices, taxation line items, and payment reconciliation ledgers.
 
-### 📌 Tier C: Client Delivery & Collaboration
-- **`CLIENT-001` & `CLIENT-002` Customer Portal & Intake Triage** [✅ Implemented]: Invited client contacts with role-scoped project access; invitation token redemption and credential management; private bug, support, and change-request intake; separation of customer impact/urgency from internal technical priority; customer-facing sanitized status mapping; zero-leak internal clarifications vs public customer replies; 1-click delivery task conversion and duplicate linking; strict cross-client data isolation.
-- **`CLIENT-003` Requirements & Acceptance Traceability** [✅ Implemented]: Versioned functional requirements, measurable acceptance criteria directly linked to delivery tasks and manual QA evidence; immutable frozen baselines with amendment workflows; client sign-off governance; coverage gap radar and end-to-end traceability matrix.
-- **`CLIENT-004` Scope & Change-Request Approval** [✅ Implemented]: Scope change quotations with effort, cost, and timeline impacts; formal authorized client approval of specific revisions with re-approval triggers for material modifications; separate internal review notes; attributable decision audit trail; and approved change delivery task mapping.
-- **`CLIENT-005` Client UAT & Milestone Sign-Off** [✅ Implemented]: Versioned UAT acceptance packages with milestone linkage and release notes; tri-state verification (`Developer-Done` &rarr; `QA-Verified` &rarr; `Client-Accepted`); transparent known issues disclosure; formal client approver sign-off (`APPROVE` / `REQUEST_CHANGES` / `REJECT`); material revision ($N+1$) re-approval enforcement; customer portal test verification without internal QA note leakage; and explicit client-installed version registry.
-- **`CLIENT-006` Client Progress Updates & Reporting** [✅ Implemented]: PM-curated periodic progress reports, health indicators (`ON_TRACK`, `NEEDS_ATTENTION`, `AT_RISK`), milestone schedule forecasts (committed date vs indicative forecast date), decisions/actions required from client with SLA deadlines, zero-leakage redaction of internal notes/commercials, immutable revision snapshots on publish, markdown digest generation for cross-channel distribution, and customer portal view.
-- **`DEL-001` Risks, Assumptions & Versioned Client Decisions** [✅ Implemented]: Project & product RAID register (Risks, Assumptions, Issues, Decisions); likelihood × impact exposure scoring, mitigation/contingency plans; separation of possible future risks from active task blocker episodes; architecture decision records (ADR) with context, alternatives considered, rationale, consequences, and immutable revision history; 1-click decision supersession with full lineage without approving commercial changes; published client action requests with SLA deadlines and approver-only restriction; and customer portal views with zero internal risk discussion leakage.
-
-### 📌 Tier D: Product Operations & Repeatable Quality
-- **`PROD-001` Product Discovery, Voting & Roadmaps** [✅ Implemented]: Moderated customer feedback ideas, one-vote-per-organization voting, duplicate merging, RICE prioritization scoring, and public/private Now / Next / Later roadmaps with changelog links.
-- **`QA-001` Manual Test Cases & Release Readiness** [✅ Implemented]: Reusable test suites and cases, version/milestone-gated test runs, test evidence attachments, 1-click defect logging, and release-readiness checklists with sign-off gates.
-- **`COLLAB-001` Knowledge Base, ADRs & Versioned Documents** [✅ Implemented]: Versioned architecture decision records, specifications, runbooks, multi-level audience boundaries, visual text diff comparison, entity links, and revision-pinned S3 attachments.
-- **`COLLAB-002` Project & Task Templates, Relative Dates & Recurring Work** [✅ Implemented]: Reusable project blueprints, relative date calculation engine, task template library with checklists, idempotent recurring schedules with strict deduplication, and zero-leakage security boundaries.
-- **`PROD-002` Product Goals & Outcome Reviews**: Measurable product goals (baselines vs targets) and dated post-release outcome evaluation reviews.
-- **`QA-002` Environment-Specific Issue Verification**: Environment-specific reproduction and verification evidence across staging, production, and client on-premise installations.
-- **`COLLAB-003` Granular Notification Preferences & Digests** [✅ Implemented]: Independent followers and work item watchers (Tasks, Knowledge Docs, Product Ideas, CRs, UAT Packages), multi-channel delivery (In-App, Email, Push), digest consolidation (`INSTANT`, `DAILY`, `WEEKLY`), quiet hours window with urgent bypass, 8-category event preferences, and reliable deduplicated delivery queue with authorization re-check at dispatch.
-- **`COLLAB-004` "What Changed?" Activity Summaries** [✅ Implemented]: Permission-aware change summaries showing all scope additions, removals, blockers, and status changes since last login, sprint baseline, or custom date; source-linked event counts vs distinct item counts, missing-history disclosure, and client-safe executive summaries without AI.
-- **`COMM-001` Retainer & AMC Entitlements**: Tracking included monthly/annual hours, approved work consumption, rollover rules, overage authorization, and client statement generation.
-- **`DATA-001` Data Import & Portable Exports**: CSV onboarding wizard with column mapping, dry-run validation, row-level error reporting, duplicate-safe retries, and sanitized portable exports.
-
-### 📌 Tier E: Delivery Intelligence & Analytics
-- **`ANALYTICS-001` Contractual SLA & Risk Alerts**: Contract response and resolution SLA timers, calendar-aware pauses, escalation paths, and rule-based deadline warnings.
-- **`ANALYTICS-002` Flow Analytics & Bottlenecks**: WIP limits, status aging, active vs waiting time heatmaps, cumulative flow diagrams, lead/cycle time distributions, and rework tracking.
-- **`ANALYTICS-003` Workload & Capacity Insights**: Calendar-aware capacity forecasting, explainable skill-matching suggestions, and split co-assignee demand analysis.
-- **`ANALYTICS-004` Project Financials, Variance & Reconciliation**: Baseline effort variance, budget consumption alerts, independent remaining estimates, burn curves, and currency-aware gross margin reporting.
-
-### 🔮 Future Extensions
-- **`LATER-001` Advanced Scheduling & Scenario Previews**: SS/FF/SF dependencies, lag time, critical path analysis, and what-if capacity scenario modeling.
-- **`LATER-002` Assisted Drafting & Gap Analysis**: Source-linked requirement gap detection, draft WBS generation, and release summary drafting with human-in-the-loop review.
-- **`API-001` Scoped Outbound Webhooks**: Signed event webhooks with delivery history, retries, and destination security checks.
-- **`ADMIN-001` Configuration Packages & Setup Wizard**: Versioned exportable configuration packages for rapid multi-instance or new-branch provisioning.
+### 🚫 Explicit Scope Boundaries & Non-Goals
+To maintain architectural focus, high performance, and strict data security, the following remain explicitly out of scope:
+- **No Git / DevOps Repository Hosting**: KS-PMT does not host Git repositories or run CI/CD build pipelines; it connects with development platforms via scoped signed webhooks (`API-001`) and release metadata.
+- **No Full Accounting / Payroll Ledger**: KS-PMT tracks project delivery effort, billable rates, and contract margins; it interfaces with external accounting software rather than replacing specialized ERP/accounting systems.
+- **No Unrestricted Public Self-Registration**: KS-PMT enforces private corporate security; all user accounts and client contacts are created via administrative invitation and explicit branch/project assignment.
 
 ---
 

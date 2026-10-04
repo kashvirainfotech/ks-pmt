@@ -534,6 +534,8 @@ CREATE TABLE IF NOT EXISTS tasks (
     actual_start_date TIMESTAMP WITH TIME ZONE,
     actual_end_date TIMESTAMP WITH TIME ZONE,
     estimated_hours NUMERIC(8, 2) NOT NULL DEFAULT 0.00,
+    baseline_estimated_hours NUMERIC(8, 2) NOT NULL DEFAULT 0.00,
+    remaining_hours NUMERIC(8, 2) NOT NULL DEFAULT 0.00,
     is_chargeable BOOLEAN NOT NULL DEFAULT FALSE,
     charge_amount NUMERIC(12, 2) NOT NULL DEFAULT 0.00,
     currency VARCHAR(10) NOT NULL DEFAULT 'INR',
@@ -564,6 +566,7 @@ CREATE TABLE IF NOT EXISTS task_assignees (
     task_id UUID NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
     is_primary_assignee BOOLEAN NOT NULL DEFAULT FALSE,
+    effort_share_percentage NUMERIC(5, 2) DEFAULT NULL CHECK (effort_share_percentage IS NULL OR (effort_share_percentage >= 0 AND effort_share_percentage <= 100)),
     assigned_by_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
     assigned_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     created_by UUID NOT NULL,
@@ -603,9 +606,12 @@ CREATE TABLE IF NOT EXISTS task_dependencies (
     source_task_id UUID NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
     target_task_id UUID NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
     link_type VARCHAR(50) NOT NULL CHECK (link_type IN (
-        'FINISH_TO_START', 'BLOCKS', 'RELATED_TO', 'DUPLICATE_OF', 
+        'FINISH_TO_START', 'START_TO_START', 'FINISH_TO_FINISH', 'START_TO_FINISH',
+        'BLOCKS', 'RELATED_TO', 'DUPLICATE_OF',
         'CAUSES', 'FIXED_BY', 'TESTED_BY', 'RELEASED_IN'
     )),
+    lag_duration_hours NUMERIC(6, 2) NOT NULL DEFAULT 0.00,
+    lag_unit VARCHAR(10) NOT NULL DEFAULT 'HOURS' CHECK (lag_unit IN ('HOURS', 'DAYS')),
     description TEXT,
     created_by UUID NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -2264,4 +2270,1079 @@ CREATE TABLE IF NOT EXISTS user_activity_saved_queries (
     updated_by UUID,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+
+-- ========================================================
+-- Date & Time: 2026-10-01 10:35:00 IST
+-- Description: PROD-002 - Product Goals & Outcome Reviews
+-- ========================================================
+
+-- 83. Product Goals (PROD-002)
+CREATE TABLE IF NOT EXISTS product_goals (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    goal_code VARCHAR(100) UNIQUE NOT NULL,
+    product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    category VARCHAR(50) NOT NULL CHECK (
+        category IN ('ADOPTION', 'PERFORMANCE', 'REVENUE_GROWTH', 'QUALITY_RELIABILITY', 'USER_SATISFACTION', 'STRATEGIC')
+    ),
+    metric_name VARCHAR(150) NOT NULL,
+    metric_unit VARCHAR(50) NOT NULL,
+    baseline_value NUMERIC(15, 2) NOT NULL DEFAULT 0.00,
+    target_value NUMERIC(15, 2) NOT NULL,
+    current_value NUMERIC(15, 2) NOT NULL DEFAULT 0.00,
+    target_date DATE NOT NULL,
+    owner_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'IN_PROGRESS' CHECK (
+        status IN ('DRAFT', 'IN_PROGRESS', 'ACHIEVED', 'MISSED', 'ABANDONED')
+    ),
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 84. Product Outcome Reviews (PROD-002)
+CREATE TABLE IF NOT EXISTS product_outcome_reviews (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    review_code VARCHAR(100) UNIQUE NOT NULL,
+    product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+    goal_id UUID REFERENCES product_goals(id) ON DELETE SET NULL,
+    version_id UUID REFERENCES versions(id) ON DELETE SET NULL,
+    idea_id UUID REFERENCES product_ideas(id) ON DELETE SET NULL,
+    review_title VARCHAR(255) NOT NULL,
+    review_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    reviewer_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    actual_metric_value NUMERIC(15, 2),
+    outcome_verdict VARCHAR(50) NOT NULL CHECK (
+        outcome_verdict IN ('MET_EXPECTATIONS', 'EXCEEDED_EXPECTATIONS', 'BELOW_EXPECTATIONS', 'INCONCLUSIVE')
+    ),
+    adoption_observations TEXT,
+    customer_evidence TEXT,
+    feedback_summary TEXT,
+    learnings_and_next_steps TEXT,
+    reconciled_allowance_used NUMERIC(10, 2) DEFAULT 0.00,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ========================================================
+-- Date & Time: 2026-10-01 10:45:00 IST
+-- Description: QA-002 - Scoped Environments & Environment-Specific Issue Verification
+-- ========================================================
+
+-- 85. QA Environments (QA-002)
+CREATE TABLE IF NOT EXISTS qa_environments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    env_code VARCHAR(100) UNIQUE NOT NULL,
+    env_name VARCHAR(150) NOT NULL,
+    env_type VARCHAR(50) NOT NULL CHECK (
+        env_type IN ('INTERNAL_QA', 'DEV', 'STAGING', 'CLIENT_UAT', 'CLIENT_PRODUCTION', 'ON_PREMISE_CLIENT')
+    ),
+    scope_type VARCHAR(50) NOT NULL CHECK (
+        scope_type IN ('GLOBAL', 'PRODUCT', 'PROJECT', 'CLIENT')
+    ),
+    product_id UUID REFERENCES products(id) ON DELETE CASCADE,
+    project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+    client_id UUID REFERENCES clients(id) ON DELETE CASCADE,
+    region VARCHAR(100),
+    description TEXT,
+    context_metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 86. Issue Environment Observations & Retests (QA-002)
+CREATE TABLE IF NOT EXISTS issue_environment_observations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    observation_code VARCHAR(100) UNIQUE NOT NULL,
+    task_id UUID NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+    environment_id UUID NOT NULL REFERENCES qa_environments(id) ON DELETE RESTRICT,
+    version_id UUID NOT NULL REFERENCES versions(id) ON DELETE RESTRICT,
+    observation_type VARCHAR(50) NOT NULL CHECK (
+        observation_type IN ('FOUND_REPRODUCED', 'FIX_AVAILABLE', 'READY_FOR_RETEST', 'PASSED', 'FAILED', 'CANNOT_REPRODUCE', 'BLOCKED')
+    ),
+    observed_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    tester_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    client_contact_id UUID REFERENCES client_contacts(id) ON DELETE SET NULL,
+    browser_info VARCHAR(150),
+    os_info VARCHAR(150),
+    device_info VARCHAR(150),
+    build_label VARCHAR(150),
+    evidence_notes TEXT,
+    attachment_url TEXT,
+    is_client_visible BOOLEAN NOT NULL DEFAULT FALSE,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ========================================================
+-- Date & Time: 2026-10-01 11:05:00 (IST)
+-- Description: COMM-001 - Retainer & AMC Entitlements, Contract Periods, Worklog Consumptions & Overage Authorization
+-- ========================================================
+
+-- 87. Commercial Contracts (Retainer & AMC Agreements)
+CREATE TABLE IF NOT EXISTS commercial_contracts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    contract_number VARCHAR(50) UNIQUE NOT NULL,
+    client_id UUID NOT NULL REFERENCES clients(id) ON DELETE RESTRICT,
+    project_id UUID REFERENCES projects(id) ON DELETE SET NULL,
+    product_id UUID REFERENCES products(id) ON DELETE SET NULL,
+    title VARCHAR(255) NOT NULL,
+    contract_type VARCHAR(50) NOT NULL CHECK (
+        contract_type IN ('RETAINER', 'AMC', 'TIME_AND_MATERIALS_CAP', 'FIXED_HOURS_BUCKET')
+    ),
+    periodicity VARCHAR(50) NOT NULL CHECK (
+        periodicity IN ('MONTHLY', 'QUARTERLY', 'ANNUALLY', 'CUSTOM')
+    ),
+    included_hours_per_period NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
+    hourly_rate NUMERIC(15, 2) NOT NULL DEFAULT 0.00,
+    overage_hourly_rate NUMERIC(15, 2) NOT NULL DEFAULT 0.00,
+    currency VARCHAR(10) NOT NULL DEFAULT 'INR',
+    rollover_rule VARCHAR(50) NOT NULL DEFAULT 'NO_ROLLOVER' CHECK (
+        rollover_rule IN ('NO_ROLLOVER', 'FULL_ROLLOVER', 'CAPPED_ROLLOVER', 'EXPIRE_AFTER_N_PERIODS')
+    ),
+    max_rollover_hours NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
+    rollover_expiry_periods INTEGER NOT NULL DEFAULT 1,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'ACTIVE' CHECK (
+        status IN ('DRAFT', 'ACTIVE', 'EXPIRED', 'PENDING_RENEWAL', 'SUSPENDED', 'TERMINATED')
+    ),
+    accountable_pm_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    terms_and_conditions TEXT,
+    notes TEXT,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_contract_dates CHECK (end_date >= start_date)
+);
+
+-- 88. Contract Entitlement Periods (Snapshots of rates, included, rolled-over, and consumed hours)
+CREATE TABLE IF NOT EXISTS contract_periods (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    contract_id UUID NOT NULL REFERENCES commercial_contracts(id) ON DELETE CASCADE,
+    period_code VARCHAR(100) UNIQUE NOT NULL,
+    period_sequence INTEGER NOT NULL DEFAULT 1,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    included_hours NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
+    rolled_over_hours_in NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
+    total_allowance_hours NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
+    approved_consumed_hours NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
+    remaining_allowance_hours NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
+    overage_hours NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
+    rolled_over_hours_out NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
+    hourly_rate NUMERIC(15, 2) NOT NULL DEFAULT 0.00,
+    overage_hourly_rate NUMERIC(15, 2) NOT NULL DEFAULT 0.00,
+    currency VARCHAR(10) NOT NULL DEFAULT 'INR',
+    status VARCHAR(50) NOT NULL DEFAULT 'OPEN' CHECK (
+        status IN ('UPCOMING', 'OPEN', 'CLOSED', 'RECONCILED')
+    ),
+    closed_at TIMESTAMP WITH TIME ZONE,
+    closed_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    reconciled_notes TEXT,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_period_dates CHECK (end_date >= start_date),
+    CONSTRAINT uq_contract_period_seq UNIQUE (contract_id, period_sequence)
+);
+
+-- 89. Contract Worklog Consumptions (Single-consumption ledger linking approved task_time_logs)
+CREATE TABLE IF NOT EXISTS contract_worklog_consumptions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    contract_period_id UUID NOT NULL REFERENCES contract_periods(id) ON DELETE CASCADE,
+    time_log_id UUID NOT NULL UNIQUE REFERENCES task_time_logs(id) ON DELETE CASCADE,
+    hours_consumed NUMERIC(6, 2) NOT NULL,
+    is_overage BOOLEAN NOT NULL DEFAULT FALSE,
+    consumed_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_consumed_hours_positive CHECK (hours_consumed > 0)
+);
+
+-- 90. Contract Overage Requests (Linked to CLIENT-004 Change Requests & Client Approvals)
+CREATE TABLE IF NOT EXISTS contract_overage_requests (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    request_code VARCHAR(50) UNIQUE NOT NULL,
+    contract_period_id UUID NOT NULL REFERENCES contract_periods(id) ON DELETE CASCADE,
+    change_request_id UUID REFERENCES change_requests(id) ON DELETE SET NULL,
+    requested_overage_hours NUMERIC(10, 2) NOT NULL,
+    estimated_amount NUMERIC(15, 2) NOT NULL DEFAULT 0.00,
+    currency VARCHAR(10) NOT NULL DEFAULT 'INR',
+    justification TEXT NOT NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'PENDING_CLIENT_APPROVAL' CHECK (
+        status IN ('PENDING_CLIENT_APPROVAL', 'APPROVED', 'REJECTED', 'WAIVED')
+    ),
+    approved_hours NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
+    approved_by_contact_id UUID REFERENCES client_contacts(id) ON DELETE SET NULL,
+    approved_at TIMESTAMP WITH TIME ZONE,
+    client_remarks TEXT,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ========================================================
+-- Date & Time: 2026-10-01 15:20:00 (IST)
+-- Description: DATA-001 - Data Import Batches, Row-Level Outcomes & Retry Tracking
+-- ========================================================
+
+-- 91. Data Import Batches (DATA-001)
+CREATE TABLE IF NOT EXISTS data_import_batches (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    batch_number VARCHAR(50) UNIQUE NOT NULL,
+    entity_type VARCHAR(50) NOT NULL CHECK (
+        entity_type IN ('TASKS', 'CLIENTS', 'PROJECTS', 'TIME_LOGS', 'USERS', 'REQUIREMENTS', 'TEST_CASES')
+    ),
+    import_mode VARCHAR(50) NOT NULL DEFAULT 'CREATE_ONLY' CHECK (
+        import_mode IN ('CREATE_ONLY', 'UPDATE_ONLY', 'UPSERT')
+    ),
+    original_filename VARCHAR(255) NOT NULL,
+    total_rows INTEGER NOT NULL DEFAULT 0,
+    valid_rows INTEGER NOT NULL DEFAULT 0,
+    invalid_rows INTEGER NOT NULL DEFAULT 0,
+    imported_rows INTEGER NOT NULL DEFAULT 0,
+    failed_rows INTEGER NOT NULL DEFAULT 0,
+    skipped_rows INTEGER NOT NULL DEFAULT 0,
+    status VARCHAR(50) NOT NULL DEFAULT 'PREVIEW_READY' CHECK (
+        status IN ('VALIDATING', 'PREVIEW_READY', 'PROCESSING', 'COMPLETED', 'FAILED', 'PARTIALLY_COMPLETED')
+    ),
+    column_mapping JSONB NOT NULL DEFAULT '{}'::jsonb,
+    validation_summary JSONB NOT NULL DEFAULT '{}'::jsonb,
+    completed_at TIMESTAMP WITH TIME ZONE,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 92. Data Import Row Outcomes (DATA-001)
+CREATE TABLE IF NOT EXISTS data_import_row_outcomes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    batch_id UUID NOT NULL REFERENCES data_import_batches(id) ON DELETE CASCADE,
+    row_index INTEGER NOT NULL,
+    external_id VARCHAR(100),
+    record_id UUID,
+    status VARCHAR(50) NOT NULL DEFAULT 'PENDING' CHECK (
+        status IN ('PENDING', 'VALID', 'INVALID', 'SUCCESS', 'FAILED', 'SKIPPED')
+    ),
+    raw_data JSONB NOT NULL,
+    error_message TEXT,
+    error_details JSONB NOT NULL DEFAULT '{}'::jsonb,
+    retry_count INTEGER NOT NULL DEFAULT 0,
+    imported_at TIMESTAMP WITH TIME ZONE,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_import_batch_row UNIQUE (batch_id, row_index)
+);
+
+-- ========================================================
+-- Date & Time: 2026-10-01 15:35:00 (IST)
+-- Description: ANALYTICS-001 - Contractual SLA Policies, SLA Tracking Cycles & Rule-Based Risk Alerts
+-- ========================================================
+
+-- 93. Contractual SLA Policies (ANALYTICS-001)
+CREATE TABLE IF NOT EXISTS sla_policies (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    policy_code VARCHAR(50) UNIQUE NOT NULL,
+    policy_name VARCHAR(150) NOT NULL,
+    description TEXT,
+    client_id UUID REFERENCES clients(id) ON DELETE CASCADE,
+    project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+    task_type_id UUID REFERENCES task_types(id) ON DELETE CASCADE,
+    priority VARCHAR(20) CHECK (priority IN ('LOW', 'MEDIUM', 'HIGH', 'URGENT', 'CRITICAL')),
+    severity VARCHAR(20) CHECK (severity IN ('LOW', 'MINOR', 'MAJOR', 'CRITICAL')),
+    tier VARCHAR(50) NOT NULL DEFAULT 'TIER_3_STANDARD' CHECK (
+        tier IN ('TIER_1_CRITICAL', 'TIER_2_HIGH', 'TIER_3_STANDARD', 'TIER_4_BASIC')
+    ),
+    calendar_id UUID REFERENCES working_calendars(id) ON DELETE SET NULL,
+    response_time_minutes INTEGER NOT NULL,
+    response_time_basis VARCHAR(20) NOT NULL DEFAULT 'BUSINESS_HOURS' CHECK (
+        response_time_basis IN ('BUSINESS_HOURS', 'ELAPSED_HOURS')
+    ),
+    resolution_time_minutes INTEGER NOT NULL,
+    resolution_time_basis VARCHAR(20) NOT NULL DEFAULT 'BUSINESS_HOURS' CHECK (
+        resolution_time_basis IN ('BUSINESS_HOURS', 'ELAPSED_HOURS')
+    ),
+    response_warning_threshold_pct INTEGER NOT NULL DEFAULT 75,
+    resolution_warning_threshold_pct INTEGER NOT NULL DEFAULT 75,
+    escalation_rules JSONB NOT NULL DEFAULT '[]'::jsonb,
+    precedence_rank INTEGER NOT NULL DEFAULT 100,
+    is_default BOOLEAN NOT NULL DEFAULT FALSE,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 94. SLA Tracking Cycles (ANALYTICS-001)
+CREATE TABLE IF NOT EXISTS sla_tracking_cycles (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    cycle_number VARCHAR(50) UNIQUE NOT NULL,
+    task_id UUID REFERENCES tasks(id) ON DELETE CASCADE,
+    client_request_id UUID REFERENCES client_intake_requests(id) ON DELETE CASCADE,
+    sla_policy_id UUID NOT NULL REFERENCES sla_policies(id) ON DELETE RESTRICT,
+    cycle_iteration INTEGER NOT NULL DEFAULT 1,
+    policy_snapshot JSONB NOT NULL DEFAULT '{}'::jsonb,
+    calendar_snapshot JSONB NOT NULL DEFAULT '{}'::jsonb,
+    status VARCHAR(50) NOT NULL DEFAULT 'RUNNING' CHECK (
+        status IN ('RUNNING', 'PAUSED', 'RESPONSE_MET', 'RESPONSE_BREACHED', 'RESOLVED_MET', 'RESOLVED_BREACHED', 'CANCELLED')
+    ),
+    response_deadline TIMESTAMP WITH TIME ZONE NOT NULL,
+    responded_at TIMESTAMP WITH TIME ZONE,
+    responded_by_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    response_status VARCHAR(50) NOT NULL DEFAULT 'PENDING' CHECK (
+        response_status IN ('PENDING', 'MET', 'BREACHED')
+    ),
+    elapsed_response_minutes INTEGER NOT NULL DEFAULT 0,
+    business_response_minutes INTEGER NOT NULL DEFAULT 0,
+    resolution_deadline TIMESTAMP WITH TIME ZONE NOT NULL,
+    resolved_at TIMESTAMP WITH TIME ZONE,
+    resolved_by_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    resolution_status VARCHAR(50) NOT NULL DEFAULT 'PENDING' CHECK (
+        resolution_status IN ('PENDING', 'MET', 'BREACHED')
+    ),
+    elapsed_resolution_minutes INTEGER NOT NULL DEFAULT 0,
+    business_resolution_minutes INTEGER NOT NULL DEFAULT 0,
+    is_paused BOOLEAN NOT NULL DEFAULT FALSE,
+    current_pause_started_at TIMESTAMP WITH TIME ZONE,
+    current_pause_reason VARCHAR(100),
+    total_paused_minutes INTEGER NOT NULL DEFAULT 0,
+    pause_episodes JSONB NOT NULL DEFAULT '[]'::jsonb,
+    original_resolution_deadline TIMESTAMP WITH TIME ZONE NOT NULL,
+    extension_count INTEGER NOT NULL DEFAULT 0,
+    extension_history JSONB NOT NULL DEFAULT '[]'::jsonb,
+    change_request_id UUID REFERENCES change_requests(id) ON DELETE SET NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 95. Rule-Based Risk Alerts & Escalations (ANALYTICS-001)
+CREATE TABLE IF NOT EXISTS risk_alerts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    alert_code VARCHAR(50) UNIQUE NOT NULL,
+    alert_type VARCHAR(50) NOT NULL CHECK (
+        alert_type IN (
+            'SLA_RESPONSE_BREACHED',
+            'SLA_RESPONSE_AT_RISK',
+            'SLA_RESOLUTION_BREACHED',
+            'SLA_RESOLUTION_AT_RISK',
+            'STALE_ACTIVE_WORK',
+            'EFFORT_EXCEEDS_CAPACITY',
+            'DATE_EXTENSION_UNAPPROVED',
+            'BLOCKER_IMPACT_CRITICAL'
+        )
+    ),
+    severity VARCHAR(20) NOT NULL DEFAULT 'HIGH' CHECK (
+        severity IN ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL')
+    ),
+    sla_cycle_id UUID REFERENCES sla_tracking_cycles(id) ON DELETE CASCADE,
+    task_id UUID REFERENCES tasks(id) ON DELETE CASCADE,
+    project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+    client_id UUID REFERENCES clients(id) ON DELETE CASCADE,
+    title VARCHAR(200) NOT NULL,
+    description TEXT NOT NULL,
+    trigger_reason TEXT NOT NULL,
+    recommended_action TEXT NOT NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'ACTIVE' CHECK (
+        status IN ('ACTIVE', 'ACKNOWLEDGED', 'RESOLVED', 'DISMISSED', 'AUTO_CLEARED')
+    ),
+    escalation_tier INTEGER NOT NULL DEFAULT 1 CHECK (
+        escalation_tier IN (1, 2, 3)
+    ),
+    assigned_owner_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    acknowledged_at TIMESTAMP WITH TIME ZONE,
+    acknowledged_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    resolved_at TIMESTAMP WITH TIME ZONE,
+    resolution_notes TEXT,
+    freshness_updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ========================================================
+-- Date & Time: 2026-10-01 15:55:00 IST
+-- Description: 96-100. Flow Analytics, WIP Limits & Bottleneck Tracking (ANALYTICS-002)
+-- ========================================================
+
+-- 96. Work-in-Progress (WIP) Limits
+CREATE TABLE IF NOT EXISTS wip_limits (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    limit_code VARCHAR(50) UNIQUE NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    limit_type VARCHAR(20) NOT NULL CHECK (limit_type IN ('STAGE', 'USER', 'TEAM', 'PROJECT')),
+    project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+    team_id UUID REFERENCES teams(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    status_id UUID REFERENCES task_statuses(id) ON DELETE CASCADE,
+    max_wip_count INTEGER NOT NULL CHECK (max_wip_count > 0),
+    enforcement_mode VARCHAR(20) NOT NULL DEFAULT 'SOFT_WARNING' CHECK (enforcement_mode IN ('SOFT_WARNING', 'HARD_GUARD')),
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_wip_scope CHECK (
+        (limit_type = 'STAGE' AND status_id IS NOT NULL) OR
+        (limit_type = 'USER' AND user_id IS NOT NULL) OR
+        (limit_type = 'TEAM' AND team_id IS NOT NULL) OR
+        (limit_type = 'PROJECT' AND project_id IS NOT NULL)
+    )
+);
+
+-- 97. WIP Override Exceptions
+CREATE TABLE IF NOT EXISTS wip_override_exceptions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    exception_code VARCHAR(50) UNIQUE NOT NULL,
+    wip_limit_id UUID REFERENCES wip_limits(id) ON DELETE CASCADE,
+    task_id UUID NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    team_id UUID REFERENCES teams(id) ON DELETE SET NULL,
+    status_id UUID REFERENCES task_statuses(id) ON DELETE SET NULL,
+    project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+    current_wip_count INTEGER NOT NULL,
+    limit_value INTEGER NOT NULL,
+    reason TEXT NOT NULL,
+    is_expedited BOOLEAN NOT NULL DEFAULT TRUE,
+    authorized_by UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    authorized_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP WITH TIME ZONE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 98. Task Status Durations & Flow Intervals
+CREATE TABLE IF NOT EXISTS task_status_durations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    task_id UUID NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+    status_id UUID NOT NULL REFERENCES task_statuses(id) ON DELETE RESTRICT,
+    previous_status_id UUID REFERENCES task_statuses(id) ON DELETE SET NULL,
+    assigned_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    responsible_team_id UUID REFERENCES teams(id) ON DELETE SET NULL,
+    flow_interval_type VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' CHECK (
+        flow_interval_type IN ('ACTIVE', 'WAITING', 'UNCLASSIFIED')
+    ),
+    waiting_reason VARCHAR(50) CHECK (
+        waiting_reason IS NULL OR waiting_reason IN (
+            'CUSTOMER', 'DEPENDENCY', 'APPROVAL', 'REVIEW_QA_QUEUE',
+            'ENVIRONMENT', 'VENDOR', 'TEAM_AVAILABILITY', 'OTHER'
+        )
+    ),
+    started_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ended_at TIMESTAMP WITH TIME ZONE,
+    elapsed_duration_minutes INTEGER NOT NULL DEFAULT 0,
+    business_duration_minutes INTEGER NOT NULL DEFAULT 0,
+    is_current BOOLEAN NOT NULL DEFAULT TRUE,
+    is_rework BOOLEAN NOT NULL DEFAULT FALSE,
+    rework_type VARCHAR(30) CHECK (
+        rework_type IS NULL OR rework_type IN ('REOPENED_DEFECT', 'QA_REJECT', 'SCOPE_CHANGE', 'OTHER')
+    ),
+    notes TEXT,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 99. Flow Aging Configurations
+CREATE TABLE IF NOT EXISTS flow_aging_configurations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    config_code VARCHAR(50) UNIQUE NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+    team_id UUID REFERENCES teams(id) ON DELETE CASCADE,
+    task_type_id UUID REFERENCES task_types(id) ON DELETE CASCADE,
+    priority VARCHAR(20) CHECK (priority IS NULL OR priority IN ('LOW', 'MEDIUM', 'HIGH', 'URGENT', 'CRITICAL')),
+    status_id UUID REFERENCES task_statuses(id) ON DELETE CASCADE,
+    warning_threshold_hours NUMERIC(8, 2) NOT NULL DEFAULT 48.00,
+    critical_threshold_hours NUMERIC(8, 2) NOT NULL DEFAULT 96.00,
+    time_basis VARCHAR(20) NOT NULL DEFAULT 'BUSINESS_HOURS' CHECK (time_basis IN ('BUSINESS_HOURS', 'ELAPSED_HOURS')),
+    calendar_id UUID REFERENCES working_calendars(id) ON DELETE SET NULL,
+    precedence_rank INTEGER NOT NULL DEFAULT 100,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 100. Daily Cumulative Flow Snapshots
+CREATE TABLE IF NOT EXISTS daily_cumulative_flow_snapshots (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+    product_id UUID REFERENCES products(id) ON DELETE CASCADE,
+    sprint_id UUID REFERENCES sprints(id) ON DELETE CASCADE,
+    snapshot_date DATE NOT NULL,
+    status_category VARCHAR(50) NOT NULL,
+    status_id UUID REFERENCES task_statuses(id) ON DELETE SET NULL,
+    task_count INTEGER NOT NULL DEFAULT 0,
+    story_points NUMERIC(8, 2) NOT NULL DEFAULT 0.00,
+    is_rebuilt BOOLEAN NOT NULL DEFAULT FALSE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_cfd_scope CHECK (
+        (project_id IS NOT NULL AND product_id IS NULL) OR
+        (product_id IS NOT NULL AND project_id IS NULL)
+    )
+);
+
+-- ========================================================
+-- Date & Time: 2026-10-01 16:15:00 IST
+-- Description: 101-105. Delivery, Workload & Capacity Insights (ANALYTICS-003)
+-- ========================================================
+
+-- 101. Software & Engineering Skills Master
+CREATE TABLE IF NOT EXISTS skills (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    skill_code VARCHAR(50) UNIQUE NOT NULL,
+    skill_name VARCHAR(100) NOT NULL,
+    category VARCHAR(50) NOT NULL CHECK (category IN (
+        'FRONTEND', 'BACKEND', 'DATABASE', 'DEVOPS', 'QA_TESTING',
+        'MOBILE', 'ARCHITECTURE', 'SECURITY', 'DATA_ANALYTICS', 'PRODUCT_DESIGN'
+    )),
+    description TEXT,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 102. User Competencies & Verified Skills
+CREATE TABLE IF NOT EXISTS user_skills (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    skill_id UUID NOT NULL REFERENCES skills(id) ON DELETE CASCADE,
+    proficiency_level VARCHAR(20) NOT NULL DEFAULT 'INTERMEDIATE' CHECK (
+        proficiency_level IN ('BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXPERT')
+    ),
+    years_experience NUMERIC(4, 1) DEFAULT 1.0,
+    is_verified BOOLEAN NOT NULL DEFAULT FALSE,
+    verified_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_user_skill UNIQUE (user_id, skill_id)
+);
+
+-- 103. Task Required Skills & Minimum Competencies
+CREATE TABLE IF NOT EXISTS task_required_skills (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    task_id UUID NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+    skill_id UUID NOT NULL REFERENCES skills(id) ON DELETE CASCADE,
+    min_proficiency_level VARCHAR(20) NOT NULL DEFAULT 'INTERMEDIATE' CHECK (
+        min_proficiency_level IN ('BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXPERT')
+    ),
+    importance VARCHAR(20) NOT NULL DEFAULT 'REQUIRED' CHECK (
+        importance IN ('REQUIRED', 'PREFERRED')
+    ),
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_task_skill UNIQUE (task_id, skill_id)
+);
+
+-- 104. Capacity Reservations (Overhead, Mentoring, Rotations)
+CREATE TABLE IF NOT EXISTS capacity_reservations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    reservation_code VARCHAR(50) UNIQUE NOT NULL,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    project_id UUID REFERENCES projects(id) ON DELETE SET NULL,
+    reservation_type VARCHAR(50) NOT NULL CHECK (
+        reservation_type IN (
+            'SUPPORT_ROTATION', 'MENTORING', 'RESEARCH_INNOVATION',
+            'RECURRING_MEETINGS', 'TRAINING', 'ADMIN_OVERHEAD'
+        )
+    ),
+    title VARCHAR(150) NOT NULL,
+    description TEXT,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    reserved_hours_per_week NUMERIC(6, 2) NOT NULL CHECK (reserved_hours_per_week > 0),
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_reservation_dates CHECK (end_date >= start_date)
+);
+
+-- 105. Team Capacity & Estimation Reliability Metrics
+CREATE TABLE IF NOT EXISTS team_capacity_metrics (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    team_id UUID NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
+    project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+    sprint_id UUID REFERENCES sprints(id) ON DELETE CASCADE,
+    metric_period_start DATE NOT NULL,
+    metric_period_end DATE NOT NULL,
+    available_hours NUMERIC(8, 2) NOT NULL DEFAULT 0.00,
+    allocated_demand_hours NUMERIC(8, 2) NOT NULL DEFAULT 0.00,
+    logged_actual_hours NUMERIC(8, 2) NOT NULL DEFAULT 0.00,
+    completed_tasks_count INTEGER NOT NULL DEFAULT 0,
+    estimation_accuracy_index NUMERIC(5, 4) NOT NULL DEFAULT 0.0000,
+    on_time_delivery_rate NUMERIC(5, 2) NOT NULL DEFAULT 0.00,
+    first_time_right_rate NUMERIC(5, 2) NOT NULL DEFAULT 0.00,
+    rework_count INTEGER NOT NULL DEFAULT 0,
+    sample_size INTEGER NOT NULL DEFAULT 0,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ========================================================
+-- Date & Time: 2026-10-01 16:32:00 (IST)
+-- Description: ANALYTICS-004 Project Financials, Variance, Rate Cards & Reconciliation
+-- ========================================================
+
+-- 106. Project Financial Rate Cards (Effective-Dated Billing & Cost Rates)
+CREATE TABLE IF NOT EXISTS project_financial_rates (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    rate_code VARCHAR(50) NOT NULL UNIQUE,
+    project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+    role_id UUID REFERENCES designations(id) ON DELETE SET NULL,
+    user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    currency VARCHAR(10) NOT NULL DEFAULT 'INR',
+    hourly_billing_rate NUMERIC(10, 2) NOT NULL DEFAULT 0.00 CHECK (hourly_billing_rate >= 0),
+    hourly_cost_rate NUMERIC(10, 2) NOT NULL DEFAULT 0.00 CHECK (hourly_cost_rate >= 0),
+    effective_start_date DATE NOT NULL,
+    effective_end_date DATE,
+    description TEXT,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_fin_rate_dates CHECK (effective_end_date IS NULL OR effective_end_date >= effective_start_date)
+);
+
+-- 107. Project Financial Baselines & Budget Thresholds
+CREATE TABLE IF NOT EXISTS project_financial_baselines (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    baseline_code VARCHAR(50) NOT NULL UNIQUE,
+    project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    name VARCHAR(150) NOT NULL,
+    description TEXT,
+    baseline_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    budgeted_hours NUMERIC(10, 2) NOT NULL DEFAULT 0.00 CHECK (budgeted_hours >= 0),
+    budgeted_cost NUMERIC(15, 2) NOT NULL DEFAULT 0.00 CHECK (budgeted_cost >= 0),
+    budgeted_revenue NUMERIC(15, 2) NOT NULL DEFAULT 0.00 CHECK (budgeted_revenue >= 0),
+    currency VARCHAR(10) NOT NULL DEFAULT 'INR',
+    scope_tasks_count INTEGER NOT NULL DEFAULT 0,
+    scope_story_points NUMERIC(8, 2) NOT NULL DEFAULT 0.00,
+    warning_threshold_pct NUMERIC(5, 2) NOT NULL DEFAULT 75.00 CHECK (warning_threshold_pct > 0),
+    critical_threshold_pct NUMERIC(5, 2) NOT NULL DEFAULT 90.00 CHECK (critical_threshold_pct >= warning_threshold_pct),
+    is_frozen BOOLEAN NOT NULL DEFAULT TRUE,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 108. Project Financial Periodic Metrics & Variance Snapshots
+CREATE TABLE IF NOT EXISTS project_financial_metrics (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    baseline_id UUID REFERENCES project_financial_baselines(id) ON DELETE SET NULL,
+    period_label VARCHAR(50) NOT NULL,
+    period_start DATE NOT NULL,
+    period_end DATE NOT NULL,
+    budgeted_hours NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
+    actual_logged_hours NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
+    approved_billable_hours NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
+    unapproved_draft_hours NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
+    remaining_hours NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
+    eac_hours NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
+    effort_variance_hours NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
+    budget_consumption_pct NUMERIC(6, 2) NOT NULL DEFAULT 0.00,
+    total_recognized_revenue NUMERIC(15, 2) NOT NULL DEFAULT 0.00,
+    total_direct_cost NUMERIC(15, 2) NOT NULL DEFAULT 0.00,
+    direct_contribution NUMERIC(15, 2) NOT NULL DEFAULT 0.00,
+    contribution_margin_pct NUMERIC(6, 2),
+    burn_rate_hours_per_week NUMERIC(8, 2) NOT NULL DEFAULT 0.00,
+    projected_completion_date DATE,
+    currency VARCHAR(10) NOT NULL DEFAULT 'INR',
+    notes TEXT,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_fin_metrics_period CHECK (period_end >= period_start)
+);
+
+-- 109. Currency Exchange Rates (Multi-Currency Conversion Basis)
+CREATE TABLE IF NOT EXISTS currency_exchange_rates (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    from_currency VARCHAR(10) NOT NULL,
+    to_currency VARCHAR(10) NOT NULL,
+    exchange_rate NUMERIC(12, 6) NOT NULL CHECK (exchange_rate > 0),
+    effective_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    source VARCHAR(100) DEFAULT 'MANUAL_ENTRY',
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_exchange_pair_date UNIQUE (from_currency, to_currency, effective_date)
+);
+
+-- ========================================================
+-- Date & Time: 2026-10-01 16:50:00 (IST)
+-- Description: LATER-001 - Advanced Scheduling, Critical Path Method (CPM),
+--              What-If Scenario Modeling, and Calibrated Composite Health Scores
+-- ========================================================
+
+-- 110. Schedule Scenarios (LATER-001 What-If Scenario Simulations)
+CREATE TABLE IF NOT EXISTS schedule_scenarios (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    scenario_code VARCHAR(50) NOT NULL,
+    name VARCHAR(150) NOT NULL,
+    description TEXT,
+    scenario_type VARCHAR(50) NOT NULL DEFAULT 'DATE_SHIFT' CHECK (
+        scenario_type IN ('DATE_SHIFT', 'CAPACITY_REDUCTION', 'SCOPE_EXPANSION', 'PRIORITY_RESHUFFLE', 'CRITICAL_PATH_OPTIMIZATION', 'CUSTOM')
+    ),
+    status VARCHAR(30) NOT NULL DEFAULT 'DRAFT' CHECK (
+        status IN ('DRAFT', 'SIMULATED', 'APPLIED', 'ARCHIVED')
+    ),
+    baseline_end_date DATE,
+    simulated_end_date DATE,
+    critical_path_length_hours NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
+    schedule_variance_days INTEGER NOT NULL DEFAULT 0,
+    impacted_tasks_count INTEGER NOT NULL DEFAULT 0,
+    simulation_summary JSONB DEFAULT '{}'::jsonb,
+    applied_at TIMESTAMP WITH TIME ZONE,
+    applied_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_schedule_scenario_code UNIQUE (project_id, scenario_code)
+);
+
+-- 111. Schedule Scenario Task Overrides (Simulated task dates, duration & CPM metrics)
+CREATE TABLE IF NOT EXISTS schedule_scenario_task_overrides (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    scenario_id UUID NOT NULL REFERENCES schedule_scenarios(id) ON DELETE CASCADE,
+    task_id UUID NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+    simulated_start_date DATE,
+    simulated_due_date DATE,
+    simulated_estimated_hours NUMERIC(8, 2),
+    simulated_priority VARCHAR(20),
+    earliest_start_date DATE,
+    earliest_finish_date DATE,
+    latest_start_date DATE,
+    latest_finish_date DATE,
+    total_slack_hours NUMERIC(8, 2) NOT NULL DEFAULT 0.00,
+    free_slack_hours NUMERIC(8, 2) NOT NULL DEFAULT 0.00,
+    is_critical_path BOOLEAN NOT NULL DEFAULT FALSE,
+    notes TEXT,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_scenario_task_override UNIQUE (scenario_id, task_id)
+);
+
+-- 112. Project Health Score Configurations (Calibrated weights & thresholds)
+CREATE TABLE IF NOT EXISTS project_health_score_configs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    project_id UUID UNIQUE REFERENCES projects(id) ON DELETE CASCADE,
+    weight_schedule NUMERIC(5, 2) NOT NULL DEFAULT 30.00 CHECK (weight_schedule >= 0),
+    weight_scope NUMERIC(5, 2) NOT NULL DEFAULT 20.00 CHECK (weight_scope >= 0),
+    weight_quality NUMERIC(5, 2) NOT NULL DEFAULT 20.00 CHECK (weight_quality >= 0),
+    weight_blockers NUMERIC(5, 2) NOT NULL DEFAULT 15.00 CHECK (weight_blockers >= 0),
+    weight_budget_flow NUMERIC(5, 2) NOT NULL DEFAULT 15.00 CHECK (weight_budget_flow >= 0),
+    schedule_slip_warning_days INTEGER NOT NULL DEFAULT 3,
+    schedule_slip_critical_days INTEGER NOT NULL DEFAULT 7,
+    defect_density_critical_ratio NUMERIC(5, 2) NOT NULL DEFAULT 0.25,
+    blocker_age_critical_hours NUMERIC(6, 2) NOT NULL DEFAULT 48.00,
+    missing_data_strategy VARCHAR(30) NOT NULL DEFAULT 'NEUTRAL_SCORE' CHECK (
+        missing_data_strategy IN ('NEUTRAL_SCORE', 'EXCLUDE_DIMENSION', 'STRICT_PENALTY')
+    ),
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_health_weights_sum CHECK (
+        (weight_schedule + weight_scope + weight_quality + weight_blockers + weight_budget_flow) = 100.00
+    )
+);
+
+-- 113. Project Health Evaluations (Snapshot scoring ledger with PM override capabilities)
+CREATE TABLE IF NOT EXISTS project_health_evaluations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    evaluation_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    composite_score NUMERIC(5, 2) NOT NULL CHECK (composite_score >= 0 AND composite_score <= 100),
+    health_state VARCHAR(20) NOT NULL CHECK (health_state IN ('GREEN', 'AMBER', 'RED')),
+    schedule_score NUMERIC(5, 2) NOT NULL DEFAULT 100.00,
+    scope_score NUMERIC(5, 2) NOT NULL DEFAULT 100.00,
+    quality_score NUMERIC(5, 2) NOT NULL DEFAULT 100.00,
+    blockers_score NUMERIC(5, 2) NOT NULL DEFAULT 100.00,
+    budget_flow_score NUMERIC(5, 2) NOT NULL DEFAULT 100.00,
+    dimension_details JSONB NOT NULL DEFAULT '{}'::jsonb,
+    manual_override_state VARCHAR(20) CHECK (manual_override_state IS NULL OR manual_override_state IN ('GREEN', 'AMBER', 'RED')),
+    override_reason TEXT,
+    overridden_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    overridden_at TIMESTAMP WITH TIME ZONE,
+    notes TEXT,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ========================================================
+-- Date & Time: 2026-10-01 17:35:00 (IST)
+-- Description: API-001 - Scoped Outbound Webhooks, Signed Deliveries & Event Replay
+-- ========================================================
+
+-- 114. Webhook Subscriptions (API-001)
+CREATE TABLE IF NOT EXISTS webhook_subscriptions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    subscription_code VARCHAR(50) NOT NULL UNIQUE,
+    name VARCHAR(150) NOT NULL,
+    target_url TEXT NOT NULL,
+    secret_key VARCHAR(128) NOT NULL,
+    previous_secret_key VARCHAR(128),
+    secret_rotated_at TIMESTAMP WITH TIME ZONE,
+    event_types TEXT[] NOT NULL DEFAULT '{}',
+    scope_project_ids UUID[] DEFAULT '{}',
+    is_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    custom_headers JSONB DEFAULT '{}'::jsonb,
+    max_retries INTEGER NOT NULL DEFAULT 3 CHECK (max_retries >= 0 AND max_retries <= 10),
+    timeout_seconds INTEGER NOT NULL DEFAULT 10 CHECK (timeout_seconds >= 1 AND timeout_seconds <= 60),
+    description TEXT,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 115. Webhook Deliveries (API-001 Delivery Ledger & Replay Engine)
+CREATE TABLE IF NOT EXISTS webhook_deliveries (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    subscription_id UUID NOT NULL REFERENCES webhook_subscriptions(id) ON DELETE CASCADE,
+    event_id VARCHAR(64) NOT NULL,
+    event_type VARCHAR(64) NOT NULL,
+    payload JSONB NOT NULL,
+    destination_url TEXT NOT NULL,
+    attempt_number INTEGER NOT NULL DEFAULT 1,
+    max_attempts INTEGER NOT NULL DEFAULT 3,
+    next_retry_at TIMESTAMP WITH TIME ZONE,
+    status VARCHAR(30) NOT NULL DEFAULT 'PENDING' CHECK (
+        status IN ('PENDING', 'SUCCESS', 'FAILED', 'RETRYING', 'CANCELLED', 'MANUAL_REPLAY')
+    ),
+    response_status_code INTEGER,
+    response_headers JSONB,
+    response_body TEXT,
+    execution_duration_ms INTEGER,
+    error_message TEXT,
+    delivered_at TIMESTAMP WITH TIME ZONE,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ========================================================
+-- Date & Time: 2026-10-01 17:50:00 IST
+-- Description: ADMIN-001 Configuration Toolkit & Single-Company Setup Wizard
+-- ========================================================
+
+-- 116. Single-Company Installation Profile & Setup Wizard (ADMIN-001)
+CREATE TABLE IF NOT EXISTS company_settings (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    company_name VARCHAR(150) NOT NULL,
+    legal_name VARCHAR(200),
+    registration_number VARCHAR(100),
+    tax_id VARCHAR(100),
+    company_domain VARCHAR(150),
+    primary_email VARCHAR(150),
+    support_email VARCHAR(150),
+    headquarters_branch_id UUID REFERENCES branches(id) ON DELETE SET NULL,
+    default_currency VARCHAR(10) NOT NULL DEFAULT 'INR',
+    timezone VARCHAR(50) NOT NULL DEFAULT 'Asia/Kolkata',
+    date_format VARCHAR(30) NOT NULL DEFAULT 'YYYY-MM-DD',
+    branding_primary_color VARCHAR(20) NOT NULL DEFAULT '#2563eb',
+    branding_accent_color VARCHAR(20) NOT NULL DEFAULT '#4f46e5',
+    logo_url TEXT,
+    favicon_url TEXT,
+    setup_wizard_completed BOOLEAN NOT NULL DEFAULT FALSE,
+    setup_wizard_step INTEGER NOT NULL DEFAULT 1 CHECK (setup_wizard_step >= 1 AND setup_wizard_step <= 6),
+    setup_completed_at TIMESTAMP WITH TIME ZONE,
+    enabled_modules JSONB NOT NULL DEFAULT '{"tasks": true, "sprints": true, "timesheets": true, "crm_clients": true, "qa_testing": true, "customer_portal": true, "commercial": true, "sla_alerts": true, "analytics": true, "webhooks": true, "config_packages": true}'::jsonb,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 117. Versioned Configuration Packages (ADMIN-001)
+CREATE TABLE IF NOT EXISTS configuration_packages (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    package_code VARCHAR(50) NOT NULL UNIQUE,
+    package_name VARCHAR(150) NOT NULL,
+    version VARCHAR(30) NOT NULL DEFAULT '1.0.0',
+    pmt_version_compatibility VARCHAR(50) NOT NULL DEFAULT '1.0.0',
+    package_type VARCHAR(30) NOT NULL DEFAULT 'FULL' CHECK (
+        package_type IN ('FULL', 'WORKFLOWS_ONLY', 'ROLES_PERMISSIONS', 'TEMPLATES', 'SLA_POLICIES')
+    ),
+    description TEXT,
+    manifest JSONB NOT NULL DEFAULT '{}'::jsonb,
+    package_data JSONB NOT NULL DEFAULT '{}'::jsonb,
+    is_builtin_template BOOLEAN NOT NULL DEFAULT FALSE,
+    applied_at TIMESTAMP WITH TIME ZONE,
+    applied_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 118. Configuration Audit Logs (ADMIN-001 Dry-Run & Application History)
+CREATE TABLE IF NOT EXISTS configuration_audit_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    package_id UUID REFERENCES configuration_packages(id) ON DELETE SET NULL,
+    action VARCHAR(50) NOT NULL CHECK (
+        action IN ('DRY_RUN_PREVIEW', 'APPLY_PACKAGE', 'ROLLBACK', 'EXPORT_PACKAGE')
+    ),
+    applied_changes JSONB NOT NULL DEFAULT '[]'::jsonb,
+    conflicts_detected JSONB NOT NULL DEFAULT '[]'::jsonb,
+    status VARCHAR(30) NOT NULL DEFAULT 'SUCCESS' CHECK (
+        status IN ('SUCCESS', 'WARNINGS', 'FAILED')
+    ),
+    executed_by UUID NOT NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ========================================================
+-- Date & Time: 2026-10-02 13:30:00 IST
+-- Description: LATER-002 Source-Linked Drafting & Human-Reviewed Summaries
+-- ========================================================
+
+-- 119. Source-Linked Draft Suggestions & Human Review Ledger (LATER-002)
+CREATE TABLE IF NOT EXISTS draft_suggestions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    draft_code VARCHAR(50) NOT NULL UNIQUE,
+    draft_type VARCHAR(50) NOT NULL CHECK (
+        draft_type IN (
+            'DRAFT_SUBTASKS',
+            'DRAFT_ACCEPTANCE_CRITERIA',
+            'DRAFT_RELEASE_NOTES',
+            'DRAFT_SPRINT_SUMMARY',
+            'DRAFT_BUG_TRIAGE',
+            'GAP_SUGGESTION',
+            'DUPLICATE_SUGGESTION'
+        )
+    ),
+    title VARCHAR(255) NOT NULL,
+    source_entity_type VARCHAR(50) NOT NULL CHECK (
+        source_entity_type IN ('TASK', 'REQUIREMENT', 'VERSION', 'SPRINT', 'CLIENT_INTAKE', 'PRODUCT_IDEA', 'PROJECT')
+    ),
+    source_entity_id UUID NOT NULL,
+    source_entity_code VARCHAR(50),
+    audience_scope VARCHAR(30) NOT NULL DEFAULT 'INTERNAL_ONLY' CHECK (
+        audience_scope IN ('INTERNAL_ONLY', 'CLIENT_SAFE', 'PUBLIC_COMMUNITY')
+    ),
+    status VARCHAR(30) NOT NULL DEFAULT 'PENDING_REVIEW' CHECK (
+        status IN ('PENDING_REVIEW', 'ACCEPTED', 'MODIFIED_AND_ACCEPTED', 'REJECTED', 'DISCARDED')
+    ),
+    suggested_content JSONB NOT NULL DEFAULT '{}'::jsonb,
+    reviewed_content JSONB,
+    review_notes TEXT,
+    reviewed_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    reviewed_at TIMESTAMP WITH TIME ZONE,
+    applied_entity_type VARCHAR(50),
+    applied_entity_id UUID,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 120. Drafting Rule & Analysis Configuration (LATER-002)
+CREATE TABLE IF NOT EXISTS draft_rule_configs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    rule_code VARCHAR(50) NOT NULL UNIQUE,
+    rule_name VARCHAR(150) NOT NULL,
+    rule_type VARCHAR(50) NOT NULL CHECK (
+        rule_type IN ('GAP_DETECTION', 'DUPLICATE_DETECTION', 'WBS_GENERATION', 'SUMMARY_GENERATION')
+    ),
+    is_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    similarity_threshold NUMERIC(5, 2) DEFAULT 0.70,
+    rule_parameters JSONB NOT NULL DEFAULT '{}'::jsonb,
+    description TEXT,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+
+
+
+
+
+
 

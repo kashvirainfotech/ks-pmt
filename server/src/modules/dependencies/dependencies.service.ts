@@ -36,9 +36,15 @@ export class DependenciesService {
       throw new NotFoundException("One or both tasks could not be found");
     }
 
-    // Directed scheduling links (FINISH_TO_START, BLOCKS) enforce DAG cycle validation
-    const isSchedulingLink =
-      dto.linkType === "FINISH_TO_START" || dto.linkType === "BLOCKS";
+    // Directed scheduling links (FINISH_TO_START, START_TO_START, FINISH_TO_FINISH, START_TO_FINISH, BLOCKS) enforce DAG cycle validation
+    const schedulingLinks = [
+      "FINISH_TO_START",
+      "START_TO_START",
+      "FINISH_TO_FINISH",
+      "START_TO_FINISH",
+      "BLOCKS",
+    ];
+    const isSchedulingLink = schedulingLinks.includes(dto.linkType);
 
     if (isSchedulingLink) {
       // Check if a path from targetTaskId to sourceTaskId already exists via scheduling links
@@ -46,12 +52,12 @@ export class DependenciesService {
         WITH RECURSIVE dependency_chain AS (
           SELECT target_task_id
           FROM task_dependencies
-          WHERE source_task_id = $1 AND link_type IN ('FINISH_TO_START', 'BLOCKS')
+          WHERE source_task_id = $1 AND link_type IN ('FINISH_TO_START', 'START_TO_START', 'FINISH_TO_FINISH', 'START_TO_FINISH', 'BLOCKS')
           UNION
           SELECT td.target_task_id
           FROM task_dependencies td
           INNER JOIN dependency_chain dc ON dc.target_task_id = td.source_task_id
-          WHERE td.link_type IN ('FINISH_TO_START', 'BLOCKS')
+          WHERE td.link_type IN ('FINISH_TO_START', 'START_TO_START', 'FINISH_TO_FINISH', 'START_TO_FINISH', 'BLOCKS')
         )
         SELECT 1 FROM dependency_chain WHERE target_task_id = $2 LIMIT 1;
       `;
@@ -70,16 +76,23 @@ export class DependenciesService {
     // Insert relationship
     const insertQuery = `
       INSERT INTO task_dependencies (
-        source_task_id, target_task_id, link_type, description, created_by, updated_by
-      ) VALUES ($1, $2, $3, $4, $5, $5)
+        source_task_id, target_task_id, link_type, lag_duration_hours, lag_unit, description, created_by, updated_by
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $7)
       ON CONFLICT (source_task_id, target_task_id, link_type)
-      DO UPDATE SET description = EXCLUDED.description, updated_by = EXCLUDED.updated_by, updated_at = CURRENT_TIMESTAMP
+      DO UPDATE SET
+        lag_duration_hours = EXCLUDED.lag_duration_hours,
+        lag_unit = EXCLUDED.lag_unit,
+        description = EXCLUDED.description,
+        updated_by = EXCLUDED.updated_by,
+        updated_at = CURRENT_TIMESTAMP
       RETURNING *;
     `;
     const result = await this.db.query(insertQuery, [
       dto.sourceTaskId,
       dto.targetTaskId,
       dto.linkType,
+      dto.lagDurationHours ?? 0,
+      dto.lagUnit ?? "HOURS",
       dto.description || null,
       userId,
     ]);

@@ -48,9 +48,10 @@ import {
   Milestone,
   User,
 } from '../../types';
+import { EnvironmentsAndRetestsView } from './EnvironmentsAndRetestsView';
 
 export const QualityAssuranceWorkspace: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'suites' | 'runs' | 'gatekeeper' | 'traceability'>('suites');
+  const [activeTab, setActiveTab] = useState<'suites' | 'runs' | 'gatekeeper' | 'traceability' | 'environments'>('suites');
   const [loading, setLoading] = useState(false);
 
   // Global Context / Scopes
@@ -667,6 +668,18 @@ export const QualityAssuranceWorkspace: React.FC = () => {
             >
               <Activity className="w-4 h-4" />
               Traceability & Defect Radar
+            </button>
+
+            <button
+              onClick={() => setActiveTab('environments')}
+              className={`py-3 text-sm font-medium border-b-2 flex items-center gap-2 transition ${
+                activeTab === 'environments'
+                  ? 'border-indigo-600 text-indigo-600'
+                  : 'border-transparent text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              <Server className="w-4 h-4" />
+              Environments & Retests (QA-002)
             </button>
           </div>
         </div>
@@ -1455,6 +1468,11 @@ export const QualityAssuranceWorkspace: React.FC = () => {
             </div>
           </div>
         )}
+
+        {/* ======================================================== */}
+        {/* TAB 5: ENVIRONMENTS & RETESTS (QA-002)                   */}
+        {/* ======================================================== */}
+        {activeTab === 'environments' && <EnvironmentsAndRetestsView />}
       </main>
 
       {/* ======================================================== */}

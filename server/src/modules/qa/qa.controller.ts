@@ -44,6 +44,15 @@ import {
   QueryTestRunsDto,
   QueryTestSuitesDto,
 } from './dto/query-qa.dto';
+import {
+  CreateQaEnvironmentDto,
+  UpdateQaEnvironmentDto,
+} from './dto/create-qa-environment.dto';
+import { CreateIssueObservationDto } from './dto/create-issue-observation.dto';
+import {
+  QueryQaEnvironmentsDto,
+  QueryIssueObservationsDto,
+} from './dto/query-qa-environments.dto';
 
 @Controller('qa')
 @UseGuards(JwtAuthGuard, DynamicRbacGuard)
@@ -250,5 +259,80 @@ export class QaController {
     @Query('projectId') projectId?: string,
   ) {
     return await this.qaService.getTraceabilityMatrix(productId, projectId);
+  }
+
+  // ========================================================
+  // QA Environments & Scoped Labels (QA-002)
+  // ========================================================
+
+  @Post('environments')
+  @Permissions('QA_ENVIRONMENTS:MANAGE', 'TESTING:MANAGE')
+  async createEnvironment(
+    @Body() dto: CreateQaEnvironmentDto,
+    @Req() req: any,
+  ) {
+    return await this.qaService.createEnvironment(dto, req.user.id);
+  }
+
+  @Get('environments')
+  @Permissions('QA_ENVIRONMENTS:READ', 'TESTING:READ')
+  async getEnvironments(@Query() query: QueryQaEnvironmentsDto) {
+    return await this.qaService.getEnvironments(query);
+  }
+
+  @Get('environments/:id')
+  @Permissions('QA_ENVIRONMENTS:READ', 'TESTING:READ')
+  async getEnvironmentById(@Param('id', ParseUUIDPipe) id: string) {
+    return await this.qaService.getEnvironmentById(id);
+  }
+
+  @Patch('environments/:id')
+  @Permissions('QA_ENVIRONMENTS:MANAGE', 'TESTING:MANAGE')
+  async updateEnvironment(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateQaEnvironmentDto,
+    @Req() req: any,
+  ) {
+    return await this.qaService.updateEnvironment(id, dto, req.user.id);
+  }
+
+  @Delete('environments/:id')
+  @Permissions('QA_ENVIRONMENTS:MANAGE', 'TESTING:MANAGE')
+  async deleteEnvironment(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: any,
+  ) {
+    return await this.qaService.deleteEnvironment(id, req.user.id);
+  }
+
+  // ========================================================
+  // Issue Environment Observations & Retests (QA-002)
+  // ========================================================
+
+  @Post('observations')
+  @Permissions('QA_OBSERVATIONS:RECORD', 'TESTING:EXECUTE')
+  async createIssueObservation(
+    @Body() dto: CreateIssueObservationDto,
+    @Req() req: any,
+  ) {
+    return await this.qaService.createIssueObservation(dto, req.user);
+  }
+
+  @Get('observations')
+  @Permissions('QA_OBSERVATIONS:READ', 'TESTING:READ')
+  async getIssueObservations(
+    @Query() query: QueryIssueObservationsDto,
+    @Req() req: any,
+  ) {
+    return await this.qaService.getIssueObservations(query, req.user);
+  }
+
+  @Get('tasks/:taskId/environment-matrix')
+  @Permissions('QA_OBSERVATIONS:READ', 'TESTING:READ')
+  async getTaskEnvironmentMatrix(
+    @Param('taskId', ParseUUIDPipe) taskId: string,
+    @Req() req: any,
+  ) {
+    return await this.qaService.getTaskEnvironmentMatrix(taskId, req.user);
   }
 }
