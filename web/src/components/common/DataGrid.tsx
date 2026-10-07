@@ -43,6 +43,10 @@ export type GridColumn<T> = {
   value?: (row: T) => unknown;
   render?: (row: T) => React.ReactNode;
   type?: 'number' | 'text';
+  width?: string | number;
+  minWidth?: string | number;
+  className?: string;
+  headerClassName?: string;
 };
 export type GridAction<T> = {
   label: string;
@@ -448,44 +452,57 @@ export function DataGrid<T extends { id?: string }>({
           <thead>
             {table.getHeaderGroups().map((group) => (
               <tr key={group.id}>
-                {group.headers.map((header) => (
-                  <th
-                    key={header.id}
-                    scope="col"
-                    aria-sort={
-                      header.column.getIsSorted() === 'asc'
-                        ? 'ascending'
-                        : header.column.getIsSorted() === 'desc'
-                          ? 'descending'
-                          : 'none'
-                    }
-                  >
-                    <button
-                      title="Click to sort; Shift-click to add another column"
-                      onClick={header.column.getToggleSortingHandler()}
+                {group.headers.map((header) => {
+                  const colDef = columns.find((c) => c.id === header.column.id);
+                  return (
+                    <th
+                      key={header.id}
+                      scope="col"
+                      className={colDef?.headerClassName}
+                      style={{
+                        width: colDef?.width,
+                        minWidth: colDef?.minWidth,
+                      }}
+                      aria-sort={
+                        header.column.getIsSorted() === 'asc'
+                          ? 'ascending'
+                          : header.column.getIsSorted() === 'desc'
+                            ? 'descending'
+                            : 'none'
+                      }
                     >
-                      {flexRender(
-                        header.column.columnDef.header,
-                        header.getContext(),
-                      )}
-                      {header.column.getIsSorted() ? (
-                        header.column.getIsSorted() === 'desc' ? (
-                          <ArrowDown size={14} />
+                      <button
+                        title="Click to sort; Shift-click to add another column"
+                        onClick={header.column.getToggleSortingHandler()}
+                        className={colDef?.headerClassName?.includes('text-center') ? 'justify-center mx-auto' : ''}
+                      >
+                        {flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
+                        {header.column.getIsSorted() ? (
+                          header.column.getIsSorted() === 'desc' ? (
+                            <ArrowDown size={14} />
+                          ) : (
+                            <ArrowUp size={14} />
+                          )
                         ) : (
-                          <ArrowUp size={14} />
-                        )
-                      ) : (
-                        <ArrowUpDown size={13} className="opacity-35" />
-                      )}
-                      {sorting.length > 1 && header.column.getIsSorted() && (
-                        <span className="grid-count">
-                          {header.column.getSortIndex() + 1}
-                        </span>
-                      )}
-                    </button>
+                          <ArrowUpDown size={13} className="opacity-35" />
+                        )}
+                        {sorting.length > 1 && header.column.getIsSorted() && (
+                          <span className="grid-count">
+                            {header.column.getSortIndex() + 1}
+                          </span>
+                        )}
+                      </button>
+                    </th>
+                  );
+                })}
+                {hasActions && (
+                  <th scope="col" style={{ width: 100, minWidth: 100 }}>
+                    Actions
                   </th>
-                ))}
-                {hasActions && <th scope="col">Actions</th>}
+                )}
               </tr>
             ))}
           </thead>
@@ -543,16 +560,26 @@ export function DataGrid<T extends { id?: string }>({
                   </tr>
                 ) : (
                   <tr key={row.id}>
-                    {row.getVisibleCells().map((cell) => (
-                      <td key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext(),
-                        )}
-                      </td>
-                    ))}
+                    {row.getVisibleCells().map((cell) => {
+                      const colDef = columns.find((c) => c.id === cell.column.id);
+                      return (
+                        <td
+                          key={cell.id}
+                          className={colDef?.className}
+                          style={{
+                            width: colDef?.width,
+                            minWidth: colDef?.minWidth,
+                          }}
+                        >
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext(),
+                          )}
+                        </td>
+                      );
+                    })}
                     {hasActions && (
-                      <td>
+                      <td style={{ width: 100, minWidth: 100 }}>
                         <div className="grid-row-actions">
                           {actions
                             .filter((action) => !action.hidden?.(row.original))

@@ -2024,20 +2024,17 @@ CREATE TABLE IF NOT EXISTS knowledge_document_attachments (
 -- Description: COLLAB-002 - Project & Task Templates, Relative Dates & Recurring Work with Unique Occurrences
 -- ========================================================
 
--- 74. Project Templates Master (COLLAB-002)
+-- -- 74. Project Templates Master (COLLAB-002)
 CREATE TABLE IF NOT EXISTS project_templates (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     template_code VARCHAR(50) NOT NULL UNIQUE,
     template_name VARCHAR(150) NOT NULL,
     description TEXT,
     category VARCHAR(50) NOT NULL DEFAULT 'CLIENT_ONBOARDING' CHECK (
-        category IN ('CLIENT_ONBOARDING', 'FIXED_PRICE_DELIVERY', 'MAINTENANCE_RETAINER', 'SECURITY_AUDIT', 'RELEASE_CHECKLIST', 'INTERNAL_INITIATIVE')
+        category IN ('CLIENT_ONBOARDING', 'FIXED_PRICE_DELIVERY', 'MAINTENANCE_RETAINER', 'SECURITY_AUDIT', 'RELEASE_CHECKLIST', 'INTERNAL_INITIATIVE', 'CUSTOM')
     ),
-    default_billing_type VARCHAR(30) NOT NULL DEFAULT 'FIXED_COST' CHECK (
-        default_billing_type IN ('FIXED_COST', 'TIME_AND_MATERIALS', 'NON_BILLABLE', 'RETAINER')
-    ),
-    estimated_duration_days INTEGER NOT NULL DEFAULT 30 CHECK (estimated_duration_days > 0),
-    default_tags TEXT[] NOT NULL DEFAULT '{}',
+    target_engagement_model VARCHAR(50) NOT NULL DEFAULT 'TIME_AND_MATERIALS',
+    default_estimated_duration_days INTEGER NOT NULL DEFAULT 30 CHECK (default_estimated_duration_days > 0),
     milestone_templates JSONB NOT NULL DEFAULT '[]'::jsonb,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_by UUID NOT NULL,
@@ -2049,19 +2046,20 @@ CREATE TABLE IF NOT EXISTS project_templates (
 -- 75. Task Templates Master (COLLAB-002)
 CREATE TABLE IF NOT EXISTS task_templates (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    template_code VARCHAR(50) NOT NULL UNIQUE,
+    task_template_code VARCHAR(50) NOT NULL UNIQUE,
     project_template_id UUID REFERENCES project_templates(id) ON DELETE CASCADE,
     title VARCHAR(255) NOT NULL,
     description TEXT,
     task_type_id UUID REFERENCES task_types(id) ON DELETE SET NULL,
     priority VARCHAR(20) NOT NULL DEFAULT 'MEDIUM' CHECK (priority IN ('LOW', 'MEDIUM', 'HIGH', 'URGENT', 'CRITICAL')),
+    hierarchy_level VARCHAR(20) NOT NULL DEFAULT 'TASK' CHECK (hierarchy_level IN ('EPIC', 'TASK', 'SUBTASK')),
+    parent_task_template_id UUID REFERENCES task_templates(id) ON DELETE SET NULL,
     start_offset_days INTEGER NOT NULL DEFAULT 0 CHECK (start_offset_days >= 0),
     duration_days INTEGER NOT NULL DEFAULT 1 CHECK (duration_days > 0),
     estimated_hours NUMERIC(6, 2) NOT NULL DEFAULT 8.00 CHECK (estimated_hours >= 0),
-    story_points INTEGER NOT NULL DEFAULT 1 CHECK (story_points >= 0),
-    checklist_items JSONB NOT NULL DEFAULT '[]'::jsonb,
-    default_tags TEXT[] NOT NULL DEFAULT '{}',
-    order_index INTEGER NOT NULL DEFAULT 1,
+    default_role_code VARCHAR(50),
+    checklists_template JSONB NOT NULL DEFAULT '[]'::jsonb,
+    display_order INTEGER NOT NULL DEFAULT 1,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_by UUID NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -2075,27 +2073,22 @@ CREATE TABLE IF NOT EXISTS recurring_work_rules (
     rule_code VARCHAR(50) NOT NULL UNIQUE,
     title VARCHAR(255) NOT NULL,
     description TEXT,
-    task_template_id UUID REFERENCES task_templates(id) ON DELETE SET NULL,
-    project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
     product_id UUID REFERENCES products(id) ON DELETE CASCADE,
-    component_id UUID REFERENCES software_components(id) ON DELETE SET NULL,
+    project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+    task_template_id UUID REFERENCES task_templates(id) ON DELETE SET NULL,
     frequency VARCHAR(30) NOT NULL DEFAULT 'WEEKLY' CHECK (
         frequency IN ('DAILY', 'WEEKLY', 'BIWEEKLY', 'MONTHLY', 'QUARTERLY', 'ANNUALLY')
     ),
-    interval_value INTEGER NOT NULL DEFAULT 1 CHECK (interval_value > 0),
-    day_of_week INTEGER CHECK (day_of_week BETWEEN 1 AND 7),
+    interval_count INTEGER NOT NULL DEFAULT 1 CHECK (interval_count > 0),
+    day_of_week INTEGER CHECK (day_of_week BETWEEN 0 AND 6),
     day_of_month INTEGER CHECK (day_of_month BETWEEN 1 AND 31),
-    start_date DATE NOT NULL,
+    month_of_year INTEGER CHECK (month_of_year BETWEEN 1 AND 12),
+    next_run_date DATE NOT NULL,
     end_date DATE,
     max_occurrences INTEGER,
-    occurrences_count INTEGER NOT NULL DEFAULT 0 CHECK (occurrences_count >= 0),
-    last_generated_date DATE,
-    next_run_date DATE NOT NULL,
-    default_assignee_id UUID REFERENCES users(id) ON DELETE SET NULL,
-    target_priority VARCHAR(20) NOT NULL DEFAULT 'MEDIUM' CHECK (target_priority IN ('LOW', 'MEDIUM', 'HIGH', 'URGENT', 'CRITICAL')),
-    estimated_hours NUMERIC(6, 2) NOT NULL DEFAULT 4.00 CHECK (estimated_hours >= 0),
-    checklist_items JSONB NOT NULL DEFAULT '[]'::jsonb,
-    tags TEXT[] NOT NULL DEFAULT '{}',
+    total_occurrences_count INTEGER NOT NULL DEFAULT 0 CHECK (total_occurrences_count >= 0),
+    default_assignee_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    default_priority VARCHAR(20) NOT NULL DEFAULT 'MEDIUM' CHECK (default_priority IN ('LOW', 'MEDIUM', 'HIGH', 'URGENT', 'CRITICAL')),
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_by UUID NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -2112,25 +2105,21 @@ CREATE TABLE IF NOT EXISTS recurring_work_rules (
 CREATE TABLE IF NOT EXISTS recurring_task_occurrences (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     rule_id UUID NOT NULL REFERENCES recurring_work_rules(id) ON DELETE CASCADE,
-    task_id UUID NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
     scheduled_date DATE NOT NULL,
-    occurrence_number INTEGER NOT NULL CHECK (occurrence_number > 0),
-    generated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    executed_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    generated_task_id UUID NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+    execution_status VARCHAR(20) NOT NULL DEFAULT 'SUCCESS' CHECK (
+        execution_status IN ('SUCCESS', 'FAILED', 'SKIPPED')
+    ),
+    error_message TEXT,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_by UUID NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_by UUID,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT uq_recurrence_scheduled_date UNIQUE (rule_id, scheduled_date),
-    CONSTRAINT uq_recurrence_task UNIQUE (task_id)
+    CONSTRAINT uq_recurrence_task UNIQUE (generated_task_id)
 );
-
-
-
-
-
-
-
 
 -- ========================================================
 -- Date & Time: 2026-10-01 10:00:00 IST
@@ -2144,6 +2133,10 @@ CREATE TABLE IF NOT EXISTS work_item_watchers (
     entity_id UUID NOT NULL,
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     client_contact_id UUID REFERENCES client_contacts(id) ON DELETE CASCADE,
+    notify_on_status_change BOOLEAN NOT NULL DEFAULT TRUE,
+    notify_on_comments BOOLEAN NOT NULL DEFAULT TRUE,
+    notify_on_attachments BOOLEAN NOT NULL DEFAULT TRUE,
+    notify_on_approvals BOOLEAN NOT NULL DEFAULT TRUE,
     watch_reason VARCHAR(50) NOT NULL DEFAULT 'MANUAL', -- 'MANUAL', 'CREATOR', 'ASSIGNEE', 'COMMENTER', 'AUTO_RULE'
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_by UUID NOT NULL,
@@ -2163,26 +2156,26 @@ CREATE TABLE IF NOT EXISTS user_notification_settings (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     client_contact_id UUID REFERENCES client_contacts(id) ON DELETE CASCADE,
-    in_app_enabled BOOLEAN NOT NULL DEFAULT TRUE,
-    email_enabled BOOLEAN NOT NULL DEFAULT TRUE,
-    push_enabled BOOLEAN NOT NULL DEFAULT TRUE,
-    event_preferences JSONB NOT NULL DEFAULT '{
-        "TASK_ASSIGNMENT": {"inApp": true, "email": true, "push": true},
-        "STATUS_CHANGE": {"inApp": true, "email": false, "push": false},
-        "COMMENT_AND_MENTION": {"inApp": true, "email": true, "push": true},
-        "BLOCKER_AND_DEPENDENCY": {"inApp": true, "email": true, "push": true},
-        "DOCUMENT_REVISION": {"inApp": true, "email": false, "push": false},
-        "APPROVAL_AND_SIGNOFF": {"inApp": true, "email": true, "push": true},
-        "DEADLINE_AND_SLA": {"inApp": true, "email": true, "push": true},
-        "RECURRING_WORK_RUN": {"inApp": true, "email": false, "push": false}
-    }'::jsonb,
+    email_notifications_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    in_app_notifications_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    push_notifications_enabled BOOLEAN NOT NULL DEFAULT TRUE,
     digest_mode VARCHAR(20) NOT NULL DEFAULT 'INSTANT' CHECK (digest_mode IN ('INSTANT', 'DAILY', 'WEEKLY')),
     digest_time TIME NOT NULL DEFAULT '09:00:00',
     quiet_hours_enabled BOOLEAN NOT NULL DEFAULT FALSE,
-    quiet_hours_start TIME NOT NULL DEFAULT '22:00:00',
-    quiet_hours_end TIME NOT NULL DEFAULT '08:00:00',
-    allow_urgent_during_quiet_hours BOOLEAN NOT NULL DEFAULT TRUE,
+    quiet_hours_start TIME,
+    quiet_hours_end TIME,
     timezone VARCHAR(50) NOT NULL DEFAULT 'Asia/Kolkata',
+    allow_urgent_during_quiet_hours BOOLEAN NOT NULL DEFAULT TRUE,
+    event_preferences JSONB NOT NULL DEFAULT '{
+        "TASK_ASSIGNMENT": true,
+        "STATUS_CHANGE": true,
+        "COMMENT_AND_MENTION": true,
+        "BLOCKER_AND_DEPENDENCY": true,
+        "DOCUMENT_REVISION": true,
+        "APPROVAL_AND_SIGNOFF": true,
+        "DEADLINE_AND_SLA": true,
+        "RECURRING_WORK_RUN": true
+    }'::jsonb,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_by UUID NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -2199,24 +2192,25 @@ CREATE TABLE IF NOT EXISTS user_notification_settings (
 -- 80. Notification Delivery Queue (Deduplicated, Authorization-Rechecked - COLLAB-003)
 CREATE TABLE IF NOT EXISTS notification_delivery_queue (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    deduplication_key VARCHAR(150) NOT NULL UNIQUE,
     recipient_user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     recipient_contact_id UUID REFERENCES client_contacts(id) ON DELETE CASCADE,
-    channel VARCHAR(20) NOT NULL CHECK (channel IN ('IN_APP', 'EMAIL', 'PUSH')),
-    event_type VARCHAR(50) NOT NULL,
-    title VARCHAR(255) NOT NULL,
-    body TEXT NOT NULL,
+    delivery_channel VARCHAR(20) NOT NULL CHECK (delivery_channel IN ('IN_APP', 'EMAIL', 'PUSH')),
+    event_category VARCHAR(50) NOT NULL,
+    event_title VARCHAR(255) NOT NULL,
+    event_summary TEXT NOT NULL,
     entity_type VARCHAR(50),
     entity_id UUID,
+    entity_code VARCHAR(50),
     payload JSONB NOT NULL DEFAULT '{}'::jsonb,
     is_urgent BOOLEAN NOT NULL DEFAULT FALSE,
-    scheduled_for TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     delivery_status VARCHAR(30) NOT NULL DEFAULT 'QUEUED' CHECK (
         delivery_status IN ('QUEUED', 'DIGEST_PENDING', 'SENT', 'FAILED', 'CANCELLED_UNAUTHORIZED', 'SUPPRESSED_QUIET_HOURS')
     ),
-    deduplication_key VARCHAR(150) NOT NULL UNIQUE,
+    scheduled_for TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    delivered_at TIMESTAMP WITH TIME ZONE,
     attempts_count INTEGER NOT NULL DEFAULT 0,
     last_error TEXT,
-    sent_at TIMESTAMP WITH TIME ZONE,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_by UUID NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,

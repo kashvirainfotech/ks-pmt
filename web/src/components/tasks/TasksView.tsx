@@ -608,6 +608,10 @@ export const TasksView: React.FC = () => {
               {
                 id: "select",
                 label: "",
+                width: 44,
+                minWidth: 44,
+                className: "text-center w-11",
+                headerClassName: "text-center w-11",
                 render: (task) => (
                   <input
                     type="checkbox"
@@ -621,8 +625,11 @@ export const TasksView: React.FC = () => {
               {
                 id: "task_code",
                 label: "Code",
+                width: 140,
+                minWidth: 130,
+                className: "whitespace-nowrap font-mono text-xs",
                 render: (task) => (
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 whitespace-nowrap">
                     <span className="font-semibold text-blue-600 dark:text-blue-400">
                       {task.task_code}
                     </span>
@@ -634,17 +641,38 @@ export const TasksView: React.FC = () => {
                   </div>
                 ),
               },
-              { id: "title", label: "Task title" },
-              { id: "project_name", label: "Project" },
-              { id: "task_type_name", label: "Type" },
+              {
+                id: "title",
+                label: "Task title",
+                minWidth: 280,
+                className: "font-medium text-slate-900 dark:text-slate-100",
+              },
+              {
+                id: "project_name",
+                label: "Project",
+                width: 160,
+                minWidth: 140,
+                className: "whitespace-nowrap text-slate-600 dark:text-slate-300",
+                value: (t) => t.project_name || "-",
+              },
+              {
+                id: "task_type_name",
+                label: "Type",
+                width: 150,
+                minWidth: 130,
+                className: "whitespace-nowrap text-slate-700 dark:text-slate-300",
+                value: (t) => t.task_type_name || "-",
+              },
               {
                 id: "status_name",
                 label: "Status (Inline)",
+                width: 170,
+                minWidth: 160,
                 render: (task) => (
                   <select
                     value={task.status_id}
                     onChange={(e) => handleInlineStatusChange(task, e.target.value)}
-                    className="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                    className="w-full rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
                   >
                     {statuses.map((s) => (
                       <option key={s.id} value={s.id}>
@@ -657,11 +685,13 @@ export const TasksView: React.FC = () => {
               {
                 id: "priority",
                 label: "Priority (Inline)",
+                width: 130,
+                minWidth: 120,
                 render: (task) => (
                   <select
                     value={task.priority}
                     onChange={(e) => handleInlinePriorityChange(task, e.target.value)}
-                    className={`rounded-lg border px-2 py-1 text-xs font-bold ${
+                    className={`w-full rounded-lg border px-2 py-1 text-xs font-bold ${
                       task.priority === "CRITICAL" || task.priority === "URGENT"
                         ? "border-rose-200 bg-rose-50 text-rose-700 dark:bg-rose-950 dark:text-rose-300"
                         : task.priority === "HIGH"
@@ -680,17 +710,38 @@ export const TasksView: React.FC = () => {
               {
                 id: "story_points",
                 label: "Points",
+                width: 80,
+                minWidth: 70,
+                className: "text-center whitespace-nowrap",
+                headerClassName: "text-center",
                 value: (t) => t.story_points ?? "-",
               },
               {
                 id: "estimated_hours",
                 label: "Est. h",
+                width: 80,
+                minWidth: 70,
                 type: "number",
+                className: "text-center whitespace-nowrap",
+                headerClassName: "text-center",
+                value: (t) => t.estimated_hours ?? "-",
               },
-              { id: "spent_hours", label: "Logged h", type: "number" },
+              {
+                id: "spent_hours",
+                label: "Logged h",
+                width: 80,
+                minWidth: 70,
+                type: "number",
+                className: "text-center whitespace-nowrap",
+                headerClassName: "text-center",
+                value: (t) => t.spent_hours ?? "-",
+              },
               {
                 id: "assignees",
                 label: "Assignees",
+                width: 170,
+                minWidth: 140,
+                className: "whitespace-nowrap text-slate-700 dark:text-slate-300",
                 value: (t) =>
                   (t.assignees || [])
                     .map((a: any) => a.name || a.first_name)

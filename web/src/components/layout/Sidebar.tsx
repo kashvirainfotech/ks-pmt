@@ -42,6 +42,9 @@ import {
   Webhook,
   Sliders,
   Sparkles,
+  Building2,
+  AlertOctagon,
+  UserCircle,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -58,6 +61,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onCloseMobile,
 }) => {
   const { hasPermission, user } = useAuth();
+  const [hoveredItem, setHoveredItem] = React.useState<{ label: string; top: number } | null>(null);
+
+  React.useEffect(() => {
+    if (!collapsed) {
+      setHoveredItem(null);
+    }
+  }, [collapsed]);
 
   const isSuperAdmin = user?.role_code === 'ROLE_SUPER_ADMIN';
   const canViewMasters = isSuperAdmin || hasPermission('USERS:MANAGE') || hasPermission('BRANCHES:MANAGE');
@@ -66,7 +76,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { title: 'Workspace', items: [
       { label: 'Overview', path: '/dashboard', icon: LayoutDashboard, show: true },
       { label: 'Tasks', path: '/tasks', icon: Kanban, show: true },
-      ...portfolioScreens.map(screen => ({ label: screen.title, path: screen.path, icon: FolderKanban, show: true })),
+      ...portfolioScreens.map(screen => ({ label: screen.title, path: screen.path, icon: screen.icon || FolderKanban, show: true })),
       { label: 'Release timeline', path: '/releases', icon: CalendarDays, show: true },
       { label: 'Timesheets', path: '/timesheets', icon: Clock, show: true },
       { label: 'Work handoffs', path: '/handoffs', icon: ArrowRightLeft, show: true },
@@ -77,7 +87,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       { label: 'What Changed?', path: '/what-changed', icon: History, show: true },
       { label: 'Data Exchange', path: '/data-exchange', icon: FileSpreadsheet, show: true },
       { label: 'Webhooks & Events', path: '/webhooks', icon: Webhook, show: true },
-      { label: 'Clients', path: '/clients', icon: Users2, show: true },
+      { label: 'Clients', path: '/clients', icon: Building2, show: true },
     ]},
     { title: 'Client Delivery', items: [
       { label: 'Intake & Triage', path: '/client-intake', icon: LifeBuoy, show: true },
@@ -92,7 +102,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       { label: 'Critical Path & Scenarios', path: '/advanced-scheduling', icon: GitBranch, show: true },
       { label: 'UAT & Milestones', path: '/uat-packages', icon: ClipboardCheck, show: true },
       { label: 'Progress Reports', path: '/client-reports', icon: FileText, show: true },
-      { label: 'RAID & Decisions', path: '/raid', icon: ShieldAlert, show: true },
+      { label: 'RAID & Decisions', path: '/raid', icon: AlertOctagon, show: true },
       { label: 'Discovery & Roadmaps', path: '/product-roadmap', icon: Compass, show: true },
       { label: 'Goals & Outcomes', path: '/product-goals', icon: Target, show: true },
       { label: 'Client contacts', path: '/client-contacts', icon: UserCheck, show: true },
@@ -102,12 +112,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       { label: 'Setup & Config (ADMIN-001)', path: '/config-toolkit', icon: Sliders, show: canViewMasters },
       { label: 'Delivery teams', path: '/teams', icon: Users, show: true },
       { label: 'Workflow schemes', path: '/workflow-schemes', icon: GitMerge, show: true },
-      ...adminScreens.map(screen => ({ label: screen.title, path: screen.path, icon: Settings, show: canViewMasters })),
+      ...adminScreens.map(screen => ({ label: screen.title, path: screen.path, icon: screen.icon || Settings, show: canViewMasters })),
       { label: 'Audit trail', path: '/audit', icon: ShieldCheck, show: isSuperAdmin || hasPermission('AUDIT_LOGS:VIEW') },
     ]},
     { title: 'Personal', items: [
       { label: 'Notifications', path: '/notifications', icon: Bell, show: true },
-      { label: 'My profile', path: '/profile', icon: Users2, show: true },
+      { label: 'My profile', path: '/profile', icon: UserCircle, show: true },
     ]},
   ];
 
@@ -148,7 +158,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           <button
             aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
             onClick={onToggleCollapse}
+            onMouseEnter={(e) => {
+              if (!collapsed) return;
+              const rect = e.currentTarget.getBoundingClientRect();
+              setHoveredItem({ label: "Expand sidebar", top: rect.top + rect.height / 2 });
+            }}
+            onMouseLeave={() => {
+              if (collapsed) setHoveredItem(null);
+            }}
             className="hidden lg:flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-500 hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700"
           >
             {collapsed ? (
@@ -161,7 +180,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         <button onClick={onCloseMobile} aria-label="Close menu" className="absolute right-3 top-6 rounded-lg p-2 text-slate-500 lg:hidden"><X className="h-4 w-4" /></button>
         {/* Navigation Items */}
-        <nav aria-label="Main navigation" className="flex-1 space-y-6 overflow-y-auto px-3 py-6">
+        <nav
+          aria-label="Main navigation"
+          onScroll={() => setHoveredItem(null)}
+          className="flex-1 space-y-6 overflow-y-auto px-3 py-6"
+        >
           {groups.map(group => group.items.some(item => item.show) && (
             <div key={group.title}>
               <p className={`page-eyebrow mb-2 px-3 ${collapsed ? 'lg:hidden' : ''}`}>{group.title}</p>
@@ -170,6 +193,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   const Icon = item.icon;
                   return <NavLink key={item.path} to={item.path} onClick={onCloseMobile}
                     title={item.label}
+                    onMouseEnter={(e) => {
+                      if (!collapsed) return;
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      setHoveredItem({ label: item.label, top: rect.top + rect.height / 2 });
+                    }}
+                    onMouseLeave={() => {
+                      if (collapsed) setHoveredItem(null);
+                    }}
                     className={({ isActive }) => `flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors ${collapsed ? 'lg:justify-center lg:px-0' : ''} ${isActive ? 'bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300' : 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white'}`}>
                     <Icon className="h-[18px] w-[18px] shrink-0" />
                     <span className={collapsed ? 'lg:hidden' : ''}>{item.label}</span>
@@ -179,6 +210,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
           ))}
         </nav>
+
+        {/* Floating Tooltip when collapsed */}
+        {collapsed && hoveredItem && (
+          <div
+            style={{ top: hoveredItem.top }}
+            className="fixed left-22 z-50 -translate-y-1/2 pointer-events-none hidden lg:flex items-center"
+          >
+            <div className="relative rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white shadow-xl dark:bg-slate-800 dark:text-slate-100 dark:border dark:border-slate-700 whitespace-nowrap animate-in fade-in zoom-in-95 duration-100">
+              <div className="absolute right-full top-1/2 -mt-1 -mr-0.5 border-4 border-transparent border-r-slate-900 dark:border-r-slate-800" />
+              {hoveredItem.label}
+            </div>
+          </div>
+        )}
 
         {/* Company Footer / Version badge */}
         {!collapsed && (

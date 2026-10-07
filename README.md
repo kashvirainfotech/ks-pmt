@@ -5,7 +5,7 @@
 ### *Enterprise Project & Product Management for Multi-Branch IT Teams and Clients*
 
 [![Status: Beta](https://img.shields.io/badge/Status-Beta%20Version-orange.svg)](https://github.com/kashvirainfotech/ks-pmt)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![License: Source Available / Non-Commercial](https://img.shields.io/badge/License-Source_Available_%7C_Non--Commercial-blue.svg)](#-license--terms-of-use)
 [![Backend: NestJS](https://img.shields.io/badge/Backend-NestJS%2010-E0234E?logo=nestjs&logoColor=white)](https://nestjs.com/)
 [![Frontend: React + Vite](https://img.shields.io/badge/Frontend-React%2019%20%7C%20Vite-61DAFB?logo=react&logoColor=black)](https://vitejs.dev/)
 [![Mobile: Flutter](https://img.shields.io/badge/Mobile-Flutter%203%20(Android%20%26%20iOS)-02569B?logo=flutter&logoColor=white)](https://flutter.dev/)
@@ -41,6 +41,9 @@ Explore and interact with a live, hosted deployment of **KS-PMT**:
   - **Password**: `Admin@123456`
   - *(Pre-seeded with multi-branch workspaces, Kanban boards, client delivery workflows, UAT packages, and release gates)*
 
+> [!NOTE]
+> **Hosting & Initial Load Notice**: This demo is hosted on a third-party hosting provider using a free plan. Accessing it for the first time (or after inactivity) may take a little bit longer (around 1 to 2 minutes) to spin up and load.
+
 <p align="center">
   <img src="docs/images/dashboard-demo.png" alt="KS-PMT Workspace Overview Dashboard" width="100%" style="border-radius: 8px; border: 1px solid #e2e8f0; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);" />
 </p>
@@ -66,7 +69,9 @@ Explore and interact with a live, hosted deployment of **KS-PMT**:
   - [Step 4: Mobile App Setup (`mobile/`)](#step-4-mobile-app-setup-mobile)
 - [Default Super Admin Credentials](#-default-super-admin-credentials)
 - [Community, Feedback & Support](#-community-feedback--support)
+- [License & Terms of Use (Non-Commercial)](#-license--terms-of-use)
 - [About Kashvira Infotech & Project Policy](#about-kashvira-infotech--project-policy)
+  - [Professional Services & Implementation](#-professional-services--implementation)
 
 ---
 
@@ -461,7 +466,7 @@ The database installer includes `dbscripts/inserts/inserts.sql` and provisions t
 
 ## 💬 Community, Feedback & Support
 
-This project is **100% open source** released under the [MIT License](https://opensource.org/licenses/MIT). We built **KS-PMT** with passion to help a software development or product company manage its projects across all its locations and branches, with full control over its deployment and data.
+This project is published as a **Source-Available, Non-Commercial** application by Kashvira Infotech. We built **KS-PMT** with passion to help software development companies and IT teams manage their projects across all locations and branches with full control over their deployment and data.
 
 ### 📬 Get in Touch
 - **Contact Email**: `kashvirainfotech@gmail.com`
@@ -479,6 +484,36 @@ Feedback, feature suggestions, and bug reports are warmly welcomed! Please open 
 
 ---
 
+## 📄 License & Terms of Use
+
+**KS-PMT** is licensed under the **Kashvira Infotech Non-Commercial / Source-Available License**.
+
+The full source code is freely viewable, downloadable, and modifiable, but **commercial use, resale, and commercial hosting are strictly restricted**.
+
+### ✅ Permitted Uses (Free of Charge)
+You are permitted to download, install, build, inspect, and modify KS-PMT free of charge for:
+- **Internal Business Operations**: Deploying and using the platform within your own company or organization to manage your internal teams, projects, products, tasks, and branch locations.
+- **Personal & Educational Use**: Learning, experimentation, academic research, and training.
+- **Testing, Security & Evaluation**: Proofs of concept, staging trials, and technical security assessments.
+
+### ❌ Prohibited Commercial Uses (Without Prior Written License)
+Unless you have obtained a separate written commercial license agreement from Kashvira Infotech, you **may not**:
+- **Sell, Resell, or Sublicense**: Charge others for access to the software, sell copies, or license/sub-license the codebase or any derivative works.
+- **Offer as a Paid SaaS or Cloud Service**: Host KS-PMT as a commercial Software-as-a-Service (SaaS), multi-tenant service, or managed service for external paying clients.
+- **Commercial Redistribution**: Distribute, bundle, market, or re-brand the software or derivative versions as part of any commercial offering.
+- **Compete Commercially**: Create a commercial product or service substantially based on or derived from this codebase.
+
+### 💼 Commercial Licensing Requests
+If you are an enterprise, cloud service provider, or software vendor looking to:
+- Package or integrate KS-PMT into a commercial product offering,
+- Host and operate KS-PMT as a commercial service for your clients, or
+- Acquire dedicated commercial redistribution rights,
+
+Please contact our commercial licensing desk:  
+📧 **Commercial Licensing Inquiries**: [kashvirainfotech@gmail.com](mailto:kashvirainfotech@gmail.com)
+
+---
+
 ## About Kashvira Infotech & Project Policy
 
 ### Our Company & Why We Built KS-PMT
@@ -487,22 +522,55 @@ Kashvira Infotech is a small IT startup providing software solutions for manufac
 
 After evaluating paid and free tools available in the market, we chose to develop KS-PMT for our internal project and product management needs, including task and ticket tracking. This approach helps us manage costs by avoiding recurring SaaS subscription fees while retaining full control over our workflows, deployment, and data.
 
-### Professional Services
+### 💼 Professional Services & Implementation
 
-We offer installation, setup, implementation, training, support, customization, and hosting services to clients who wish to use KS-PMT for their project and product management needs.
+We help IT service companies, software agencies, and product engineering teams eliminate delivery chaos by automating their ticket and task lifecycle from **creation to closure**.
 
-For each client's customization engagement, we create a separate private GitHub repository based on this repository and share access with that client. We develop and deliver the agreed custom requirements in that private repository, maintaining a dedicated codebase for the client.
+Instead of paying recurring SaaS subscription fees ($30–$50/seat/month) on generic platforms, we provide **tailored, self-hosted implementation, end-to-end workflow automation, and custom feature engineering** so every role on your team operates with complete clarity.
+
+#### 🎯 Role-Tailored Clarity: How We Streamline Your Daily Operations
+
+1. **For QA Engineers & Testers — Zero Guesswork on What to Test Today**
+   - **Instant "Ready for QA" Queues**: When testers log in, their personalized dashboard immediately displays all tasks waiting for verification, complete with environment tags, linked requirements, and release version numbers.
+   - **Structured Retest Loops**: Automate ticket handoffs when bugs are resolved so QA never has to ask in chat: *"Which build has this fix?"* or *"Can I test this now?"*
+
+2. **For Developers — Clear Daily Priorities & Distraction-Free Backlogs**
+   - **Focused Sprint Commitments**: Developers always see an unambiguous, prioritized queue (Critical → High, Sprint commitments, upcoming deadlines) with direct visibility into blockers.
+   - **Transparent Acceptance Criteria**: Tasks are linked with functional specs and custom fields, eliminating back-and-forth ambiguity, endless clarification threads, and context switching.
+
+3. **For Project Managers & Scrum Masters — Enforced Quality Gates**
+   - **Automated Workflow Schemes**: Prevent tickets from skipping mandatory stages (e.g., prohibiting a task from moving directly from "In Progress" to "Closed" without QA sign-off or UAT approval).
+   - **Bottleneck & Aging Radar**: Automatically identify aging tasks, blocked items, and stalled review handoffs before they breach customer delivery deadlines.
+
+4. **For Clients & Product Owners — Seamless UAT & Milestone Sign-Offs**
+   - **Client Review Packages**: Package tested features into formal UAT releases for client approval, cutting down status update meetings and reducing scope disputes by up to 80%.
+   - **Commercial Transparency**: Track fixed-cost milestone deliverables alongside hourly timesheets and AMC/retainer commitments in one centralized system.
+
+5. **For Founders & CTOs — Full Data Sovereignty & Radical Cost Reduction**
+   - **Zero Per-Seat SaaS Taxes**: Host on your own private cloud or on-premise infrastructure with unlimited users and branches without monthly per-user bill shocks.
+   - **Multi-Branch Visibility**: Manage teams, departments, and cross-functional capacity across multiple geographic branches from a single unified pane.
+
+#### 🛠 What We Offer
+
+- **End-to-End Implementation & Cloud Setup**: Turnkey installation, database initialization, AWS S3 asset configuration, and domain/SSL setup on your chosen infrastructure.
+- **Workflow & Lifecycle Automation**: Custom tailoring of task statuses, role permissions, automated assignment rules, and SLA escalations aligned with your exact agency or product process.
+- **Dedicated Private Codebase & Custom Development**: For each client's customization engagement, we establish a separate private GitHub repository branched from this repository and share access. We develop and deliver agreed bespoke requirements in that private repository, maintaining a dedicated codebase for the client.
+- **Data Migration & Team Training**: Hands-on onboarding for developers, QAs, and managers, plus assistance with importing legacy projects and user data.
+- **Ongoing Support & Maintenance**: Periodic security updates, database tuning, and technical support.
+
+> 📩 **Ready to streamline your software delivery?**  
+> Contact our engineering and consulting team at **[kashvirainfotech@gmail.com](mailto:kashvirainfotech@gmail.com)** to discuss your setup, schedule a walkthrough, or request a custom deployment quote.
 
 ### Repository Usage & Future Changes
 
 > [!IMPORTANT]
 > **Please treat this repository as a starting point for your own implementation. Future changes in this public repository, particularly database scripts, are intended for fresh installations only and should not be treated as upgrade or migration scripts for existing installations.**
 
-You are welcome to fork this repository and adapt it to your requirements under the MIT License. If you would like assistance with customization, please contact us at [kashvirainfotech@gmail.com](mailto:kashvirainfotech@gmail.com).
+You are welcome to fork this repository and adapt it to your internal requirements under the [Non-Commercial License Terms](#-license--terms-of-use). If you would like assistance with customization, dedicated private hosting, or commercial licensing, please contact us at [kashvirainfotech@gmail.com](mailto:kashvirainfotech@gmail.com).
 
 ### Contributions & Maintenance Expectations
 
-**We do not accept pull requests for this repository.** As a small team, we are focusing our available resources on completing the planned open-source scope. Ongoing community development and pull request review would require dedicated staffing that we are unable to commit to. Please refrain from submitting pull requests; you are welcome to maintain enhancements in your own fork.
+**We do not accept pull requests for this repository.** As a small team, we are focusing our available resources on completing the planned roadmap scope. Ongoing community development and pull request review would require dedicated staffing that we are unable to commit to. Please refrain from submitting pull requests; you are welcome to maintain enhancements in your own fork.
 
 Feedback, suggestions, and bug reports remain welcome through issues or email. However, we cannot commit to continuous feature development, ongoing maintenance, or a response or resolution timeline for the public repository.
 

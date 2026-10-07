@@ -8308,13 +8308,14 @@ END $$;
 -- Date & Time: 2026-10-01 09:35:00 IST
 -- Description: COLLAB-002 - Enterprise Sample Templates and Recurring Work Rules
 -- ========================================================
-DO 
+DO $$
 DECLARE
     v_admin_id UUID := '00000000-0000-0000-0000-000000000001';
     v_task_type_task UUID := '55555555-5555-5555-5555-555555555551';
     v_branch_id UUID := '11111111-1111-1111-1111-111111111111';
     v_dev_user_id UUID := '00000000-0000-0000-0000-000000000004';
     v_lead_user_id UUID := '00000000-0000-0000-0000-000000000003';
+    v_default_cal_id UUID := '88888888-8888-8888-8888-888888888881';
 BEGIN
     -- 1. Project Templates
     INSERT INTO project_templates (
@@ -8488,7 +8489,7 @@ BEGIN
         'f3000000-0000-0000-0000-000000000002',
         CURRENT_DATE - INTERVAL '5 days',
         CURRENT_TIMESTAMP - INTERVAL '5 days',
-        '20000000-0000-0000-0000-0000000003e8',
+        '20000000-0000-0000-0000-0000000003e9',
         'SUCCESS',
         v_admin_id
     ) ON CONFLICT (rule_id, scheduled_date) DO NOTHING;
@@ -8661,7 +8662,7 @@ BEGIN
         'SPRINT',
         '12000000-0000-0000-0000-000000000001',
         CURRENT_TIMESTAMP - INTERVAL '7 days',
-        '{"taskCount": 4, "totalPoints": 34, "committedTaskIds": ["20000000-0000-0000-0000-0000000003e8", "20000000-0000-0000-0000-0000000003e9"]}'::jsonb,
+        '{"taskCount": 4, "totalPoints": 34, "committedTaskIds": ["20000000-0000-0000-0000-0000000003ea", "20000000-0000-0000-0000-0000000003e9"]}'::jsonb,
         TRUE,
         TRUE,
         v_admin_id
@@ -8863,7 +8864,7 @@ BEGIN
         'CLIENT',
         'a0000000-0000-0000-0000-000000000001',
         'b0000000-0000-0000-0000-000000000001',
-        '77777777-7777-7777-7777-777777777771',
+        '77777777-7777-7777-7777-777777777772',
         'ap-south-1 (Customer VPC)',
         'Client staging sandbox for Apex retail operations managers to execute user acceptance tests.',
         '{"tenant_id": "APEX-UAT-99", "sso_enabled": true}'::jsonb,
@@ -8877,7 +8878,7 @@ BEGIN
         'CLIENT',
         'a0000000-0000-0000-0000-000000000003',
         NULL,
-        '77777777-7777-7777-7777-777777777772',
+        '77777777-7777-7777-7777-777777777774',
         'Customer Datacenter (BKC Mumbai)',
         'Air-gapped on-premise installation running PayPulse gateway for core banking transactions.',
         '{"installation_mode": "AIR_GAPPED_K8S", "current_installed_version": "v2.1.0"}'::jsonb,
@@ -8895,7 +8896,7 @@ BEGIN
     ) VALUES (
         'ea000000-0000-0000-0000-000000000001',
         'OBS-2026-0001',
-        '20000000-0000-0000-0000-0000000003e8',
+        '20000000-0000-0000-0000-0000000003ea',
         'e0000000-0000-0000-0000-000000000001', -- Primary Internal QA
         '10000000-0000-0000-0000-000000000001', -- v3.2.0
         'PASSED',
@@ -8914,12 +8915,13 @@ BEGIN
     ), (
         'ea000000-0000-0000-0000-000000000002',
         'OBS-2026-0002',
-        '20000000-0000-0000-0000-000000000002', -- Apex Client UAT
+        '20000000-0000-0000-0000-0000000003ea',
+        'e0000000-0000-0000-0000-000000000002', -- Apex Client UAT
         '10000000-0000-0000-0000-000000000001', -- v3.2.0
         'FAILED',
         CURRENT_TIMESTAMP - INTERVAL '2 days',
         NULL,
-        '88888888-8888-8888-8888-888888888881', -- Client Contact
+        'd0000000-0000-0000-0000-000000000001', -- Client Contact Robert Miller
         'Edge 128.0',
         'Windows 11 Enterprise',
         'ThinkPad P16 Workstation',
@@ -8932,7 +8934,8 @@ BEGIN
     ), (
         'ea000000-0000-0000-0000-000000000003',
         'OBS-2026-0003',
-        '20000000-0000-0000-0000-000000000003', -- Zenith On-Prem Air-Gapped
+        '20000000-0000-0000-0000-0000000003ea',
+        'e0000000-0000-0000-0000-000000000003', -- Zenith On-Prem Air-Gapped
         '10000000-0000-0000-0000-000000000002', -- Older v2.1.0 release
         'FOUND_REPRODUCED',
         CURRENT_TIMESTAMP - INTERVAL '1 day',
@@ -9413,8 +9416,8 @@ BEGIN
         'HIGH',
         'e2000000-0000-0000-0000-000000000001',
         '20000000-0000-0000-0000-00000000046a',
-        '00000000-0000-0000-0000-000000000002',
         'b0000000-0000-0000-0000-000000000001',
+        '77777777-7777-7777-7777-777777777772',
         'SLA Resolution Target Reaching 75% Threshold',
         'Task TSK-ERP-001 has consumed 180 of 240 permitted resolution minutes with 60 minutes remaining.',
         'Elapsed resolution time reached 75.0% of target limit without a terminal status transition.',
@@ -9429,7 +9432,7 @@ BEGIN
         'MEDIUM',
         NULL,
         '20000000-0000-0000-0000-0000000003ea',
-        '00000000-0000-0000-0000-000000000001',
+        'b0000000-0000-0000-0000-000000000001',
         NULL,
         'Stale In-Progress Task Detected (>3 Working Days Without Progress)',
         'Task TSK-ERP-002 has been in IN_PROGRESS state for 4 business days without any time log or status update.',
@@ -9445,7 +9448,7 @@ BEGIN
         'CRITICAL',
         NULL,
         '20000000-0000-0000-0000-0000000003e9',
-        '00000000-0000-0000-0000-000000000001',
+        'b0000000-0000-0000-0000-000000000001',
         NULL,
         'Remaining Estimated Hours Exceed Available Assignee Sprint Capacity',
         'Assignee has 40 hours of committed backlog work remaining against 16 hours of net available working schedule.',
@@ -9469,7 +9472,7 @@ BEGIN
         'WIP-STAGE-WIP',
         'In Progress Stage Limit - Phoenix',
         'Maximum concurrent tasks in WIP state for Project Phoenix',
-        'STAGE', '00000000-0000-0000-0000-000000000001', NULL, NULL,
+        'STAGE', 'b0000000-0000-0000-0000-000000000001', NULL, NULL,
         '66666666-6666-6666-6666-666666666662',
         4, 'SOFT_WARNING', TRUE, v_admin_id
     ), (
@@ -9477,7 +9480,7 @@ BEGIN
         'WIP-STAGE-TEST',
         'Testing Stage Guard - Phoenix',
         'Strict hard guard on testing capacity to prevent QA queue saturation',
-        'STAGE', '00000000-0000-0000-0000-000000000001', NULL, NULL,
+        'STAGE', 'b0000000-0000-0000-0000-000000000001', NULL, NULL,
         '66666666-6666-6666-6666-666666666665',
         3, 'HARD_GUARD', TRUE, v_admin_id
     ), (
@@ -9509,7 +9512,7 @@ BEGIN
         '00000000-0000-0000-0000-000000000004',
         'c0000000-0000-0000-0000-000000000001',
         '66666666-6666-6666-6666-666666666662',
-        '00000000-0000-0000-0000-000000000001',
+        'b0000000-0000-0000-0000-000000000001',
         3, 2,
         'Authorized expedited bypass: Critical client payment regression requiring same-day hotfix patch by senior engineer',
         TRUE, '00000000-0000-0000-0000-000000000002',
@@ -9528,7 +9531,7 @@ BEGIN
         'AGING-PHX-DEFAULT',
         'Phoenix Standard Workflow Aging Thresholds',
         'Baseline 48h warning and 96h critical aging for all Phoenix tasks',
-        '00000000-0000-0000-0000-000000000001', NULL, NULL, NULL, NULL,
+        'b0000000-0000-0000-0000-000000000001', NULL, NULL, NULL, NULL,
         48.00, 96.00, 'BUSINESS_HOURS', v_default_cal_id, 100,
         TRUE, v_admin_id
     ), (
@@ -9536,7 +9539,7 @@ BEGIN
         'AGING-PHX-CRITICAL',
         'Phoenix Critical Priority Accelerated Thresholds',
         'Tighter 16h warning and 32h critical threshold for critical priority items',
-        '00000000-0000-0000-0000-000000000001', NULL, NULL, 'CRITICAL', NULL,
+        'b0000000-0000-0000-0000-000000000001', NULL, NULL, 'CRITICAL', NULL,
         16.00, 32.00, 'BUSINESS_HOURS', v_default_cal_id, 20,
         TRUE, v_admin_id
     ) ON CONFLICT (config_code) DO NOTHING;
@@ -9625,35 +9628,35 @@ BEGIN
         project_id, sprint_id, snapshot_date, status_category, task_count, story_points, is_rebuilt, created_by
     ) VALUES
         -- Day -10
-        ('00000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 10, 'DONE', 0, 0, FALSE, v_admin_id),
-        ('00000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 10, 'REVIEW_TEST', 1, 3, FALSE, v_admin_id),
-        ('00000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 10, 'IN_PROGRESS', 3, 11, FALSE, v_admin_id),
-        ('00000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 10, 'TODO', 10, 34, FALSE, v_admin_id),
+        ('b0000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 10, 'DONE', 0, 0, FALSE, v_admin_id),
+        ('b0000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 10, 'REVIEW_TEST', 1, 3, FALSE, v_admin_id),
+        ('b0000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 10, 'IN_PROGRESS', 3, 11, FALSE, v_admin_id),
+        ('b0000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 10, 'TODO', 10, 34, FALSE, v_admin_id),
         -- Day -8
-        ('00000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 8, 'DONE', 1, 3, FALSE, v_admin_id),
-        ('00000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 8, 'REVIEW_TEST', 2, 8, FALSE, v_admin_id),
-        ('00000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 8, 'IN_PROGRESS', 4, 14, FALSE, v_admin_id),
-        ('00000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 8, 'TODO', 7, 23, FALSE, v_admin_id),
+        ('b0000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 8, 'DONE', 1, 3, FALSE, v_admin_id),
+        ('b0000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 8, 'REVIEW_TEST', 2, 8, FALSE, v_admin_id),
+        ('b0000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 8, 'IN_PROGRESS', 4, 14, FALSE, v_admin_id),
+        ('b0000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 8, 'TODO', 7, 23, FALSE, v_admin_id),
         -- Day -6
-        ('00000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 6, 'DONE', 2, 8, FALSE, v_admin_id),
-        ('00000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 6, 'REVIEW_TEST', 3, 10, FALSE, v_admin_id),
-        ('00000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 6, 'IN_PROGRESS', 4, 13, FALSE, v_admin_id),
-        ('00000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 6, 'TODO', 5, 17, FALSE, v_admin_id),
+        ('b0000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 6, 'DONE', 2, 8, FALSE, v_admin_id),
+        ('b0000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 6, 'REVIEW_TEST', 3, 10, FALSE, v_admin_id),
+        ('b0000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 6, 'IN_PROGRESS', 4, 13, FALSE, v_admin_id),
+        ('b0000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 6, 'TODO', 5, 17, FALSE, v_admin_id),
         -- Day -4
-        ('00000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 4, 'DONE', 4, 14, FALSE, v_admin_id),
-        ('00000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 4, 'REVIEW_TEST', 2, 7, FALSE, v_admin_id),
-        ('00000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 4, 'IN_PROGRESS', 4, 14, FALSE, v_admin_id),
-        ('00000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 4, 'TODO', 4, 13, FALSE, v_admin_id),
+        ('b0000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 4, 'DONE', 4, 14, FALSE, v_admin_id),
+        ('b0000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 4, 'REVIEW_TEST', 2, 7, FALSE, v_admin_id),
+        ('b0000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 4, 'IN_PROGRESS', 4, 14, FALSE, v_admin_id),
+        ('b0000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 4, 'TODO', 4, 13, FALSE, v_admin_id),
         -- Day -2
-        ('00000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 2, 'DONE', 6, 21, FALSE, v_admin_id),
-        ('00000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 2, 'REVIEW_TEST', 2, 6, FALSE, v_admin_id),
-        ('00000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 2, 'IN_PROGRESS', 3, 10, FALSE, v_admin_id),
-        ('00000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 2, 'TODO', 3, 11, FALSE, v_admin_id),
+        ('b0000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 2, 'DONE', 6, 21, FALSE, v_admin_id),
+        ('b0000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 2, 'REVIEW_TEST', 2, 6, FALSE, v_admin_id),
+        ('b0000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 2, 'IN_PROGRESS', 3, 10, FALSE, v_admin_id),
+        ('b0000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE - 2, 'TODO', 3, 11, FALSE, v_admin_id),
         -- Day 0 (Today)
-        ('00000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE, 'DONE', 7, 24, FALSE, v_admin_id),
-        ('00000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE, 'REVIEW_TEST', 2, 7, FALSE, v_admin_id),
-        ('00000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE, 'IN_PROGRESS', 3, 10, FALSE, v_admin_id),
-        ('00000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE, 'TODO', 2, 7, FALSE, v_admin_id)
+        ('b0000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE, 'DONE', 7, 24, FALSE, v_admin_id),
+        ('b0000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE, 'REVIEW_TEST', 2, 7, FALSE, v_admin_id),
+        ('b0000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE, 'IN_PROGRESS', 3, 10, FALSE, v_admin_id),
+        ('b0000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', CURRENT_DATE, 'TODO', 2, 7, FALSE, v_admin_id)
     ON CONFLICT DO NOTHING;
 
     -- ========================================================
@@ -9698,7 +9701,7 @@ BEGIN
         reservation_code, user_id, project_id, reservation_type, title, description,
         start_date, end_date, reserved_hours_per_week, is_active, created_by
     ) VALUES
-        ('RES-2026-001', '00000000-0000-0000-0000-000000000004', '00000000-0000-0000-0000-000000000001',
+        ('RES-2026-001', '00000000-0000-0000-0000-000000000004', 'b0000000-0000-0000-0000-000000000001',
          'SUPPORT_ROTATION', 'L2/L3 Production Support Rotation', 'On-call production support coverage and incident resolution',
          CURRENT_DATE - 30, CURRENT_DATE + 30, 8.00, TRUE, v_admin_id),
         ('RES-2026-002', '00000000-0000-0000-0000-000000000004', NULL,
@@ -9713,10 +9716,11 @@ BEGIN
         estimation_accuracy_index, on_time_delivery_rate, first_time_right_rate,
         rework_count, sample_size, is_active, created_by
     ) VALUES
-        ('c0000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001',
+        ('c0000000-0000-0000-0000-000000000001', 'b0000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001',
          CURRENT_DATE - 14, CURRENT_DATE,
          160.00, 140.00, 136.00, 12,
          0.9412, 91.67, 83.33,
+         2, 12, TRUE, v_admin_id);
     -- ========================================================
     -- ANALYTICS-004: Project Financials, Variance, Rate Cards & Currencies Sample Data
     -- ========================================================
@@ -9740,7 +9744,7 @@ BEGIN
          1200.00, 500.00, '2026-01-01', NULL, 'Standard Tech Lead billing & labor cost rate', TRUE, v_admin_id),
         ('RATE-CORP-QA', NULL, '33333333-3333-3333-3333-333333333339', NULL, 'INR',
          750.00, 300.00, '2026-01-01', NULL, 'QA Specialist billing & labor cost rate', TRUE, v_admin_id),
-        ('RATE-PRJ-SPECIFIC', '00000000-0000-0000-0000-000000000001', NULL, '00000000-0000-0000-0000-000000000004', 'INR',
+        ('RATE-PRJ-SPECIFIC', 'b0000000-0000-0000-0000-000000000001', NULL, '00000000-0000-0000-0000-000000000004', 'INR',
          1100.00, 450.00, '2026-01-01', NULL, 'Project-negotiated developer rate for Logistics ERP', TRUE, v_admin_id)
     ON CONFLICT (rate_code) DO NOTHING;
 
@@ -9751,7 +9755,7 @@ BEGIN
         scope_tasks_count, scope_story_points, warning_threshold_pct, critical_threshold_pct,
         is_frozen, is_active, created_by
     ) VALUES
-        ('b1000000-0000-0000-0000-000000000001', 'BASE-LOG-2026-Q3', '00000000-0000-0000-0000-000000000001',
+        ('b1000000-0000-0000-0000-000000000001', 'BASE-LOG-2026-Q3', 'b0000000-0000-0000-0000-000000000001',
          'Logistics ERP Q3 Delivery Baseline', 'Contractual scope and budget baseline approved by steering committee',
          CURRENT_DATE - 45, 400.00, 160000.00, 380000.00, 'INR',
          25, 85.0, 75.00, 90.00, TRUE, TRUE, v_admin_id)
@@ -9765,13 +9769,13 @@ BEGIN
         total_recognized_revenue, total_direct_cost, direct_contribution, contribution_margin_pct,
         burn_rate_hours_per_week, projected_completion_date, currency, notes, is_active, created_by
     ) VALUES
-        ('00000000-0000-0000-0000-000000000001', 'b1000000-0000-0000-0000-000000000001',
+        ('b0000000-0000-0000-0000-000000000001', 'b1000000-0000-0000-0000-000000000001',
          'Sprint 1 (Sep 2026)', CURRENT_DATE - 28, CURRENT_DATE - 14,
          200.00, 184.00, 176.00, 8.00,
          40.00, 224.00, -16.00, 92.00,
          193600.00, 82800.00, 110800.00, 57.23,
          46.00, CURRENT_DATE + 30, 'INR', 'Closed sprint financials reconciled with approved timesheets', TRUE, v_admin_id),
-        ('00000000-0000-0000-0000-000000000001', 'b1000000-0000-0000-0000-000000000001',
+        ('b0000000-0000-0000-0000-000000000001', 'b1000000-0000-0000-0000-000000000001',
          'Sprint 2 (Current)', CURRENT_DATE - 13, CURRENT_DATE,
          200.00, 142.50, 130.00, 12.50,
          65.00, 207.50, 7.50, 71.25,
@@ -9785,7 +9789,7 @@ BEGIN
         schedule_slip_warning_days, schedule_slip_critical_days, defect_density_critical_ratio,
         blocker_age_critical_hours, missing_data_strategy, is_active, created_by
     ) VALUES (
-        'h1000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001',
+        'ba100000-0000-0000-0000-000000000001', 'b0000000-0000-0000-0000-000000000001',
         30.00, 20.00, 20.00, 15.00, 15.00,
         3, 7, 0.25, 48.00, 'NEUTRAL_SCORE', TRUE, v_admin_id
     ) ON CONFLICT (project_id) DO NOTHING;
@@ -9796,7 +9800,7 @@ BEGIN
         schedule_score, scope_score, quality_score, blockers_score, budget_flow_score,
         dimension_details, manual_override_state, override_reason, notes, is_active, created_by
     ) VALUES (
-        'h2000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001',
+        'ba200000-0000-0000-0000-000000000001', 'b0000000-0000-0000-0000-000000000001',
         CURRENT_DATE, 88.50, 'GREEN',
         85.00, 95.00, 90.00, 80.00, 92.50,
         '{"schedule": {"slip_days": 1, "critical_path_slack": 16.0}, "quality": {"defect_ratio": 0.08}, "blockers": {"active_count": 1, "max_age_hours": 18.5}}'::jsonb,
@@ -9809,7 +9813,7 @@ BEGIN
         baseline_end_date, simulated_end_date, critical_path_length_hours, schedule_variance_days,
         impacted_tasks_count, simulation_summary, is_active, created_by
     ) VALUES (
-        's1000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001',
+        'ba300000-0000-0000-0000-000000000001', 'b0000000-0000-0000-0000-000000000001',
         'SCEN-LOG-OPT-01', 'Q3 Delivery Critical Path Optimization',
         'What-if scenario simulating fast-tracking backend dispatch service with 16h acceleration',
         'CRITICAL_PATH_OPTIMIZATION', 'SIMULATED',
@@ -9824,11 +9828,11 @@ BEGIN
         earliest_start_date, earliest_finish_date, latest_start_date, latest_finish_date,
         total_slack_hours, free_slack_hours, is_critical_path, notes, is_active, created_by
     ) VALUES
-        ('s1000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-0000000003e9',
+        ('ba300000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-0000000003e9',
          CURRENT_DATE - 5, CURRENT_DATE + 5, 24.00,
          CURRENT_DATE - 5, CURRENT_DATE + 5, CURRENT_DATE - 5, CURRENT_DATE + 5,
          0.00, 0.00, TRUE, 'Critical path task driving baseline release completion', TRUE, v_admin_id),
-        ('s1000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-0000000003ea',
+        ('ba300000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-0000000003ea',
          CURRENT_DATE + 6, CURRENT_DATE + 18, 40.00,
          CURRENT_DATE + 6, CURRENT_DATE + 18, CURRENT_DATE + 8, CURRENT_DATE + 20,
          16.00, 16.00, FALSE, 'Non-critical path task with 16h available float', TRUE, v_admin_id)
@@ -9839,12 +9843,12 @@ BEGIN
         id, subscription_code, name, target_url, secret_key, event_types,
         is_enabled, max_retries, timeout_seconds, description, is_active, created_by
     ) VALUES
-        ('w1000000-0000-0000-0000-000000000001', 'WH-SLACK-DELIVERY', 'Slack Delivery Bot Alerts',
+        ('bb100000-0000-0000-0000-000000000001', 'WH-SLACK-DELIVERY', 'Slack Delivery Bot Alerts',
          'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX',
          'whsec_984537281904a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b9c8d7e6f5a4b3',
          ARRAY['task.created', 'blocker.opened', 'sla.breached', 'release.published'],
          TRUE, 3, 10, 'Outbound webhook notification stream to corporate Slack channel #delivery-radar', TRUE, v_admin_id),
-        ('w1000000-0000-0000-0000-000000000002', 'WH-ERP-ACCOUNTING', 'Enterprise ERP Milestone Sync',
+        ('bb100000-0000-0000-0000-000000000002', 'WH-ERP-ACCOUNTING', 'Enterprise ERP Milestone Sync',
          'https://erp.kashvirainfotech.com/api/v1/integrations/pmt-events',
          'whsec_a1b2c3d4e5f67890123456789abcdef0123456789abcdef0123456789abcdef0',
          ARRAY['task.transitioned', 'cr.approved'],
@@ -9857,12 +9861,12 @@ BEGIN
         attempt_number, max_attempts, status, response_status_code, response_body,
         execution_duration_ms, delivered_at, created_at
     ) VALUES
-        ('w2000000-0000-0000-0000-000000000001', 'w1000000-0000-0000-0000-000000000001',
+        ('bb200000-0000-0000-0000-000000000001', 'bb100000-0000-0000-0000-000000000001',
          'evt_1000000000000001', 'task.created',
          '{"event_id": "evt_1000000000000001", "event_type": "task.created", "timestamp": "2026-10-01T10:00:00Z", "data": {"task_code": "TSK-ERP-001", "title": "Implement multi-currency conversion", "priority": "HIGH"}}'::jsonb,
          'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX',
          1, 3, 'SUCCESS', 200, '{"ok": true}', 142, CURRENT_TIMESTAMP - INTERVAL '2 hours', CURRENT_TIMESTAMP - INTERVAL '2 hours'),
-        ('w2000000-0000-0000-0000-000000000002', 'w1000000-0000-0000-0000-000000000001',
+        ('bb200000-0000-0000-0000-000000000002', 'bb100000-0000-0000-0000-000000000001',
          'evt_1000000000000002', 'sla.breached',
          '{"event_id": "evt_1000000000000002", "event_type": "sla.breached", "timestamp": "2026-10-01T11:30:00Z", "data": {"task_code": "TSK-ERP-005", "policy_name": "P1 Critical Response", "breach_type": "RESPONSE_SLA"}}'::jsonb,
          'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX',
@@ -9905,7 +9909,7 @@ BEGIN
         package_type, description, manifest, package_data, is_builtin_template,
         applied_at, applied_by, is_active, created_by
     ) VALUES (
-        'pkg00000-0000-0000-0000-000000000001',
+        'bc100000-0000-0000-0000-000000000001',
         'PKG-AGILE-CORE-v1',
         'Agile Scrum & Kanban Core Delivery Package',
         '1.0.0',
@@ -9934,7 +9938,7 @@ BEGIN
         TRUE,
         v_admin_id
     ), (
-        'pkg00000-0000-0000-0000-000000000002',
+        'bc100000-0000-0000-0000-000000000002',
         'PKG-CLIENT-SERVICES-v1',
         'Client Delivery & Retainer Governance Package',
         '1.0.0',
@@ -10026,7 +10030,7 @@ BEGIN
              "recommended_action": "Link at least one manual test case before transition to IN_REVIEW."
          }'::jsonb, TRUE, v_admin_id)
     ON CONFLICT (draft_code) DO NOTHING;
-END ;
+END $$;
 
 
 
